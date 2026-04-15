@@ -13,9 +13,11 @@ export default async function Dashboard() {
   if (profile.role === "SUPERADMIN") redirect("/superadmin");
   if (!profile.organizationId) redirect("/setup");
 
-  const orgId = profile.organizationId;
+  const orgId = profile.organizationId as string;
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+  type StockItem = { id: string; name: string; stock: number; minStock: number };
 
   const [totalProducts, allProducts, weeklyOrders, monthlyOrders] = await Promise.all([
     prisma.product.count({ where: { organizationId: orgId, active: true } }),
@@ -23,7 +25,7 @@ export default async function Dashboard() {
       where: { organizationId: orgId, active: true },
       select: { id: true, name: true, stock: true, minStock: true },
       orderBy: { stock: "asc" },
-    }),
+    }) as Promise<StockItem[]>,
     prisma.order.count({ where: { organizationId: orgId, createdAt: { gte: weekAgo } } }),
     prisma.order.findMany({
       where: { organizationId: orgId, createdAt: { gte: monthStart }, status: { not: "CANCELADO" } },
@@ -31,8 +33,8 @@ export default async function Dashboard() {
     }),
   ]);
 
-  const monthlyRevenue = monthlyOrders.reduce((sum: number, o: { total: unknown }) => sum + Number(o.total), 0);
-  const lowStockAlerts = allProducts.filter((p) => p.stock <= p.minStock).slice(0, 5);
+  const monthlyRevenue = monthlyOrders.reduce((sum: number, o) => sum + Number(o.total), 0);
+  const lowStockAlerts = allProducts.filter((p: StockItem) => p.stock <= p.minStock).slice(0, 5);
 
   const kpis = [
     { title: "Inventario Total",  value: String(totalProducts),           label: "SKUs Activos",    icon: Package,       color: "text-brand-kinetic-orange" },
