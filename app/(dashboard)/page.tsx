@@ -18,22 +18,21 @@ export default async function Dashboard() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
   type StockItem = { id: string; name: string; stock: number; minStock: number };
+  type OrderTotal = { total: { toString(): string } };
 
-  const [totalProducts, allProducts, weeklyOrders, monthlyOrders] = await Promise.all([
-    prisma.product.count({ where: { organizationId: orgId, active: true } }),
-    prisma.product.findMany({
-      where: { organizationId: orgId, active: true },
-      select: { id: true, name: true, stock: true, minStock: true },
-      orderBy: { stock: "asc" },
-    }) as Promise<StockItem[]>,
-    prisma.order.count({ where: { organizationId: orgId, createdAt: { gte: weekAgo } } }),
-    prisma.order.findMany({
-      where: { organizationId: orgId, createdAt: { gte: monthStart }, status: { not: "CANCELADO" } },
-      select: { total: true },
-    }),
-  ]);
+  const totalProducts = await prisma.product.count({ where: { organizationId: orgId, active: true } });
+  const allProducts: StockItem[] = await prisma.product.findMany({
+    where: { organizationId: orgId, active: true },
+    select: { id: true, name: true, stock: true, minStock: true },
+    orderBy: { stock: "asc" },
+  });
+  const weeklyOrders = await prisma.order.count({ where: { organizationId: orgId, createdAt: { gte: weekAgo } } });
+  const monthlyOrders: OrderTotal[] = await prisma.order.findMany({
+    where: { organizationId: orgId, createdAt: { gte: monthStart }, status: { not: "CANCELADO" } },
+    select: { total: true },
+  });
 
-  const monthlyRevenue = monthlyOrders.reduce((sum: number, o) => sum + Number(o.total), 0);
+  const monthlyRevenue = monthlyOrders.reduce((sum: number, o: OrderTotal) => sum + Number(o.total), 0);
   const lowStockAlerts = allProducts.filter((p: StockItem) => p.stock <= p.minStock).slice(0, 5);
 
   const kpis = [
