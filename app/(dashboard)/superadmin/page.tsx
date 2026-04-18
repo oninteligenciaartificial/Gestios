@@ -11,21 +11,19 @@ export default async function SuperAdminPage() {
   const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
   if (!profile || profile.role !== "SUPERADMIN") redirect("/");
 
-  const [totalOrgs, totalUsers, totalOrders, totalProducts, monthlyRevenue] = await Promise.all([
-    prisma.organization.count(),
-    prisma.profile.count({ where: { role: { not: "SUPERADMIN" } } }),
-    prisma.order.count(),
-    prisma.product.count({ where: { active: true } }),
-    prisma.order.findMany({
-      where: {
-        createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
-        status: { not: "CANCELADO" },
-      },
-      select: { total: true },
-    }),
-  ]);
+  const totalOrgs = await prisma.organization.count();
+  const totalUsers = await prisma.profile.count({ where: { role: { not: "SUPERADMIN" } } });
+  const totalOrders = await prisma.order.count();
+  const totalProducts = await prisma.product.count({ where: { active: true } });
+  const monthlyRevenue = await prisma.order.findMany({
+    where: {
+      createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
+      status: { not: "CANCELADO" },
+    },
+    select: { total: true },
+  });
 
-  const revenue = monthlyRevenue.reduce((sum, o) => sum + Number(o.total), 0);
+  const revenue = monthlyRevenue.reduce((s: number, o: { total: unknown }) => s + Number(o.total), 0);
 
   const recentOrgs = await prisma.organization.findMany({
     include: {

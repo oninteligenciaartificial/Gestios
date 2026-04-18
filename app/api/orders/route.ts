@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   if (!result.success) return NextResponse.json({ error: "Datos invalidos", details: result.error.issues }, { status: 400 });
 
   const { customerName, customerId, notes, items } = result.data;
-  const total = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+  const total = items.reduce((sum: number, i: { quantity: number; unitPrice: number }) => sum + i.quantity * i.unitPrice, 0);
 
   const order = await prisma.order.create({
     data: {

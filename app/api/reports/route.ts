@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     prisma.customer.count({ where: { organizationId: orgId } }),
   ]);
 
-  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
+  const totalRevenue = orders.reduce((sum: number, o: { total: unknown }) => sum + Number(o.total), 0);
   const totalOrders = orders.length;
 
   const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     productSales[key].revenue += item.quantity * Number(item.unitPrice);
   }
   const topSelling = Object.values(productSales).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
-  const lowStock = stockAlerts.filter((p) => p.stock <= p.minStock);
+  const lowStock = stockAlerts.filter((p: { id: string; name: string; stock: number; minStock: number }) => p.stock <= p.minStock);
 
   return NextResponse.json({ totalRevenue, totalOrders, totalCustomers, topSelling, lowStock });
 }
