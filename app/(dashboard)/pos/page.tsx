@@ -39,6 +39,7 @@ export default function POSPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"EFECTIVO" | "TARJETA" | "TRANSFERENCIA">("EFECTIVO");
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
   const [discountError, setDiscountError] = useState("");
@@ -127,6 +128,7 @@ export default function POSPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         customerName: customerName.trim() || "Cliente mostrador",
+        paymentMethod,
         items: cart.map((i) => ({
           productId: i.product.id,
           quantity: i.qty,
@@ -192,6 +194,14 @@ export default function POSPage() {
           placeholder="Cliente (opcional)"
           className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm"
         />
+        <div className="grid grid-cols-3 gap-1.5">
+          {(["EFECTIVO", "TARJETA", "TRANSFERENCIA"] as const).map((m) => (
+            <button key={m} type="button" onClick={() => setPaymentMethod(m)}
+              className={`py-2 rounded-xl text-xs font-bold transition-colors ${paymentMethod === m ? "bg-brand-kinetic-orange text-black" : "bg-white/5 text-brand-muted hover:text-white"}`}>
+              {m === "EFECTIVO" ? "💵 Efectivo" : m === "TARJETA" ? "💳 Tarjeta" : "📲 Transfer."}
+            </button>
+          ))}
+        </div>
         {!appliedDiscount ? (
           <div className="flex gap-2">
             <input

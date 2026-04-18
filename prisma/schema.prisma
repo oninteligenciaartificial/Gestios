@@ -18,16 +18,19 @@ model Organization {
   phone     String?
   address   String?
   logoUrl   String?
+  rfc       String?
+  currency  String   @default("MXN")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profiles   Profile[]
-  categories Category[]
-  products   Product[]
-  customers  Customer[]
-  orders     Order[]
-  suppliers  Supplier[]
-  discounts  Discount[]
+  profiles     Profile[]
+  categories   Category[]
+  products     Product[]
+  customers    Customer[]
+  orders       Order[]
+  suppliers    Supplier[]
+  discounts    Discount[]
+  activityLogs ActivityLog[]
 
   @@map("organizations")
 }
@@ -45,6 +48,7 @@ model Profile {
   createdAt      DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders       Order[]       @relation("StaffOrders")
 
   @@map("profiles")
 }
@@ -73,21 +77,24 @@ model Category {
 }
 
 model Product {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
   categoryId     String?
   supplierId     String?
   name           String
   description    String?
   sku            String?
-  price          Decimal  @default(0) @db.Decimal(10, 2)
-  cost           Decimal  @default(0) @db.Decimal(10, 2)
-  stock          Int      @default(0)
-  minStock       Int      @default(5)
+  barcode        String?
+  unit           String?
+  price          Decimal   @default(0) @db.Decimal(10, 2)
+  cost           Decimal   @default(0) @db.Decimal(10, 2)
+  stock          Int       @default(0)
+  minStock       Int       @default(5)
+  batchExpiry    DateTime?
   imageUrl       String?
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category     Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -103,15 +110,18 @@ model Product {
 // =============================================
 
 model Customer {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
   name           String
   phone          String?
   email          String?
   address        String?
+  rfc            String?
+  birthday       DateTime?
+  loyaltyPoints  Int       @default(0)
   notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orders       Order[]
@@ -124,18 +134,22 @@ model Customer {
 // =============================================
 
 model Order {
-  id             String      @id @default(cuid())
-  organizationId String
-  customerId     String?
-  customerName   String
-  status         OrderStatus @default(PENDIENTE)
-  total          Decimal     @default(0) @db.Decimal(10, 2)
-  notes          String?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id              String        @id @default(cuid())
+  organizationId  String
+  customerId      String?
+  staffId         String?
+  customerName    String
+  status          OrderStatus   @default(PENDIENTE)
+  paymentMethod   PaymentMethod @default(EFECTIVO)
+  total           Decimal       @default(0) @db.Decimal(10, 2)
+  shippingAddress String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  staff        Profile?     @relation("StaffOrders", fields: [staffId], references: [id], onDelete: SetNull)
   items        OrderItem[]
 
   @@map("orders")
@@ -160,6 +174,12 @@ enum OrderStatus {
   ENVIADO
   ENTREGADO
   CANCELADO
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
 }
 
 // =============================================
@@ -206,4 +226,24 @@ model Discount {
 enum DiscountType {
   PORCENTAJE
   MONTO_FIJO
+}
+
+// =============================================
+// LOG DE ACTIVIDAD
+// =============================================
+
+model ActivityLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  userName       String
+  action         String
+  entity         String
+  entityId       String?
+  details        String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
 }

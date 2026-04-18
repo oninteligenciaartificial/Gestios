@@ -7,12 +7,16 @@ const createSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   sku: z.string().optional(),
+  barcode: z.string().optional(),
+  unit: z.string().optional(),
   categoryId: z.string().optional(),
   supplierId: z.string().optional(),
   price: z.number().min(0).default(0),
   cost: z.number().min(0).default(0),
   stock: z.number().int().min(0).default(0),
   minStock: z.number().int().min(0).default(5),
+  batchExpiry: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
   const result = createSchema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos", details: result.error.issues }, { status: 400 });
 
-  const { name, description, sku, categoryId, supplierId, price, cost, stock, minStock } = result.data;
+  const { name, description, sku, barcode, unit, categoryId, supplierId, price, cost, stock, minStock, batchExpiry, imageUrl } = result.data;
 
   const product = await prisma.product.create({
     data: {
@@ -57,12 +61,16 @@ export async function POST(request: Request) {
       name: name.trim(),
       description: description ?? null,
       sku: sku ?? null,
+      barcode: barcode ?? null,
+      unit: unit ?? null,
       categoryId: categoryId ?? null,
       supplierId: supplierId ?? null,
       price,
       cost,
       stock,
       minStock,
+      batchExpiry: batchExpiry ? new Date(batchExpiry) : null,
+      imageUrl: imageUrl ?? null,
     },
   });
 

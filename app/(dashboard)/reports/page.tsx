@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download } from "lucide-react";
+import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download, CreditCard, UserCheck, Clock } from "lucide-react";
 
 interface ReportData {
   totalRevenue: number;
   totalOrders: number;
   totalCustomers: number;
-  topSelling: { name: string; quantity: number; revenue: number }[];
+  totalMargin: number;
+  topSelling: { name: string; quantity: number; revenue: number; margin: number }[];
   lowStock: { id: string; name: string; stock: number; minStock: number }[];
+  paymentBreakdown: Record<string, number>;
+  salesByStaff: { staffId: string | null; staffName: string; total: number; orders: number }[];
+  noMovement: { id: string; name: string; stock: number; updatedAt: string }[];
 }
 
 const PRESETS = [
@@ -20,6 +24,8 @@ const PRESETS = [
 
 function today() { return new Date().toISOString().split("T")[0]; }
 function monthStart() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0]; }
+
+const PAYMENT_LABELS: Record<string, string> = { EFECTIVO: "Efectivo", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia" };
 
 export default function ReportsPage() {
   const [from, setFrom] = useState(monthStart());
@@ -52,17 +58,30 @@ export default function ReportsPage() {
       ["Reporte de Ventas", `${from} al ${to}`],
       [],
       ["Ingresos totales", data.totalRevenue],
+      ["Margen de ganancia", data.totalMargin],
       ["Pedidos", data.totalOrders],
       ["Clientes", data.totalCustomers],
       ["Ticket promedio", data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0],
       [],
+      ["Metodos de pago"],
+      ["Metodo", "Monto"],
+      ...Object.entries(data.paymentBreakdown).map(([m, v]) => [PAYMENT_LABELS[m] ?? m, v]),
+      [],
+      ["Ventas por empleado"],
+      ["Empleado", "Pedidos", "Total"],
+      ...data.salesByStaff.map((s) => [s.staffName, s.orders, s.total]),
+      [],
       ["Top Productos vendidos"],
-      ["Producto", "Unidades vendidas", "Ingresos"],
-      ...data.topSelling.map((p) => [p.name, p.quantity, p.revenue]),
+      ["Producto", "Unidades vendidas", "Ingresos", "Margen"],
+      ...data.topSelling.map((p) => [p.name, p.quantity, p.revenue, p.margin]),
       [],
       ["Stock critico"],
       ["Producto", "Stock actual", "Stock minimo"],
       ...data.lowStock.map((p) => [p.name, p.stock, p.minStock]),
+      [],
+      ["Productos sin movimiento (30 dias)"],
+      ["Producto", "Stock"],
+      ...data.noMovement.map((p) => [p.name, p.stock]),
     ];
     const csv = rows.map((r) => r.join(",")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -74,8 +93,8 @@ export default function ReportsPage() {
   }
 
   const avgTicket = data && data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0;
-
   const maxQty = data?.topSelling[0]?.quantity ?? 1;
+  const totalPayments = Object.values(data?.paymentBreakdown ?? {}).reduce((s, v) => s + v, 0);
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -113,12 +132,13 @@ export default function ReportsPage() {
         <div className="py-16 text-center text-brand-muted">Error al cargar datos.</div>
       ) : (
         <>
+          {/* KPIs principales */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pop">
             {[
               { label: "Ingresos totales", value: `$${data.totalRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, icon: DollarSign, color: "text-brand-growth-neon" },
-              { label: "Pedidos", value: String(data.totalOrders), icon: ShoppingCart, color: "text-brand-kinetic-orange" },
+              { label: "Margen de ganancia", value: `$${data.totalMargin.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-brand-kinetic-orange" },
+              { label: "Pedidos", value: String(data.totalOrders), icon: ShoppingCart, color: "text-blue-400" },
               { label: "Ticket promedio", value: `$${avgTicket.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-white" },
-              { label: "Clientes totales", value: String(data.totalCustomers), icon: Users, color: "text-white" },
             ].map((kpi) => (
               <div key={kpi.label} className="glass-panel p-5 rounded-2xl hover:-translate-y-1 transition-transform duration-300">
                 <div className="flex justify-between items-start mb-3">
@@ -133,6 +153,7 @@ export default function ReportsPage() {
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Top Productos */}
             <section className="space-y-4 animate-pop">
               <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
                 <Package size={20} className="text-brand-kinetic-orange" />
@@ -152,14 +173,12 @@ export default function ReportsPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-sm font-bold text-brand-growth-neon">${p.revenue.toLocaleString("es-MX")}</div>
+                            <div className="text-xs text-brand-kinetic-orange">+${p.margin.toLocaleString("es-MX")} margen</div>
                             <div className="text-xs text-brand-muted">{p.quantity} uds.</div>
                           </div>
                         </div>
                         <div className="w-full bg-white/5 rounded-full h-1.5">
-                          <div
-                            className="h-1.5 rounded-full bg-gradient-to-r from-brand-kinetic-orange to-brand-kinetic-orange-light"
-                            style={{ width: `${(p.quantity / maxQty) * 100}%` }}
-                          />
+                          <div className="h-1.5 rounded-full bg-gradient-to-r from-brand-kinetic-orange to-brand-kinetic-orange-light" style={{ width: `${(p.quantity / maxQty) * 100}%` }} />
                         </div>
                       </div>
                     ))}
@@ -168,6 +187,7 @@ export default function ReportsPage() {
               </div>
             </section>
 
+            {/* Alertas de Stock */}
             <section className="space-y-4 animate-pop">
               <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
                 <AlertTriangle size={20} className="text-red-400" />
@@ -185,9 +205,7 @@ export default function ReportsPage() {
                           <div className="text-xs text-brand-muted mt-0.5">Minimo: {p.minStock} uds.</div>
                         </div>
                         <div className="text-right">
-                          <div className={`text-xl font-display font-bold ${p.stock === 0 ? "text-red-400" : p.stock <= p.minStock ? "text-yellow-400" : "text-white"}`}>
-                            {p.stock}
-                          </div>
+                          <div className={`text-xl font-display font-bold ${p.stock === 0 ? "text-red-400" : p.stock <= p.minStock ? "text-yellow-400" : "text-white"}`}>{p.stock}</div>
                           <div className="text-xs text-brand-muted">en stock</div>
                         </div>
                       </div>
@@ -196,7 +214,83 @@ export default function ReportsPage() {
                 )}
               </div>
             </section>
+
+            {/* Metodos de pago */}
+            <section className="space-y-4 animate-pop">
+              <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                <CreditCard size={20} className="text-blue-400" />
+                Metodos de Pago
+              </h2>
+              <div className="glass-panel rounded-2xl overflow-hidden">
+                {Object.keys(data.paymentBreakdown).length === 0 ? (
+                  <div className="py-12 text-center text-brand-muted text-sm">Sin ventas en este periodo.</div>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {Object.entries(data.paymentBreakdown).map(([method, amount]) => {
+                      const pct = totalPayments > 0 ? (amount / totalPayments) * 100 : 0;
+                      return (
+                        <div key={method} className="p-4 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">{PAYMENT_LABELS[method] ?? method}</span>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-brand-growth-neon">${amount.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                              <div className="text-xs text-brand-muted">{pct.toFixed(1)}%</div>
+                            </div>
+                          </div>
+                          <div className="w-full bg-white/5 rounded-full h-1.5">
+                            <div className="h-1.5 rounded-full bg-blue-400" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Ventas por empleado */}
+            {data.salesByStaff.length > 0 && (
+              <section className="space-y-4 animate-pop">
+                <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                  <UserCheck size={20} className="text-brand-kinetic-orange" />
+                  Ventas por Empleado
+                </h2>
+                <div className="glass-panel rounded-2xl overflow-hidden">
+                  <div className="divide-y divide-white/5">
+                    {data.salesByStaff.sort((a, b) => b.total - a.total).map((s) => (
+                      <div key={s.staffId} className="p-4 flex justify-between items-center">
+                        <div>
+                          <div className="font-medium text-white">{s.staffName}</div>
+                          <div className="text-xs text-brand-muted">{s.orders} pedido{s.orders !== 1 ? "s" : ""}</div>
+                        </div>
+                        <div className="text-sm font-bold text-brand-growth-neon">${s.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
           </div>
+
+          {/* Sin movimiento */}
+          {data.noMovement.length > 0 && (
+            <section className="space-y-4 animate-pop">
+              <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                <Clock size={20} className="text-yellow-400" />
+                Sin Movimiento (30 dias)
+              </h2>
+              <div className="glass-panel rounded-2xl overflow-hidden">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 divide-y md:divide-y-0 divide-white/5">
+                  {data.noMovement.map((p) => (
+                    <div key={p.id} className="p-4 border-b border-white/5">
+                      <div className="font-medium text-white text-sm">{p.name}</div>
+                      <div className="text-xs text-brand-muted mt-0.5">{p.stock} en stock</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

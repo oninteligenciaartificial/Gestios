@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -6,6 +7,8 @@ import { z } from "zod";
 const createSchema = z.object({
   customerName: z.string().min(1),
   customerId: z.string().optional(),
+  paymentMethod: z.enum(["EFECTIVO", "TARJETA", "TRANSFERENCIA"]).default("EFECTIVO"),
+  shippingAddress: z.string().optional(),
   notes: z.string().optional(),
   items: z.array(z.object({
     productId: z.string(),
@@ -26,7 +29,11 @@ export async function GET(request: Request) {
       organizationId: profile.organizationId,
       ...(status ? { status: status as never } : {}),
     },
-    include: { items: { include: { product: true } }, customer: true },
+    include: {
+      items: { include: { product: true } },
+      customer: true,
+      staff: { select: { id: true, name: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -34,8 +41,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const staffProfile = await prisma.profile.findUnique({ where: { userId: user.id }, select: { id: true } });
 
   let body: unknown;
   try { body = await request.json(); }
@@ -44,7 +57,7 @@ export async function POST(request: Request) {
   const result = createSchema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos", details: result.error.issues }, { status: 400 });
 
-  const { customerName, customerId, notes, items } = result.data;
+  const { customerName, customerId, paymentMethod, shippingAddress, notes, items } = result.data;
   const total = items.reduce((sum: number, i: { quantity: number; unitPrice: number }) => sum + i.quantity * i.unitPrice, 0);
 
   const order = await prisma.order.create({
@@ -52,6 +65,9 @@ export async function POST(request: Request) {
       organizationId: profile.organizationId,
       customerName: customerName.trim(),
       customerId: customerId ?? null,
+      staffId: staffProfile?.id ?? null,
+      paymentMethod,
+      shippingAddress: shippingAddress ?? null,
       notes: notes ?? null,
       total,
       items: {

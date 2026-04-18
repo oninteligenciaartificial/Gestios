@@ -1,11 +1,22 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface NavLink { href: string; label: string }
 
 export function SidebarNav({ links, onNavigate }: { links: NavLink[]; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const [criticalStock, setCriticalStock] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then(r => r.ok ? r.json() : [])
+      .then((products: { stock: number; minStock: number }[]) => {
+        setCriticalStock(products.filter(p => p.stock <= p.minStock).length);
+      })
+      .catch(() => {});
+  }, []);
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -20,13 +31,18 @@ export function SidebarNav({ links, onNavigate }: { links: NavLink[]; onNavigate
           key={link.href}
           href={link.href}
           onClick={onNavigate}
-          className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+          className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between ${
             isActive(link.href)
               ? "bg-brand-kinetic-orange/15 text-brand-kinetic-orange border border-brand-kinetic-orange/30"
               : "text-brand-muted hover:bg-white/5 hover:text-white"
           }`}
         >
-          {link.label}
+          <span>{link.label}</span>
+          {link.href === "/inventory" && criticalStock > 0 && (
+            <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+              {criticalStock > 9 ? "9+" : criticalStock}
+            </span>
+          )}
         </a>
       ))}
     </nav>

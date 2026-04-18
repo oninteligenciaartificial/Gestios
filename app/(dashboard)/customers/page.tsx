@@ -9,6 +9,9 @@ interface Customer {
   phone: string | null;
   email: string | null;
   address: string | null;
+  rfc: string | null;
+  birthday: string | null;
+  loyaltyPoints: number;
   notes: string | null;
   createdAt: string;
 }
@@ -37,7 +40,7 @@ const STATUS_LABELS: Record<string, string> = {
 const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
 
 const inp = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
-const EMPTY = { name: "", phone: "", email: "", address: "", notes: "" };
+const EMPTY = { name: "", phone: "", email: "", address: "", rfc: "", birthday: "", notes: "" };
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -81,7 +84,7 @@ export default function CustomersPage() {
 
   function openEdit(c: Customer) {
     setEditing(c);
-    setForm({ name: c.name, phone: c.phone ?? "", email: c.email ?? "", address: c.address ?? "", notes: c.notes ?? "" });
+    setForm({ name: c.name, phone: c.phone ?? "", email: c.email ?? "", address: c.address ?? "", rfc: c.rfc ?? "", birthday: c.birthday ? c.birthday.split("T")[0] : "", notes: c.notes ?? "" });
     setError("");
     setShowModal(true);
   }
@@ -289,6 +292,16 @@ export default function CustomersPage() {
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Direccion</label>
                 <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={inp} placeholder="Calle, numero, ciudad" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm text-brand-muted">RFC</label>
+                  <input value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value })} className={inp} placeholder="XAXX010101000" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-brand-muted">Cumpleanos</label>
+                  <input type="date" value={form.birthday} onChange={(e) => setForm({ ...form, birthday: e.target.value })} className={inp} />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Notas</label>

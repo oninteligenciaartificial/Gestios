@@ -6,8 +6,10 @@ import { z } from "zod";
 const createSchema = z.object({
   name: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
+  rfc: z.string().optional(),
+  birthday: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -45,8 +47,10 @@ export async function POST(request: Request) {
       organizationId: profile.organizationId,
       name: result.data.name.trim(),
       phone: result.data.phone ?? null,
-      email: result.data.email ?? null,
+      email: result.data.email || null,
       address: result.data.address ?? null,
+      rfc: result.data.rfc ?? null,
+      birthday: result.data.birthday ? new Date(result.data.birthday) : null,
       notes: result.data.notes ?? null,
     },
   });

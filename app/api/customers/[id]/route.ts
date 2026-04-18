@@ -8,6 +8,8 @@ const updateSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().optional(),
+  rfc: z.string().optional(),
+  birthday: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -35,6 +37,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       phone: data.phone ?? null,
       email: data.email || null,
       address: data.address ?? null,
+      rfc: data.rfc ?? null,
+      birthday: data.birthday ? new Date(data.birthday) : null,
       notes: data.notes ?? null,
     },
   });

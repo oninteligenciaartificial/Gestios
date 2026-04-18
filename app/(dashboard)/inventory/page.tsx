@@ -9,16 +9,21 @@ interface Product {
   id: string;
   name: string;
   sku: string | null;
+  barcode: string | null;
+  unit: string | null;
   price: string;
   cost: string;
   stock: number;
   minStock: number;
+  batchExpiry: string | null;
+  imageUrl: string | null;
   active: boolean;
   category: { id: string; name: string } | null;
 }
 
 const EMPTY_FORM = {
-  name: "", sku: "", categoryId: "", price: "", cost: "", stock: "0", minStock: "5",
+  name: "", sku: "", barcode: "", unit: "", categoryId: "", price: "", cost: "",
+  stock: "0", minStock: "5", batchExpiry: "", imageUrl: "",
 };
 
 function stockStatus(stock: number, minStock: number) {
@@ -120,11 +125,15 @@ export default function Inventory() {
     setForm({
       name: product.name,
       sku: product.sku ?? "",
+      barcode: product.barcode ?? "",
+      unit: product.unit ?? "",
       categoryId: product.category?.id ?? "",
       price: String(product.price),
       cost: String(product.cost),
       stock: String(product.stock),
       minStock: String(product.minStock),
+      batchExpiry: product.batchExpiry ? product.batchExpiry.split("T")[0] : "",
+      imageUrl: product.imageUrl ?? "",
     });
     setFormError("");
     setShowModal(true);
@@ -138,11 +147,15 @@ export default function Inventory() {
     const body = {
       name: form.name,
       sku: form.sku || undefined,
+      barcode: form.barcode || undefined,
+      unit: form.unit || undefined,
       categoryId: form.categoryId || undefined,
       price: parseFloat(form.price),
       cost: parseFloat(form.cost),
       stock: parseInt(form.stock),
       minStock: parseInt(form.minStock),
+      batchExpiry: form.batchExpiry || undefined,
+      imageUrl: form.imageUrl || undefined,
     };
 
     const res = editing
@@ -280,7 +293,7 @@ export default function Inventory() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               <Field label="Nombre *">
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={input} placeholder="Whey Protein 100%" />
               </Field>
@@ -288,6 +301,26 @@ export default function Inventory() {
               <div className="grid grid-cols-2 gap-4">
                 <Field label="SKU">
                   <input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={input} placeholder="WP-100" />
+                </Field>
+                <Field label="Codigo de barras">
+                  <input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className={input} placeholder="7501234567890" />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Unidad de medida">
+                  <select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className={input}>
+                    <option value="">Sin especificar</option>
+                    <option value="pieza">Pieza</option>
+                    <option value="kg">Kilogramo (kg)</option>
+                    <option value="g">Gramo (g)</option>
+                    <option value="litro">Litro</option>
+                    <option value="ml">Mililitro (ml)</option>
+                    <option value="capsula">Capsula</option>
+                    <option value="tableta">Tableta</option>
+                    <option value="sobre">Sobre</option>
+                    <option value="frasco">Frasco</option>
+                  </select>
                 </Field>
                 <Field label="Categoria">
                   <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className={input}>
@@ -314,6 +347,14 @@ export default function Inventory() {
                   <input required type="number" min="0" value={form.minStock} onChange={(e) => setForm({ ...form, minStock: e.target.value })} className={input} />
                 </Field>
               </div>
+
+              <Field label="Fecha vencimiento del lote">
+                <input type="date" value={form.batchExpiry} onChange={(e) => setForm({ ...form, batchExpiry: e.target.value })} className={input} />
+              </Field>
+
+              <Field label="URL de imagen">
+                <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={input} placeholder="https://..." />
+              </Field>
 
               {formError && <p className="text-red-400 text-sm">{formError}</p>}
 
