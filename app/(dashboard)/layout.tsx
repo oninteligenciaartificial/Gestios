@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { SidebarNav } from "./SidebarNav";
+import { SidebarUser } from "./SidebarUser";
 
 export default async function DashboardLayout({
   children,
@@ -34,6 +36,7 @@ export default async function DashboardLayout({
     { href: "/customers", label: "Clientes" },
     { href: "/reports", label: "Reportes" },
     ...(profile.role === "ADMIN" ? [{ href: "/staff", label: "Equipo" }] : []),
+    { href: "/settings", label: "Configuracion" },
   ];
 
   const navLinks = isSuperAdmin ? superAdminLinks : tenantLinks;
@@ -50,26 +53,15 @@ export default async function DashboardLayout({
             {orgName}
           </div>
         </div>
-        <nav className="flex flex-col gap-2 flex-1">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="px-4 py-3 rounded-xl text-brand-muted hover:bg-white/5 hover:text-white transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
-        <div className="mt-auto space-y-1">
-          <div className="px-4 py-3 rounded-xl border border-white/10 text-brand-muted text-sm">
-            <div className="font-medium text-white truncate">{profile.name}</div>
-            <div className="text-xs truncate">{user.email}</div>
-            <div className={`text-xs mt-1 font-bold ${isSuperAdmin ? "text-brand-kinetic-orange" : "text-brand-muted/60"}`}>
-              {profile.role}
-            </div>
-          </div>
-        </div>
+
+        <SidebarNav links={navLinks} />
+
+        <SidebarUser
+          name={profile.name}
+          email={user.email ?? ""}
+          role={profile.role}
+          isSuperAdmin={isSuperAdmin}
+        />
       </aside>
       <main className="flex-1 w-full relative overflow-y-auto">
         {children}

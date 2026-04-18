@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, X, Pencil, Trash2, ArrowUpDown, Package } from "lucide-react";
+import { Search, Plus, X, Pencil, Trash2, ArrowUpDown, Package, Upload, Download } from "lucide-react";
+import { useRef } from "react";
 
 interface Category { id: string; name: string }
 interface Product {
@@ -39,6 +40,38 @@ export default function Inventory() {
   const [formError, setFormError] = useState("");
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportMsg("");
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/products/import", { method: "POST", body: fd });
+    const data = await res.json();
+    if (res.ok) {
+      setImportMsg(`${data.created} productos importados.${data.errors.length ? ` ${data.errors.length} errores.` : ""}`);
+      fetchData();
+    } else {
+      setImportMsg(data.error ?? "Error al importar");
+    }
+    setImporting(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  function downloadTemplate() {
+    const csv = "nombre,precio,costo,stock,stock_minimo,sku,categoria\nEjemplo Producto,100,60,50,5,SKU001,Suplementos\n";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "plantilla_productos.csv";
+    a.click();
+  }
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -121,13 +154,28 @@ export default function Inventory() {
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Inventario</h1>
           <p className="text-brand-muted mt-1">Gestion de productos y alertas de stock</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
-        >
-          <Plus size={18} /> Nuevo Producto
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={downloadTemplate} className="glass-panel px-4 py-2.5 rounded-full flex items-center gap-2 text-sm text-brand-muted hover:text-white transition-colors">
+            <Download size={15} /> Plantilla Excel
+          </button>
+          <label className={`px-4 py-2.5 rounded-full flex items-center gap-2 text-sm font-medium cursor-pointer transition-colors ${importing ? "opacity-50 cursor-not-allowed" : "glass-panel text-brand-growth-neon hover:bg-white/10"}`}>
+            <Upload size={15} />
+            {importing ? "Importando..." : "Importar Excel"}
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
+          </label>
+          <button
+            onClick={openCreate}
+            className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-2.5 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
+          >
+            <Plus size={18} /> Nuevo Producto
+          </button>
+        </div>
       </header>
+      {importMsg && (
+        <div className={`px-4 py-3 rounded-xl text-sm ${importMsg.includes("Error") || importMsg.includes("error") ? "bg-red-500/10 text-red-400" : "bg-brand-growth-neon/10 text-brand-growth-neon"}`}>
+          {importMsg}
+        </div>
+      )}
 
       <div className="relative animate-pop">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" size={20} />
