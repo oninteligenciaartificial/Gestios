@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin } from "lucide-react";
+import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, ChevronRight } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -13,11 +13,37 @@ interface Customer {
   createdAt: string;
 }
 
+interface CustomerOrder {
+  id: string;
+  customerName: string;
+  total: string;
+  status: string;
+  createdAt: string;
+  customer: { id: string } | null;
+  items: { quantity: number; unitPrice: number; product: { name: string } }[];
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDIENTE: "bg-yellow-500/20 text-yellow-400",
+  CONFIRMADO: "bg-blue-500/20 text-blue-400",
+  ENVIADO: "bg-purple-500/20 text-purple-400",
+  ENTREGADO: "bg-brand-growth-neon/20 text-brand-growth-neon",
+  CANCELADO: "bg-red-500/20 text-red-400",
+};
+const STATUS_LABELS: Record<string, string> = {
+  PENDIENTE: "Pendiente", CONFIRMADO: "Confirmado", ENVIADO: "Enviado",
+  ENTREGADO: "Entregado", CANCELADO: "Cancelado",
+};
+const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
+
 const inp = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
 const EMPTY = { name: "", phone: "", email: "", address: "", notes: "" };
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [viewCustomer, setViewCustomer] = useState<Customer | null>(null);
+  const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -32,6 +58,17 @@ export default function CustomersPage() {
     if (res.ok) setCustomers(await res.json());
     setLoading(false);
   }, [search]);
+
+  async function openHistory(c: Customer) {
+    setViewCustomer(c);
+    setLoadingOrders(true);
+    const res = await fetch("/api/orders");
+    if (res.ok) {
+      const all: CustomerOrder[] = await res.json();
+      setCustomerOrders(all.filter((o) => o.customer?.id === c.id));
+    }
+    setLoadingOrders(false);
+  }
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
@@ -117,12 +154,14 @@ export default function CustomersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((c) => (
             <div key={c.id} className="glass-panel p-6 rounded-3xl animate-pop group relative">
-              <button
-                onClick={() => openEdit(c)}
-                className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-all"
-              >
-                <Pencil size={16} />
-              </button>
+              <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                <button onClick={() => openHistory(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors" title="Ver historial">
+                  <ShoppingCart size={14} />
+                </button>
+                <button onClick={() => openEdit(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors">
+                  <Pencil size={16} />
+                </button>
+              </div>
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-brand-kinetic-orange/20 border border-brand-kinetic-orange/30 flex items-center justify-center text-lg font-display font-bold text-brand-kinetic-orange">
                   {initials(c.name)}
@@ -157,6 +196,69 @@ export default function CustomersPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Customer order history modal */}
+      {viewCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setViewCustomer(null)}>
+          <div className="glass-panel w-full max-w-lg rounded-3xl p-6 space-y-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-lg font-display font-bold text-white">{viewCustomer.name}</h2>
+                <p className="text-xs text-brand-muted mt-0.5">Historial de compras</p>
+              </div>
+              <button onClick={() => setViewCustomer(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
+            </div>
+
+            {loadingOrders ? (
+              <p className="text-center text-brand-muted py-8">Cargando...</p>
+            ) : customerOrders.length === 0 ? (
+              <div className="py-10 text-center text-brand-muted">
+                <ShoppingCart size={36} className="mx-auto mb-3 opacity-20" />
+                <p className="text-sm">Este cliente no tiene pedidos registrados.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="glass-panel p-3 rounded-xl text-center">
+                    <div className="text-lg font-bold text-white">{customerOrders.length}</div>
+                    <div className="text-xs text-brand-muted">Pedidos</div>
+                  </div>
+                  <div className="glass-panel p-3 rounded-xl text-center">
+                    <div className="text-lg font-bold text-brand-kinetic-orange">${fmt(customerOrders.filter(o => o.status !== "CANCELADO").reduce((s, o) => s + Number(o.total), 0))}</div>
+                    <div className="text-xs text-brand-muted">Total gastado</div>
+                  </div>
+                  <div className="glass-panel p-3 rounded-xl text-center">
+                    <div className="text-lg font-bold text-brand-growth-neon">{customerOrders.filter(o => o.status === "ENTREGADO").length}</div>
+                    <div className="text-xs text-brand-muted">Completados</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {customerOrders.map((o) => (
+                    <div key={o.id} className="p-4 rounded-xl bg-white/5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${STATUS_COLORS[o.status] ?? "bg-white/10 text-brand-muted"}`}>{STATUS_LABELS[o.status] ?? o.status}</span>
+                          <span className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleDateString("es-MX")}</span>
+                        </div>
+                        <span className="font-bold text-white text-sm">${fmt(Number(o.total))}</span>
+                      </div>
+                      <div className="text-xs text-brand-muted space-y-0.5">
+                        {o.items.map((item, i) => (
+                          <div key={i} className="flex justify-between">
+                            <span>{item.product.name}</span>
+                            <span>{item.quantity} × ${fmt(Number(item.unitPrice))}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 

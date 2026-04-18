@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign } from "lucide-react";
+import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download } from "lucide-react";
 
 interface ReportData {
   totalRevenue: number;
@@ -46,15 +46,49 @@ export default function ReportsPage() {
 
   function handleApply() { fetchReport(from, to); }
 
+  function exportExcel() {
+    if (!data) return;
+    const rows = [
+      ["Reporte de Ventas", `${from} al ${to}`],
+      [],
+      ["Ingresos totales", data.totalRevenue],
+      ["Pedidos", data.totalOrders],
+      ["Clientes", data.totalCustomers],
+      ["Ticket promedio", data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0],
+      [],
+      ["Top Productos vendidos"],
+      ["Producto", "Unidades vendidas", "Ingresos"],
+      ...data.topSelling.map((p) => [p.name, p.quantity, p.revenue]),
+      [],
+      ["Stock critico"],
+      ["Producto", "Stock actual", "Stock minimo"],
+      ...data.lowStock.map((p) => [p.name, p.stock, p.minStock]),
+    ];
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `reporte_${from}_${to}.csv`;
+    a.click();
+  }
+
   const avgTicket = data && data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0;
 
   const maxQty = data?.topSelling[0]?.quantity ?? 1;
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
-      <header className="animate-pop">
-        <h1 className="text-4xl font-display font-bold text-white tracking-tight">Reportes</h1>
-        <p className="text-brand-muted mt-1">Analisis de ventas e inventario.</p>
+      <header className="flex justify-between items-end animate-pop">
+        <div>
+          <h1 className="text-4xl font-display font-bold text-white tracking-tight">Reportes</h1>
+          <p className="text-brand-muted mt-1">Analisis de ventas e inventario.</p>
+        </div>
+        {data && (
+          <button onClick={exportExcel} className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-white/10 text-brand-muted hover:text-white hover:bg-white/5 transition-colors text-sm font-medium">
+            <Download size={15} /> Exportar CSV
+          </button>
+        )}
       </header>
 
       <div className="glass-panel p-5 rounded-2xl flex flex-wrap gap-3 items-center animate-pop">

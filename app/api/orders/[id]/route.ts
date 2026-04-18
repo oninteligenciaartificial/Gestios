@@ -30,7 +30,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const { id } = await params;
-  const order = await prisma.order.findUnique({ where: { id } });
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: { items: true },
+  });
   if (!order || order.organizationId !== profile.organizationId) {
     return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
   }
@@ -43,5 +46,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
 
   const updated = await prisma.order.update({ where: { id }, data: result.data });
+
+  // Restore stock when cancelling a non-cancelled order
+  if (result.data.status === "CANCELADO" && order.status !== "CANCELADO") {
+    await Promise.all(
+      order.items.map((item) =>
+        prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        })
+      )
+    );
+  }
+
+  // Re-decrement stock if un-cancelling a previously cancelled order
+  if (result.data.status !== "CANCELADO" && order.status === "CANCELADO") {
+    await Promise.all(
+      order.items.map((item) =>
+        prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        })
+      )
+    );
+  }
+
   return NextResponse.json(updated);
 }

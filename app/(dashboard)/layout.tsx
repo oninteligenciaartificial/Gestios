@@ -42,6 +42,7 @@ export default async function DashboardLayout({
     { href: "/orders", label: "Pedidos" },
     { href: "/customers", label: "Clientes" },
     { href: "/reports", label: "Reportes" },
+    { href: "/caja", label: "Corte de Caja" },
     { href: "/suppliers", label: "Proveedores" },
     { href: "/discounts", label: "Descuentos" },
     { href: "/categories", label: "Categorias" },

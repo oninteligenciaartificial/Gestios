@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, X, Pencil, Trash2, ArrowUpDown, Package, Upload, Download } from "lucide-react";
+import { Search, Plus, X, Pencil, Trash2, Package, Upload, Download, PackagePlus } from "lucide-react";
 import { useRef } from "react";
 
 interface Category { id: string; name: string }
@@ -40,6 +40,9 @@ export default function Inventory() {
   const [formError, setFormError] = useState("");
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [stockEntry, setStockEntry] = useState<Product | null>(null);
+  const [stockQty, setStockQty] = useState("1");
+  const [stockSaving, setStockSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -85,6 +88,21 @@ export default function Inventory() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  async function handleStockEntry(e: React.FormEvent) {
+    e.preventDefault();
+    if (!stockEntry) return;
+    setStockSaving(true);
+    await fetch("/api/products/stock-entry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: stockEntry.id, quantity: Number(stockQty) }),
+    });
+    setStockEntry(null);
+    setStockQty("1");
+    setStockSaving(false);
+    fetchData();
+  }
 
   const filtered = products
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()) || (p.sku ?? "").toLowerCase().includes(search.toLowerCase()))
@@ -196,7 +214,7 @@ export default function Inventory() {
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="p-5 font-medium text-brand-muted">
-                  <span className="flex items-center gap-2"><ArrowUpDown size={14} /> Producto</span>
+                  <span className="flex items-center gap-2">Producto</span>
                 </th>
                 <th className="p-5 font-medium text-brand-muted">Categoria</th>
                 <th className="p-5 font-medium text-brand-muted">Precio</th>
@@ -224,6 +242,9 @@ export default function Inventory() {
                     </td>
                     <td className="p-5 text-right">
                       <div className="flex items-center justify-end gap-3">
+                        <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock">
+                          <PackagePlus size={16} />
+                        </button>
                         <button onClick={() => openEdit(item)} className="text-brand-muted hover:text-white transition-colors">
                           <Pencil size={16} />
                         </button>
@@ -302,6 +323,41 @@ export default function Inventory() {
                 className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold transition-opacity disabled:opacity-50"
               >
                 {saving ? "Guardando..." : editing ? "Guardar Cambios" : "Crear Producto"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Entrada de stock */}
+      {stockEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="glass-panel w-full max-w-sm rounded-3xl p-8 space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-display font-bold text-white">Entrada de Stock</h2>
+                <p className="text-xs text-brand-muted mt-0.5 truncate">{stockEntry.name}</p>
+              </div>
+              <button onClick={() => setStockEntry(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
+            </div>
+            <div className="p-4 rounded-xl bg-white/5 text-center">
+              <div className="text-brand-muted text-xs mb-1">Stock actual</div>
+              <div className="text-3xl font-display font-bold text-white">{stockEntry.stock}</div>
+            </div>
+            <form onSubmit={handleStockEntry} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Cantidad a ingresar *</label>
+                <input
+                  required type="number" min="1" value={stockQty}
+                  onChange={(e) => setStockQty(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-2xl font-bold text-center focus:outline-none focus:border-brand-growth-neon transition-colors"
+                />
+              </div>
+              <div className="p-3 rounded-xl bg-brand-growth-neon/10 border border-brand-growth-neon/20 text-center">
+                <span className="text-brand-growth-neon text-sm">Stock resultante: <strong>{stockEntry.stock + Number(stockQty || 0)}</strong></span>
+              </div>
+              <button type="submit" disabled={stockSaving} className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-growth-neon to-emerald-400 text-black font-bold disabled:opacity-50">
+                {stockSaving ? "Guardando..." : "Registrar Entrada"}
               </button>
             </form>
           </div>

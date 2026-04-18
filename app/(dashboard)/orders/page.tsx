@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ShoppingCart, Plus, X, Search, ChevronDown } from "lucide-react";
+import { ShoppingCart, Plus, X, Search, ChevronDown, Printer, Eye } from "lucide-react";
 
 type OrderStatus = "PENDIENTE" | "CONFIRMADO" | "ENVIADO" | "ENTREGADO" | "CANCELADO";
 
@@ -20,13 +20,9 @@ interface Order {
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  PENDIENTE: "Pendiente",
-  CONFIRMADO: "Confirmado",
-  ENVIADO: "Enviado",
-  ENTREGADO: "Entregado",
-  CANCELADO: "Cancelado",
+  PENDIENTE: "Pendiente", CONFIRMADO: "Confirmado", ENVIADO: "Enviado",
+  ENTREGADO: "Entregado", CANCELADO: "Cancelado",
 };
-
 const STATUS_COLORS: Record<OrderStatus, string> = {
   PENDIENTE: "bg-yellow-500/20 text-yellow-400",
   CONFIRMADO: "bg-blue-500/20 text-blue-400",
@@ -36,6 +32,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 const inp = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
+const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -45,14 +42,13 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selected, setSelected] = useState<Order | null>(null);
+  const [actionsId, setActionsId] = useState<string | null>(null);
+  const [detailOrder, setDetailOrder] = useState<Order | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    customerName: "",
-    customerId: "",
-    notes: "",
+    customerName: "", customerId: "", notes: "",
     items: [{ productId: "", quantity: 1, unitPrice: 0 }],
   });
 
@@ -65,7 +61,6 @@ export default function OrdersPage() {
   }, [filterStatus]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
-
   useEffect(() => {
     Promise.all([fetch("/api/products"), fetch("/api/customers")]).then(async ([p, c]) => {
       if (p.ok) setProducts(await p.json());
@@ -79,14 +74,8 @@ export default function OrdersPage() {
     setShowModal(true);
   }
 
-  function addItem() {
-    setForm((f) => ({ ...f, items: [...f.items, { productId: "", quantity: 1, unitPrice: 0 }] }));
-  }
-
-  function removeItem(i: number) {
-    setForm((f) => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
-  }
-
+  function addItem() { setForm((f) => ({ ...f, items: [...f.items, { productId: "", quantity: 1, unitPrice: 0 }] })); }
+  function removeItem(i: number) { setForm((f) => ({ ...f, items: f.items.filter((_, idx) => idx !== i) })); }
   function setItem(i: number, field: string, value: string | number) {
     setForm((f) => ({
       ...f,
@@ -104,8 +93,7 @@ export default function OrdersPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (form.items.some((i) => !i.productId)) { setError("Selecciona un producto en cada linea"); return; }
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -128,95 +116,116 @@ export default function OrdersPage() {
       body: JSON.stringify({ status }),
     });
     fetchOrders();
-    setSelected(null);
+    setActionsId(null);
+    if (detailOrder?.id === id) setDetailOrder((prev) => prev ? { ...prev, status } : null);
+  }
+
+  function printTicket(order: Order) {
+    const win = window.open("", "_blank", "width=400,height=600");
+    if (!win) return;
+    const lines = order.items.map((i) =>
+      `<tr><td>${i.product.name}</td><td style="text-align:center">${i.quantity}</td><td style="text-align:right">$${fmt(i.quantity * Number(i.unitPrice))}</td></tr>`
+    ).join("");
+    win.document.write(`
+      <html><head><title>Ticket</title>
+      <style>body{font-family:monospace;font-size:13px;margin:20px}h2{text-align:center;margin-bottom:4px}p{text-align:center;color:#666;margin:2px 0}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:4px 6px}th{border-bottom:1px solid #ccc;text-align:left}tfoot td{border-top:2px solid #333;font-weight:bold}.footer{text-align:center;margin-top:16px;color:#999;font-size:11px}</style>
+      </head><body>
+      <h2>Ticket de Venta</h2>
+      <p>${new Date(order.createdAt).toLocaleString("es-MX")}</p>
+      <p>Cliente: <strong>${order.customerName}</strong></p>
+      <table><thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">Subtotal</th></tr></thead>
+      <tbody>${lines}</tbody>
+      <tfoot><tr><td colspan="2">TOTAL</td><td style="text-align:right">$${fmt(Number(order.total))}</td></tr></tfoot>
+      </table>
+      ${order.notes ? `<p style="margin-top:12px;font-style:italic">${order.notes}</p>` : ""}
+      <div class="footer">Gracias por su compra</div>
+      </body></html>`);
+    win.document.close();
+    win.print();
   }
 
   const filtered = orders.filter((o) =>
     o.customerName.toLowerCase().includes(search.toLowerCase()) ||
     o.id.toLowerCase().includes(search.toLowerCase())
   );
-
   const orderTotal = form.items.reduce((s, i) => s + Number(i.quantity) * Number(i.unitPrice), 0);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 md:space-y-8">
       <header className="flex justify-between items-end animate-pop">
         <div>
-          <h1 className="text-4xl font-display font-bold text-white tracking-tight">Pedidos</h1>
-          <p className="text-brand-muted mt-1">Gestiona las ordenes de tus clientes.</p>
+          <h1 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">Pedidos</h1>
+          <p className="text-brand-muted mt-1 text-sm">Gestiona las ordenes de tus clientes.</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
-        >
-          <Plus size={18} /> Nuevo Pedido
+        <button onClick={openCreate} className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-4 md:px-6 py-2.5 md:py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] text-sm md:text-base">
+          <Plus size={16} /> Nuevo
         </button>
       </header>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por cliente o ID..." className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por cliente o ID..." className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm" />
         </div>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-brand-kinetic-orange transition-colors">
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm">
           <option value="">Todos</option>
-          {(Object.keys(STATUS_LABELS) as OrderStatus[]).map((s) => (
-            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-          ))}
+          {(Object.keys(STATUS_LABELS) as OrderStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
         </select>
       </div>
 
       {loading ? (
         <div className="py-16 text-center text-brand-muted">Cargando pedidos...</div>
       ) : (
-        <div className="glass-panel rounded-3xl overflow-hidden animate-pop">
+        <div className="glass-panel rounded-2xl overflow-hidden animate-pop">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="p-5 text-brand-muted font-medium text-sm">Cliente</th>
-                <th className="p-5 text-brand-muted font-medium text-sm">Productos</th>
-                <th className="p-5 text-brand-muted font-medium text-sm">Total</th>
-                <th className="p-5 text-brand-muted font-medium text-sm">Estado</th>
-                <th className="p-5 text-brand-muted font-medium text-sm">Fecha</th>
-                <th className="p-5 text-brand-muted font-medium text-sm"></th>
+                <th className="p-4 text-brand-muted font-medium text-sm">Cliente</th>
+                <th className="p-4 text-brand-muted font-medium text-sm hidden md:table-cell">Items</th>
+                <th className="p-4 text-brand-muted font-medium text-sm">Total</th>
+                <th className="p-4 text-brand-muted font-medium text-sm">Estado</th>
+                <th className="p-4 text-brand-muted font-medium text-sm hidden md:table-cell">Fecha</th>
+                <th className="p-4 text-brand-muted font-medium text-sm">Acc.</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-16 text-center text-brand-muted">
-                    <ShoppingCart size={40} className="mx-auto mb-3 opacity-30" />
-                    <p>No hay pedidos aun.</p>
-                  </td>
-                </tr>
+                <tr><td colSpan={6} className="py-16 text-center text-brand-muted"><ShoppingCart size={40} className="mx-auto mb-3 opacity-30" /><p>No hay pedidos.</p></td></tr>
               )}
               {filtered.map((o) => (
-                <tr key={o.id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="p-5">
-                    <div className="font-bold text-white">{o.customerName}</div>
-                    <div className="text-xs text-brand-muted font-mono mt-0.5">{o.id.slice(0, 8)}...</div>
+                <tr key={o.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => setDetailOrder(o)}>
+                  <td className="p-4">
+                    <div className="font-bold text-white text-sm">{o.customerName}</div>
+                    <div className="text-xs text-brand-muted font-mono">{o.id.slice(0, 8)}…</div>
                   </td>
-                  <td className="p-5 text-brand-muted text-sm">{o.items.length} item{o.items.length !== 1 ? "s" : ""}</td>
-                  <td className="p-5 font-display font-bold text-white">${Number(o.total).toLocaleString("es-MX")}</td>
-                  <td className="p-5">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[o.status]}`}>
-                      {STATUS_LABELS[o.status]}
-                    </span>
+                  <td className="p-4 text-brand-muted text-sm hidden md:table-cell">{o.items.length}</td>
+                  <td className="p-4 font-bold text-white text-sm">${fmt(Number(o.total))}</td>
+                  <td className="p-4">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[o.status]}`}>{STATUS_LABELS[o.status]}</span>
                   </td>
-                  <td className="p-5 text-brand-muted text-sm">{new Date(o.createdAt).toLocaleDateString("es-MX")}</td>
-                  <td className="p-5">
-                    <button onClick={() => setSelected(selected?.id === o.id ? null : o)} className="flex items-center gap-1 text-brand-muted hover:text-white transition-colors text-sm">
-                      Acciones <ChevronDown size={14} />
-                    </button>
-                    {selected?.id === o.id && (
-                      <div className="absolute mt-1 right-8 glass-panel rounded-xl p-2 z-10 space-y-1 min-w-[160px]">
-                        {(Object.keys(STATUS_LABELS) as OrderStatus[]).filter((s) => s !== o.status).map((s) => (
-                          <button key={s} onClick={() => updateStatus(o.id, s)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-sm text-brand-muted hover:text-white transition-colors">
-                            Marcar: {STATUS_LABELS[s]}
+                  <td className="p-4 text-brand-muted text-xs hidden md:table-cell">{new Date(o.createdAt).toLocaleDateString("es-MX")}</td>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative">
+                      <button onClick={() => setActionsId(actionsId === o.id ? null : o.id)} className="flex items-center gap-1 text-brand-muted hover:text-white transition-colors text-xs py-1 px-2 rounded-lg hover:bg-white/5">
+                        <ChevronDown size={14} />
+                      </button>
+                      {actionsId === o.id && (
+                        <div className="absolute right-0 mt-1 glass-panel rounded-xl p-2 z-20 space-y-1 min-w-[160px] shadow-xl">
+                          {(Object.keys(STATUS_LABELS) as OrderStatus[]).filter((s) => s !== o.status).map((s) => (
+                            <button key={s} onClick={() => updateStatus(o.id, s)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors">
+                              Marcar: {STATUS_LABELS[s]}
+                            </button>
+                          ))}
+                          <div className="border-t border-white/10 my-1" />
+                          <button onClick={() => { setDetailOrder(o); setActionsId(null); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors flex items-center gap-2">
+                            <Eye size={12} /> Ver detalle
                           </button>
-                        ))}
-                      </div>
-                    )}
+                          <button onClick={() => { printTicket(o); setActionsId(null); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors flex items-center gap-2">
+                            <Printer size={12} /> Imprimir ticket
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -225,6 +234,66 @@ export default function OrdersPage() {
         </div>
       )}
 
+      {/* Order detail modal */}
+      {detailOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setDetailOrder(null)}>
+          <div className="glass-panel w-full max-w-lg rounded-3xl p-6 space-y-5 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-lg font-display font-bold text-white">{detailOrder.customerName}</h2>
+                <p className="text-xs text-brand-muted font-mono mt-0.5">{detailOrder.id}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => printTicket(detailOrder)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors" title="Imprimir ticket">
+                  <Printer size={16} />
+                </button>
+                <button onClick={() => setDetailOrder(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[detailOrder.status]}`}>{STATUS_LABELS[detailOrder.status]}</span>
+              <span className="text-xs text-brand-muted">{new Date(detailOrder.createdAt).toLocaleString("es-MX")}</span>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs text-brand-muted uppercase tracking-wider">Productos</p>
+              {detailOrder.items.map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
+                  <div>
+                    <div className="text-sm font-medium text-white">{item.product.name}</div>
+                    <div className="text-xs text-brand-muted">{item.quantity} × ${fmt(Number(item.unitPrice))}</div>
+                  </div>
+                  <div className="font-bold text-white text-sm">${fmt(item.quantity * Number(item.unitPrice))}</div>
+                </div>
+              ))}
+            </div>
+
+            {detailOrder.notes && (
+              <div className="p-3 rounded-xl bg-white/5">
+                <p className="text-xs text-brand-muted mb-1">Notas</p>
+                <p className="text-sm text-white">{detailOrder.notes}</p>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-3 border-t border-white/10">
+              <span className="text-brand-muted">Total</span>
+              <span className="text-2xl font-display font-bold text-brand-kinetic-orange">${fmt(Number(detailOrder.total))}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <p className="text-xs text-brand-muted col-span-2">Cambiar estado:</p>
+              {(Object.keys(STATUS_LABELS) as OrderStatus[]).filter((s) => s !== detailOrder.status).map((s) => (
+                <button key={s} onClick={() => updateStatus(detailOrder.id, s)} className="py-2 px-3 rounded-xl text-xs font-medium border border-white/10 hover:bg-white/5 text-brand-muted hover:text-white transition-colors">
+                  {STATUS_LABELS[s]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 overflow-y-auto">
           <div className="glass-panel w-full max-w-lg rounded-3xl p-8 space-y-6 my-8">
@@ -244,7 +313,6 @@ export default function OrdersPage() {
                   {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <label className="text-sm text-brand-muted">Productos *</label>
@@ -259,24 +327,19 @@ export default function OrdersPage() {
                     <input type="number" min="1" value={item.quantity} onChange={(e) => setItem(i, "quantity", Number(e.target.value))} className={`${inp} w-20`} placeholder="Cant." />
                     <input type="number" min="0" step="0.01" value={item.unitPrice} onChange={(e) => setItem(i, "unitPrice", Number(e.target.value))} className={`${inp} w-28`} placeholder="Precio" />
                     {form.items.length > 1 && (
-                      <button type="button" onClick={() => removeItem(i)} className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-red-400 hover:bg-red-500/10 transition-colors">
-                        <X size={16} />
-                      </button>
+                      <button type="button" onClick={() => removeItem(i)} className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-red-400 hover:bg-red-500/10 transition-colors"><X size={16} /></button>
                     )}
                   </div>
                 ))}
               </div>
-
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Notas</label>
                 <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={`${inp} resize-none`} rows={2} placeholder="Instrucciones especiales..." />
               </div>
-
               <div className="flex justify-between items-center py-3 border-t border-white/10">
-                <span className="text-brand-muted text-sm">Total del pedido</span>
-                <span className="text-2xl font-display font-bold text-white">${orderTotal.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                <span className="text-brand-muted text-sm">Total</span>
+                <span className="text-2xl font-display font-bold text-white">${fmt(orderTotal)}</span>
               </div>
-
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <button type="submit" disabled={saving} className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold disabled:opacity-50">
                 {saving ? "Creando..." : "Crear Pedido"}
