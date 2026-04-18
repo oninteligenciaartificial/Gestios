@@ -175,63 +175,94 @@ export default function OrdersPage() {
 
       {loading ? (
         <div className="py-16 text-center text-brand-muted">Cargando pedidos...</div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-brand-muted space-y-3">
+          <ShoppingCart size={40} className="mx-auto opacity-30" />
+          <p>No hay pedidos.</p>
+        </div>
       ) : (
-        <div className="glass-panel rounded-2xl overflow-hidden animate-pop">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/5">
-                <th className="p-4 text-brand-muted font-medium text-sm">Cliente</th>
-                <th className="p-4 text-brand-muted font-medium text-sm hidden md:table-cell">Items</th>
-                <th className="p-4 text-brand-muted font-medium text-sm">Total</th>
-                <th className="p-4 text-brand-muted font-medium text-sm">Estado</th>
-                <th className="p-4 text-brand-muted font-medium text-sm hidden md:table-cell">Fecha</th>
-                <th className="p-4 text-brand-muted font-medium text-sm">Acc.</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filtered.length === 0 && (
-                <tr><td colSpan={6} className="py-16 text-center text-brand-muted"><ShoppingCart size={40} className="mx-auto mb-3 opacity-30" /><p>No hay pedidos.</p></td></tr>
-              )}
-              {filtered.map((o) => (
-                <tr key={o.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => setDetailOrder(o)}>
-                  <td className="p-4">
-                    <div className="font-bold text-white text-sm">{o.customerName}</div>
-                    <div className="text-xs text-brand-muted font-mono">{o.id.slice(0, 8)}…</div>
-                  </td>
-                  <td className="p-4 text-brand-muted text-sm hidden md:table-cell">{o.items.length}</td>
-                  <td className="p-4 font-bold text-white text-sm">${fmt(Number(o.total))}</td>
-                  <td className="p-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[o.status]}`}>{STATUS_LABELS[o.status]}</span>
-                  </td>
-                  <td className="p-4 text-brand-muted text-xs hidden md:table-cell">{new Date(o.createdAt).toLocaleDateString("es-MX")}</td>
-                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+        <>
+          {/* Desktop: tabla */}
+          <div className="glass-panel rounded-2xl overflow-hidden animate-pop hidden md:block">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/5">
+                  <th className="p-4 text-brand-muted font-medium text-sm">Cliente</th>
+                  <th className="p-4 text-brand-muted font-medium text-sm">Items</th>
+                  <th className="p-4 text-brand-muted font-medium text-sm">Total</th>
+                  <th className="p-4 text-brand-muted font-medium text-sm">Estado</th>
+                  <th className="p-4 text-brand-muted font-medium text-sm">Fecha</th>
+                  <th className="p-4 text-brand-muted font-medium text-sm">Acc.</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filtered.map((o) => (
+                  <tr key={o.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => setDetailOrder(o)}>
+                    <td className="p-4">
+                      <div className="font-bold text-white text-sm">{o.customerName}</div>
+                      <div className="text-xs text-brand-muted font-mono">{o.id.slice(0, 8)}…</div>
+                    </td>
+                    <td className="p-4 text-brand-muted text-sm">{o.items.length}</td>
+                    <td className="p-4 font-bold text-white text-sm">${fmt(Number(o.total))}</td>
+                    <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[o.status]}`}>{STATUS_LABELS[o.status]}</span></td>
+                    <td className="p-4 text-brand-muted text-xs">{new Date(o.createdAt).toLocaleDateString("es-MX")}</td>
+                    <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="relative">
+                        <button onClick={() => setActionsId(actionsId === o.id ? null : o.id)} className="flex items-center gap-1 text-brand-muted hover:text-white transition-colors text-xs py-1 px-2 rounded-lg hover:bg-white/5">
+                          <ChevronDown size={14} />
+                        </button>
+                        {actionsId === o.id && (
+                          <div className="absolute right-0 mt-1 glass-panel rounded-xl p-2 z-20 space-y-1 min-w-[160px] shadow-xl">
+                            {(Object.keys(STATUS_LABELS) as OrderStatus[]).filter((s) => s !== o.status).map((s) => (
+                              <button key={s} onClick={() => updateStatus(o.id, s)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors">Marcar: {STATUS_LABELS[s]}</button>
+                            ))}
+                            <div className="border-t border-white/10 my-1" />
+                            <button onClick={() => { setDetailOrder(o); setActionsId(null); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors flex items-center gap-2"><Eye size={12} /> Ver detalle</button>
+                            <button onClick={() => { printTicket(o); setActionsId(null); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors flex items-center gap-2"><Printer size={12} /> Imprimir ticket</button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile: tarjetas */}
+          <div className="md:hidden space-y-3 animate-pop">
+            {filtered.map((o) => (
+              <div key={o.id} className="glass-panel rounded-2xl p-4 space-y-3 active:scale-[0.99] transition-transform cursor-pointer" onClick={() => setDetailOrder(o)}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-white truncate">{o.customerName}</div>
+                    <div className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" })}</div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${STATUS_COLORS[o.status]}`}>{STATUS_LABELS[o.status]}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4 text-sm">
+                    <span className="text-brand-muted">{o.items.length} items</span>
+                    <span className="font-bold text-brand-kinetic-orange">${fmt(Number(o.total))}</span>
+                  </div>
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => { printTicket(o); }} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white transition-colors"><Printer size={14} /></button>
                     <div className="relative">
-                      <button onClick={() => setActionsId(actionsId === o.id ? null : o.id)} className="flex items-center gap-1 text-brand-muted hover:text-white transition-colors text-xs py-1 px-2 rounded-lg hover:bg-white/5">
-                        <ChevronDown size={14} />
-                      </button>
+                      <button onClick={() => setActionsId(actionsId === o.id ? null : o.id)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white transition-colors"><ChevronDown size={14} /></button>
                       {actionsId === o.id && (
-                        <div className="absolute right-0 mt-1 glass-panel rounded-xl p-2 z-20 space-y-1 min-w-[160px] shadow-xl">
+                        <div className="absolute right-0 bottom-10 glass-panel rounded-xl p-2 z-20 space-y-1 min-w-[160px] shadow-xl">
                           {(Object.keys(STATUS_LABELS) as OrderStatus[]).filter((s) => s !== o.status).map((s) => (
-                            <button key={s} onClick={() => updateStatus(o.id, s)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors">
-                              Marcar: {STATUS_LABELS[s]}
-                            </button>
+                            <button key={s} onClick={() => updateStatus(o.id, s)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors">Marcar: {STATUS_LABELS[s]}</button>
                           ))}
-                          <div className="border-t border-white/10 my-1" />
-                          <button onClick={() => { setDetailOrder(o); setActionsId(null); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors flex items-center gap-2">
-                            <Eye size={12} /> Ver detalle
-                          </button>
-                          <button onClick={() => { printTicket(o); setActionsId(null); }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-xs text-brand-muted hover:text-white transition-colors flex items-center gap-2">
-                            <Printer size={12} /> Imprimir ticket
-                          </button>
                         </div>
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Order detail modal */}

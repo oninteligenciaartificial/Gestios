@@ -51,7 +51,7 @@ export function SidebarWrapper({ links, orgName, isSuperAdmin, isImpersonating, 
         <div className="flex items-start justify-between">
           <div>
             <div className="text-xl font-display font-bold tracking-widest text-brand-kinetic-orange">
-              SupliOS.
+              GestiOS.
             </div>
             <div className={`text-xs mt-1 truncate ${
               isSuperAdmin

@@ -47,7 +47,7 @@ export default async function Dashboard() {
       <header className="flex justify-between items-center animate-pop">
         <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Dashboard</h1>
-          <p className="text-brand-muted mt-1">Vision general del inventario y pedidos</p>
+          <p className="text-brand-muted mt-1">Vision general de tu tienda</p>
         </div>
         <div className="flex gap-4">
           <button className="glass-panel px-6 py-3 rounded-full flex items-center gap-2 hover:bg-brand-surface-highest/80 transition-colors">

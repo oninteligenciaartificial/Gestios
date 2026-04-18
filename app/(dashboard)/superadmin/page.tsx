@@ -54,7 +54,7 @@ export default async function SuperAdminPage() {
       <header className="flex justify-between items-end animate-pop">
         <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Panel de Control</h1>
-          <p className="text-brand-muted mt-1">Vision global de todas las tiendas en SupliOS</p>
+          <p className="text-brand-muted mt-1">Vision global de todas las tiendas en GestiOS</p>
         </div>
         <a
           href="/superadmin/organizations"

@@ -15,8 +15,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "SupliOS — Gestión para Tiendas de Suplementos",
-  description: "Plataforma SaaS para gestión de inventario, pedidos y clientes en tiendas de suplementos.",
+  title: "GestiOS — Gestión Completa para tu Tienda",
+  description: "Plataforma SaaS para gestión de inventario, ventas, pedidos y clientes. Para cualquier tipo de tienda.",
 };
 
 export default function RootLayout({

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
   const router = useRouter();
-  const [orgName, setOrgName] = useState("Pronabol");
+  const [orgName, setOrgName] = useState("");
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,7 +36,7 @@ export default function SetupPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="text-3xl font-display font-bold tracking-widest text-brand-kinetic-orange mb-2">
-            SupliOS.
+            GestiOS.
           </div>
           <h1 className="text-2xl font-bold text-white">Configura tu tienda</h1>
           <p className="text-brand-muted mt-2">Solo necesitas hacer esto una vez.</p>
@@ -51,7 +51,7 @@ export default function SetupPage() {
               onChange={(e) => setOrgName(e.target.value)}
               required
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-              placeholder="Ej: Pronabol"
+              placeholder="Ej: Mi Tienda"
             />
           </div>
 

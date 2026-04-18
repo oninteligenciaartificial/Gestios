@@ -179,27 +179,29 @@ export default function Inventory() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
-      <header className="flex justify-between items-end animate-pop">
-        <div>
-          <h1 className="text-4xl font-display font-bold text-white tracking-tight">Inventario</h1>
-          <p className="text-brand-muted mt-1">Gestion de productos y alertas de stock</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={downloadTemplate} className="glass-panel px-4 py-2.5 rounded-full flex items-center gap-2 text-sm text-brand-muted hover:text-white transition-colors">
-            <Download size={15} /> Plantilla Excel
-          </button>
-          <label className={`px-4 py-2.5 rounded-full flex items-center gap-2 text-sm font-medium cursor-pointer transition-colors ${importing ? "opacity-50 cursor-not-allowed" : "glass-panel text-brand-growth-neon hover:bg-white/10"}`}>
-            <Upload size={15} />
-            {importing ? "Importando..." : "Importar Excel"}
-            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
-          </label>
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5 md:space-y-8">
+      <header className="animate-pop space-y-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">Inventario</h1>
+            <p className="text-brand-muted mt-1 text-sm">Gestion de productos y alertas de stock</p>
+          </div>
           <button
             onClick={openCreate}
-            className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-2.5 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
+            className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-4 md:px-6 py-2.5 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] text-sm md:text-base flex-shrink-0"
           >
-            <Plus size={18} /> Nuevo Producto
+            <Plus size={16} /> <span className="hidden sm:inline">Nuevo</span><span className="hidden md:inline"> Producto</span>
           </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={downloadTemplate} className="glass-panel px-3 py-2 rounded-full flex items-center gap-1.5 text-xs text-brand-muted hover:text-white transition-colors">
+            <Download size={13} /> <span className="hidden sm:inline">Plantilla</span>
+          </button>
+          <label className={`px-3 py-2 rounded-full flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-colors ${importing ? "opacity-50 cursor-not-allowed" : "glass-panel text-brand-growth-neon hover:bg-white/10"}`}>
+            <Upload size={13} />
+            {importing ? "Importando..." : <><span className="hidden sm:inline">Importar Excel</span><span className="sm:hidden">Importar</span></>}
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
+          </label>
         </div>
       </header>
       {importMsg && (
@@ -219,16 +221,15 @@ export default function Inventory() {
         />
       </div>
 
-      <div className="glass-panel rounded-3xl overflow-hidden animate-pop">
+      {/* Desktop: tabla */}
+      <div className="glass-panel rounded-3xl overflow-hidden animate-pop hidden md:block">
         {loading ? (
           <div className="py-16 text-center text-brand-muted">Cargando productos...</div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="p-5 font-medium text-brand-muted">
-                  <span className="flex items-center gap-2">Producto</span>
-                </th>
+                <th className="p-5 font-medium text-brand-muted">Producto</th>
                 <th className="p-5 font-medium text-brand-muted">Categoria</th>
                 <th className="p-5 font-medium text-brand-muted">Precio</th>
                 <th className="p-5 font-medium text-brand-muted">Stock</th>
@@ -244,26 +245,19 @@ export default function Inventory() {
                     <td className="p-5">
                       <div className="font-bold text-white">{item.name}</div>
                       {item.sku && <div className="text-xs text-brand-muted mt-0.5">SKU: {item.sku}</div>}
+                      {item.unit && <div className="text-xs text-brand-muted/60">{item.unit}</div>}
                     </td>
                     <td className="p-5 text-gray-400">{item.category?.name ?? "—"}</td>
                     <td className="p-5 text-gray-300 font-mono">${Number(item.price).toFixed(2)}</td>
-                    <td className="p-5 text-white font-display font-medium">{item.stock} uds</td>
+                    <td className="p-5 text-white font-display font-medium">{item.stock}</td>
                     <td className="p-5">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${status.cls}`}>
-                        {status.label}
-                      </span>
+                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${status.cls}`}>{status.label}</span>
                     </td>
                     <td className="p-5 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock">
-                          <PackagePlus size={16} />
-                        </button>
-                        <button onClick={() => openEdit(item)} className="text-brand-muted hover:text-white transition-colors">
-                          <Pencil size={16} />
-                        </button>
-                        <button onClick={() => setDeleteId(item.id)} className="text-brand-muted hover:text-red-400 transition-colors">
-                          <Trash2 size={16} />
-                        </button>
+                        <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock"><PackagePlus size={16} /></button>
+                        <button onClick={() => openEdit(item)} className="text-brand-muted hover:text-white transition-colors"><Pencil size={16} /></button>
+                        <button onClick={() => setDeleteId(item.id)} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </td>
                   </tr>
@@ -278,6 +272,52 @@ export default function Inventory() {
             <p>{search ? "No hay productos que coincidan." : "Aun no tienes productos. Crea el primero."}</p>
           </div>
         )}
+      </div>
+
+      {/* Mobile: tarjetas */}
+      <div className="md:hidden space-y-3 animate-pop">
+        {loading ? (
+          <div className="py-16 text-center text-brand-muted">Cargando productos...</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-brand-muted space-y-3">
+            <Package size={40} className="mx-auto opacity-30" />
+            <p>{search ? "No hay productos que coincidan." : "Aun no tienes productos."}</p>
+          </div>
+        ) : filtered.map((item) => {
+          const status = stockStatus(item.stock, item.minStock);
+          return (
+            <div key={item.id} className="glass-panel rounded-2xl p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-white truncate">{item.name}</div>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    {item.sku && <span className="text-xs text-brand-muted font-mono">SKU: {item.sku}</span>}
+                    {item.category && <span className="text-xs text-brand-muted/70">{item.category.name}</span>}
+                    {item.unit && <span className="text-xs text-brand-muted/60">{item.unit}</span>}
+                  </div>
+                </div>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${status.cls}`}>{status.label}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex gap-4">
+                  <div>
+                    <div className="text-xs text-brand-muted">Precio</div>
+                    <div className="font-bold text-brand-kinetic-orange">${Number(item.price).toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-brand-muted">Stock</div>
+                    <div className="font-bold text-white">{item.stock} {item.unit ?? "uds"}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="p-2 rounded-lg bg-white/5 text-brand-growth-neon hover:bg-white/10 transition-colors"><PackagePlus size={15} /></button>
+                  <button onClick={() => openEdit(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white hover:bg-white/10 transition-colors"><Pencil size={15} /></button>
+                  <button onClick={() => setDeleteId(item.id)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-red-400 hover:bg-white/10 transition-colors"><Trash2 size={15} /></button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Modal crear / editar */}

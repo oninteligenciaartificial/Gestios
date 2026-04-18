@@ -37,7 +37,7 @@ export default function LoginPage() {
       <div className="glass-panel rounded-3xl p-8 w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-display font-bold text-brand-kinetic-orange tracking-widest">
-            SupliOS.
+            GestiOS.
           </h1>
           <p className="text-brand-muted mt-2">Inicia sesion para continuar</p>
         </div>
