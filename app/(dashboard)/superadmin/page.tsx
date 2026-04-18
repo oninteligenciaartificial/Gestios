@@ -25,7 +25,15 @@ export default async function SuperAdminPage() {
 
   const revenue = monthlyRevenue.reduce((s: number, o: { total: unknown }) => s + Number(o.total), 0);
 
-  const recentOrgs = await prisma.organization.findMany({
+  type OrgWithCount = {
+    id: string;
+    name: string;
+    slug: string;
+    createdAt: Date;
+    _count: { profiles: number; products: number; orders: number };
+  };
+
+  const recentOrgs: OrgWithCount[] = await prisma.organization.findMany({
     include: {
       _count: { select: { profiles: true, products: true, orders: true } },
     },
