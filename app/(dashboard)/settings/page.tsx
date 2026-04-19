@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Building2, Lock, Save, Activity } from "lucide-react";
+import { User, Building2, Lock, Save, Activity, Link, Copy, Check } from "lucide-react";
 
 interface Profile {
   name: string;
   role: string;
   organization?: {
     name: string;
+    slug: string;
     phone?: string;
     address?: string;
     rfc?: string;
@@ -169,6 +170,10 @@ export default function SettingsPage() {
         </button>
       </form>
 
+      {isAdmin && profile.organization?.slug && (
+        <RegistroLink slug={profile.organization.slug} />
+      )}
+
       {isAdmin && (
         <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
           <div className="flex items-center justify-between">
@@ -205,5 +210,42 @@ export default function SettingsPage() {
         </section>
       )}
     </div>
+  );
+}
+
+function RegistroLink({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/registro/${slug}`;
+
+  function copy() {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-brand-kinetic-orange/10">
+          <Link size={18} className="text-brand-kinetic-orange" />
+        </div>
+        <div>
+          <h2 className="font-display font-bold text-white">Link de Registro de Clientes</h2>
+          <p className="text-xs text-brand-muted mt-0.5">Comparte este link o genera un QR para que tus clientes se registren.</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-brand-muted font-mono truncate">
+          {url}
+        </div>
+        <button
+          onClick={copy}
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-white/10 text-sm text-white hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange transition-colors"
+        >
+          {copied ? <Check size={14} className="text-brand-growth-neon" /> : <Copy size={14} />}
+          {copied ? "Copiado" : "Copiar"}
+        </button>
+      </div>
+    </section>
   );
 }
