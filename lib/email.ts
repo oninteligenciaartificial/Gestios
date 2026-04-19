@@ -1,10 +1,3 @@
-import { Resend } from "resend";
-
-function getResend() {
-  if (!process.env.RESEND_API_KEY) return null;
-  return new Resend(process.env.RESEND_API_KEY);
-}
-
 const FROM = process.env.EMAIL_FROM ?? "GestiOS <noreply@gestios.app>";
 
 interface OrderItem {
@@ -77,6 +70,8 @@ function baseTemplate(content: string, orgName: string) {
 
 export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
   if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
   const itemsHtml = args.items.map(i =>
     `<tr>
@@ -108,7 +103,7 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
     <p style="margin:20px 0 0;font-size:13px;color:#666;">Folio de pedido: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
   `;
 
-  await getResend()?.emails.send({
+  await resend.emails.send({
     from: FROM,
     to: args.to,
     subject: `Pedido recibido — ${args.orgName}`,
@@ -118,6 +113,8 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
 
 export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
   if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
   const statusLabel = STATUS_LABELS[args.status] ?? args.status;
   const statusColor = args.status === "ENTREGADO" ? "#22c55e" : args.status === "CANCELADO" ? "#ef4444" : "#ff6b00";
@@ -132,7 +129,7 @@ export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
     <p style="margin:0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
   `;
 
-  await getResend()?.emails.send({
+  await resend.emails.send({
     from: FROM,
     to: args.to,
     subject: `Tu pedido esta ${statusLabel} — ${args.orgName}`,
@@ -142,6 +139,8 @@ export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
 
 export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
   if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
   const rowsHtml = args.products.map(p =>
     `<tr>
@@ -165,7 +164,7 @@ export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
     <p style="margin:24px 0 0;font-size:13px;color:#666;">Entra a GestiOS para reabastecer tu inventario.</p>
   `;
 
-  await getResend()?.emails.send({
+  await resend.emails.send({
     from: FROM,
     to: args.to,
     subject: `⚠️ ${args.products.length} producto(s) con stock bajo — ${args.orgName}`,
