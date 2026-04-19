@@ -2,7 +2,7 @@
 
 import { LogOut, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface Props {
   name: string;
@@ -13,6 +13,8 @@ interface Props {
 
 export function SidebarUser({ name, email, role, isSuperAdmin }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
+  const onSettings = pathname === "/settings";
 
   async function handleLogout() {
     const supabase = createClient();
@@ -32,7 +34,11 @@ export function SidebarUser({ name, email, role, isSuperAdmin }: Props) {
       </div>
       <a
         href="/settings"
-        className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-brand-muted hover:bg-white/5 hover:text-white transition-colors"
+        className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-colors ${
+          onSettings
+            ? "bg-brand-kinetic-orange/15 text-brand-kinetic-orange border border-brand-kinetic-orange/30"
+            : "text-brand-muted hover:bg-white/5 hover:text-white"
+        }`}
       >
         <Settings size={14} />
         Configuracion

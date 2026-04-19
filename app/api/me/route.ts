@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
 import { z } from "zod";
 
 export async function GET() {
@@ -14,6 +15,16 @@ export async function GET() {
   });
 
   if (!profile) return NextResponse.json({ error: "Perfil no encontrado" }, { status: 404 });
+
+  // If superadmin is impersonating an org, attach that org's data
+  if (profile.role === "SUPERADMIN") {
+    const cookieStore = await cookies();
+    const impersonateOrgId = cookieStore.get("impersonate_org_id")?.value;
+    if (impersonateOrgId) {
+      const org = await prisma.organization.findUnique({ where: { id: impersonateOrgId } });
+      return NextResponse.json({ ...profile, role: "ADMIN", organization: org, email: user.email });
+    }
+  }
 
   return NextResponse.json({ ...profile, email: user.email });
 }
@@ -36,6 +47,15 @@ export async function PATCH(request: Request) {
   const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
   if (!profile) return NextResponse.json({ error: "Perfil no encontrado" }, { status: 404 });
 
+  // Resolve org ID — could be own org or impersonated org
+  let orgId = profile.organizationId;
+  let effectiveRole = profile.role;
+  if (profile.role === "SUPERADMIN") {
+    const cookieStore = await cookies();
+    const impersonateOrgId = cookieStore.get("impersonate_org_id")?.value;
+    if (impersonateOrgId) { orgId = impersonateOrgId; effectiveRole = "ADMIN"; }
+  }
+
   let body: unknown;
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "JSON invalido" }, { status: 400 }); }
@@ -50,9 +70,9 @@ export async function PATCH(request: Request) {
     data: { ...(name ? { name } : {}) },
   });
 
-  if (profile.organizationId && profile.role === "ADMIN") {
+  if (orgId && effectiveRole === "ADMIN") {
     await prisma.organization.update({
-      where: { id: profile.organizationId },
+      where: { id: orgId },
       data: {
         ...(orgName ? { name: orgName } : {}),
         phone: orgPhone ?? undefined,
