@@ -6,6 +6,44 @@ interface OrderItem {
   unitPrice: number;
 }
 
+interface SendWelcomeEmailArgs {
+  to: string;
+  customerName: string;
+  orgName: string;
+}
+
+interface SendBirthdayEmailArgs {
+  to: string;
+  customerName: string;
+  orgName: string;
+  discountCode: string;
+  discountValue: number;
+}
+
+interface SendLoyaltyPointsEmailArgs {
+  to: string;
+  customerName: string;
+  orgName: string;
+  pointsEarned: number;
+  totalPoints: number;
+}
+
+interface SendNewOrderAlertArgs {
+  to: string;
+  orgName: string;
+  orderId: string;
+  customerName: string;
+  total: number;
+  items: OrderItem[];
+  paymentMethod: string;
+}
+
+interface SendExpiryAlertArgs {
+  to: string;
+  orgName: string;
+  products: { name: string; sku: string | null; batchExpiry: Date; daysLeft: number }[];
+}
+
 interface SendOrderConfirmationArgs {
   to: string;
   customerName: string;
@@ -168,6 +206,158 @@ export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
     from: FROM,
     to: args.to,
     subject: `⚠️ ${args.products.length} producto(s) con stock bajo — ${args.orgName}`,
+    html: baseTemplate(content, args.orgName),
+  });
+}
+
+export async function sendWelcomeEmail(args: SendWelcomeEmailArgs) {
+  if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Bienvenido/a a ${args.orgName}</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu registro fue exitoso.</p>
+    <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">🎉</div>
+      <div style="font-size:15px;color:#ccc;">Ya eres parte de nuestra comunidad. A partir de ahora podras acumular puntos y recibir ofertas exclusivas.</div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Si tienes alguna pregunta, contacta directamente a ${args.orgName}.</p>
+  `;
+
+  await resend.emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `Bienvenido/a a ${args.orgName}`,
+    html: baseTemplate(content, args.orgName),
+  });
+}
+
+export async function sendBirthdayEmail(args: SendBirthdayEmailArgs) {
+  if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Feliz cumpleanos, ${args.customerName}!</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">En tu dia especial, <strong style="color:#fff;">${args.orgName}</strong> tiene un regalo para ti.</p>
+    <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:13px;color:#888;margin-bottom:8px;">Tu codigo de descuento</div>
+      <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#ff6b00;">${args.discountCode}</div>
+      <div style="font-size:13px;color:#ccc;margin-top:8px;">${args.discountValue}% de descuento en tu proximo pedido</div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Valido solo hoy. Presentalo al realizar tu pedido.</p>
+  `;
+
+  await resend.emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `Feliz cumpleanos ${args.customerName}! Tienes un regalo de ${args.orgName}`,
+    html: baseTemplate(content, args.orgName),
+  });
+}
+
+export async function sendLoyaltyPointsEmail(args: SendLoyaltyPointsEmailArgs) {
+  if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Puntos acumulados</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu pedido fue entregado.</p>
+    <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:13px;color:#666;margin-bottom:4px;">Puntos ganados en este pedido</div>
+      <div style="font-size:36px;font-weight:900;color:#ff6b00;">+${args.pointsEarned}</div>
+      <div style="border-top:1px solid rgba(255,255,255,0.06);margin-top:16px;padding-top:16px;">
+        <div style="font-size:13px;color:#666;">Total acumulado</div>
+        <div style="font-size:22px;font-weight:700;color:#fff;">${args.totalPoints} puntos</div>
+      </div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Sigue comprando en <strong style="color:#ff6b00;">${args.orgName}</strong> para acumular mas puntos.</p>
+  `;
+
+  await resend.emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `+${args.pointsEarned} puntos acumulados en ${args.orgName}`,
+    html: baseTemplate(content, args.orgName),
+  });
+}
+
+export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
+  if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const itemsHtml = args.items.map(i =>
+    `<tr>
+      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
+      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${i.quantity}</td>
+      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">$${Number(i.unitPrice).toLocaleString("es-MX")}</td>
+    </tr>`
+  ).join("");
+
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Nuevo pedido recibido</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">El cliente <strong style="color:#fff;">${args.customerName}</strong> realizo un pedido.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+      <tr>
+        <th style="text-align:left;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRODUCTO</th>
+        <th style="text-align:center;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">CANT.</th>
+        <th style="text-align:right;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRECIO</th>
+      </tr>
+      ${itemsHtml}
+      <tr>
+        <td colspan="2" style="padding-top:14px;font-weight:700;color:#fff;">Total</td>
+        <td style="padding-top:14px;text-align:right;font-size:18px;font-weight:800;color:#ff6b00;">$${Number(args.total).toLocaleString("es-MX")}</td>
+      </tr>
+    </table>
+    <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px 18px;margin-bottom:8px;">
+      <span style="font-size:13px;color:#888;">Pago: </span>
+      <span style="font-size:13px;color:#fff;font-weight:600;">${PAYMENT_LABELS[args.paymentMethod] ?? args.paymentMethod}</span>
+    </div>
+    <p style="margin:16px 0 0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+  `;
+
+  await resend.emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `Nuevo pedido de ${args.customerName} — ${args.orgName}`,
+    html: baseTemplate(content, args.orgName),
+  });
+}
+
+export async function sendExpiryAlert(args: SendExpiryAlertArgs) {
+  if (!process.env.RESEND_API_KEY) return;
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const rowsHtml = args.products.map(p =>
+    `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${p.name}${p.sku ? ` <span style="color:#555;font-size:11px;">(${p.sku})</span>` : ""}</td>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${p.batchExpiry.toLocaleDateString("es-MX")}</td>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:${p.daysLeft <= 3 ? "#ef4444" : "#f59e0b"};font-weight:700;">${p.daysLeft} dias</td>
+    </tr>`
+  ).join("");
+
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Productos proximos a vencer</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Los siguientes productos vencen en los proximos 7 dias en <strong style="color:#fff;">${args.orgName}</strong>:</p>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <th style="text-align:left;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRODUCTO</th>
+        <th style="text-align:center;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">VENCE</th>
+        <th style="text-align:center;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">DIAS RESTANTES</th>
+      </tr>
+      ${rowsHtml}
+    </table>
+    <p style="margin:24px 0 0;font-size:13px;color:#666;">Entra a GestiOS para gestionar tu inventario.</p>
+  `;
+
+  await resend.emails.send({
+    from: FROM,
+    to: args.to,
+    subject: `⚠️ ${args.products.length} producto(s) proximos a vencer — ${args.orgName}`,
     html: baseTemplate(content, args.orgName),
   });
 }

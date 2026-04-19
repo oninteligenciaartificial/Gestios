@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendNewOrderAlert } from "@/lib/email";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -91,19 +92,45 @@ export async function POST(request: Request) {
     )
   );
 
-  // Send confirmation email if customer has an email
+  const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
+  const orgName = org?.name ?? "Tu Tienda";
+  const orderItems = order.items.map(i => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) }));
+
+  // Confirmation email to customer
   const customerEmail = order.customer?.email;
   if (customerEmail) {
-    const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
     sendOrderConfirmation({
       to: customerEmail,
       customerName: order.customerName,
-      orgName: org?.name ?? "Tu Tienda",
+      orgName,
       orderId: order.id,
-      items: order.items.map(i => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) })),
+      items: orderItems,
       total: Number(order.total),
       paymentMethod,
     }).catch(() => {});
+  }
+
+  // New order alert to admin
+  const adminProfiles = await prisma.profile.findMany({
+    where: { organizationId: profile.organizationId, role: "ADMIN" },
+    select: { userId: true },
+  });
+  if (adminProfiles.length > 0) {
+    const supabaseAdmin = createAdminClient();
+    const adminEmails = (await Promise.all(
+      adminProfiles.map(p => supabaseAdmin.auth.admin.getUserById(p.userId).then(r => r.data.user?.email))
+    )).filter(Boolean) as string[];
+    for (const email of adminEmails) {
+      sendNewOrderAlert({
+        to: email,
+        orgName,
+        orderId: order.id,
+        customerName: order.customerName,
+        total: Number(order.total),
+        items: orderItems,
+        paymentMethod,
+      }).catch(() => {});
+    }
   }
 
   return NextResponse.json(order, { status: 201 });

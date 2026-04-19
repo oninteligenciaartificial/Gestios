@@ -1,0 +1,89 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendBirthdayEmail } from "@/lib/email";
+
+export async function GET(request: Request) {
+  if (request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+
+  // Find customers whose birthday month+day matches today
+  const customers = await prisma.customer.findMany({
+    where: { email: { not: null }, birthday: { not: null } },
+    include: { organization: { select: { id: true, name: true, slug: true } } },
+  });
+
+  const birthdayCustomers = customers.filter(c => {
+    if (!c.birthday) return false;
+    return c.birthday.getMonth() + 1 === month && c.birthday.getDate() === day;
+  });
+
+  let sent = 0;
+  const supabaseAdmin = createAdminClient();
+
+  for (const customer of birthdayCustomers) {
+    if (!customer.email) continue;
+
+    const code = `CUMPLE${customer.name.split(" ")[0].toUpperCase()}${day}${month}`;
+    const discountValue = 10;
+
+    // Create discount for this org (upsert to avoid duplicates)
+    await prisma.discount.upsert({
+      where: { organizationId_code: { organizationId: customer.organizationId, code } },
+      update: { active: true, expiresAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1) },
+      create: {
+        organizationId: customer.organizationId,
+        code,
+        description: `Descuento de cumpleanos para ${customer.name}`,
+        type: "PORCENTAJE",
+        value: discountValue,
+        active: true,
+        expiresAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+      },
+    });
+
+    await sendBirthdayEmail({
+      to: customer.email,
+      customerName: customer.name,
+      orgName: customer.organization.name,
+      discountCode: code,
+      discountValue,
+    }).catch(() => {});
+
+    sent++;
+  }
+
+  // Also notify admins of each org that had birthday customers
+  const orgIds = [...new Set(birthdayCustomers.map(c => c.organizationId))];
+  for (const orgId of orgIds) {
+    const adminProfiles = await prisma.profile.findMany({
+      where: { organizationId: orgId, role: "ADMIN" },
+      select: { userId: true },
+    });
+    const orgCustomers = birthdayCustomers.filter(c => c.organizationId === orgId);
+    const orgName = orgCustomers[0]?.organization.name ?? "";
+
+    for (const p of adminProfiles) {
+      const { data } = await supabaseAdmin.auth.admin.getUserById(p.userId);
+      if (data.user?.email) {
+        // Simple notification — reuse low stock alert template shape isn't ideal,
+        // but avoid adding more email types; a plain text note is enough for admin
+        const { Resend } = await import("resend");
+        const resend = new Resend(process.env.RESEND_API_KEY!);
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM ?? "GestiOS <noreply@gestios.app>",
+          to: data.user.email,
+          subject: `${orgCustomers.length} cliente(s) cumplen anos hoy — ${orgName}`,
+          text: `Hoy cumplen anos: ${orgCustomers.map(c => c.name).join(", ")}. Se les envio automaticamente su codigo de descuento.`,
+        }).catch(() => {});
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, sent });
+}

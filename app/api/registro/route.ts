@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendWelcomeEmail } from "@/lib/email";
 import { z } from "zod";
 
 const schema = z.object({
@@ -38,6 +39,10 @@ export async function POST(request: Request) {
       birthday: birthday ? new Date(birthday) : null,
     },
   });
+
+  if (customer.email) {
+    sendWelcomeEmail({ to: customer.email, customerName: customer.name, orgName: org.name }).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true, customerId: customer.id, orgName: org.name });
 }

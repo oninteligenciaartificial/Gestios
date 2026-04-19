@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/birthday",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/expiry",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}

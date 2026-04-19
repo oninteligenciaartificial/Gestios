@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendOrderStatusUpdate } from "@/lib/email";
+import { sendOrderStatusUpdate, sendLoyaltyPointsEmail } from "@/lib/email";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -72,17 +72,38 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     );
   }
 
-  // Send status update email if customer has email and status changed
   const customerEmail = order.customer?.email;
-  if (customerEmail && result.data.status !== order.status) {
+  const statusChanged = result.data.status !== order.status;
+
+  if (customerEmail && statusChanged) {
     const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
+    const orgName = org?.name ?? "Tu Tienda";
+
     sendOrderStatusUpdate({
       to: customerEmail,
       customerName: order.customerName,
-      orgName: org?.name ?? "Tu Tienda",
+      orgName,
       orderId: order.id,
       status: result.data.status,
     }).catch(() => {});
+
+    // Loyalty points on delivery
+    if (result.data.status === "ENTREGADO" && order.customerId) {
+      const POINTS_PER_MXN = 1; // 1 point per peso
+      const pointsEarned = Math.floor(Number(order.total) * POINTS_PER_MXN);
+      const updatedCustomer = await prisma.customer.update({
+        where: { id: order.customerId },
+        data: { loyaltyPoints: { increment: pointsEarned } },
+        select: { loyaltyPoints: true },
+      });
+      sendLoyaltyPointsEmail({
+        to: customerEmail,
+        customerName: order.customerName,
+        orgName,
+        pointsEarned,
+        totalPoints: updatedCustomer.loyaltyPoints,
+      }).catch(() => {});
+    }
   }
 
   return NextResponse.json(updated);
