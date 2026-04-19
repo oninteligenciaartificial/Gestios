@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendOrderStatusUpdate } from "@/lib/email";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -32,7 +33,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: true },
+    include: { items: true, customer: true },
   });
   if (!order || order.organizationId !== profile.organizationId) {
     return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
@@ -47,7 +48,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const updated = await prisma.order.update({ where: { id }, data: result.data });
 
-  // Restore stock when cancelling a non-cancelled order
+  // Restore stock when cancelling
   if (result.data.status === "CANCELADO" && order.status !== "CANCELADO") {
     await Promise.all(
       order.items.map((item) =>
@@ -59,7 +60,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     );
   }
 
-  // Re-decrement stock if un-cancelling a previously cancelled order
+  // Re-decrement stock if un-cancelling
   if (result.data.status !== "CANCELADO" && order.status === "CANCELADO") {
     await Promise.all(
       order.items.map((item) =>
@@ -69,6 +70,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         })
       )
     );
+  }
+
+  // Send status update email if customer has email and status changed
+  const customerEmail = order.customer?.email;
+  if (customerEmail && result.data.status !== order.status) {
+    const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
+    sendOrderStatusUpdate({
+      to: customerEmail,
+      customerName: order.customerName,
+      orgName: org?.name ?? "Tu Tienda",
+      orderId: order.id,
+      status: result.data.status,
+    }).catch(() => {});
   }
 
   return NextResponse.json(updated);

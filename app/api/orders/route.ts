@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendOrderConfirmation } from "@/lib/email";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
         })),
       },
     },
-    include: { items: { include: { product: true } } },
+    include: { items: { include: { product: true } }, customer: true },
   });
 
   await Promise.all(
@@ -89,6 +90,21 @@ export async function POST(request: Request) {
       })
     )
   );
+
+  // Send confirmation email if customer has an email
+  const customerEmail = order.customer?.email;
+  if (customerEmail) {
+    const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
+    sendOrderConfirmation({
+      to: customerEmail,
+      customerName: order.customerName,
+      orgName: org?.name ?? "Tu Tienda",
+      orderId: order.id,
+      items: order.items.map(i => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) })),
+      total: Number(order.total),
+      paymentMethod,
+    }).catch(() => {});
+  }
 
   return NextResponse.json(order, { status: 201 });
 }

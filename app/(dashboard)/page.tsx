@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";
-import { Package, ShoppingCart, AlertTriangle, DollarSign, MessageSquare, Plus, RefreshCcw, PackageSearch } from "lucide-react";
+import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, RefreshCcw, PackageSearch } from "lucide-react";
+import { StockAlertButton } from "./StockAlertButton";
 
 export default async function Dashboard() {
   const profile = await getTenantProfile();
@@ -109,21 +110,34 @@ export default async function Dashboard() {
         </section>
 
         <section className="space-y-6 animate-pop">
-          <h2 className="text-2xl font-display font-bold text-white">Soporte</h2>
-          <div className="glass-panel p-6 rounded-3xl space-y-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="relative">
-                <MessageSquare className="text-brand-growth-neon" size={24} />
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-kinetic-orange rounded-full animate-pulse" />
+          <h2 className="text-2xl font-display font-bold text-white">Notificaciones</h2>
+          <div className="glass-panel p-6 rounded-3xl space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-brand-growth-neon/10">
+                <Mail size={20} className="text-brand-growth-neon" />
               </div>
               <div>
-                <div className="font-bold text-white">Bot Activado</div>
-                <div className="text-sm text-brand-muted">Autorespuestas On</div>
+                <div className="font-bold text-white">Alertas por Email</div>
+                <div className="text-sm text-brand-muted">Recibe avisos en tu correo</div>
               </div>
             </div>
-            <div className="text-center py-6 text-brand-muted text-sm">
-              Integracion WhatsApp proximamente
+            <div className="space-y-3 text-sm text-brand-muted">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-growth-neon flex-shrink-0" />
+                Confirmacion automatica al crear pedido
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-growth-neon flex-shrink-0" />
+                Actualizacion de estado al cliente
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-kinetic-orange flex-shrink-0" />
+                Alerta de stock bajo al admin
+              </div>
             </div>
+            {lowStockAlerts.length > 0 && (
+              <StockAlertButton count={lowStockAlerts.length} />
+            )}
           </div>
         </section>
       </div>
