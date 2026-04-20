@@ -1,12 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, RefreshCcw, PackageSearch } from "lucide-react";
 import { StockAlertButton } from "./StockAlertButton";
 
 export default async function Dashboard() {
   const profile = await getTenantProfile();
-  if (!profile) redirect("/login");
+  if (!profile) {
+    // If a SUPERADMIN lands here without impersonating an org, send them
+    // to the superadmin panel instead of bouncing them to /login (loop).
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const raw = await prisma.profile.findUnique({ where: { userId: user.id } });
+      if (raw?.role === "SUPERADMIN") redirect("/superadmin");
+      if (!raw) redirect("/setup");
+    }
+    redirect("/login");
+  }
 
   const orgId = profile.organizationId as string;
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
