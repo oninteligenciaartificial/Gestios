@@ -25,33 +25,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Must call getUser() to trigger session refresh and write updated cookies
+  await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isPublic = pathname.startsWith("/login") || pathname.startsWith("/setup") || pathname.startsWith("/registro");
-
-  // Helper: clone redirect preserving refreshed session cookies
-  function redirectWith(destination: string) {
-    const url = request.nextUrl.clone();
-    url.pathname = destination;
-    const res = NextResponse.redirect(url);
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      res.cookies.set(cookie.name, cookie.value, cookie as Parameters<typeof res.cookies.set>[2]);
-    });
-    return res;
-  }
-
-  // Redirigir a login si no hay sesion (excepto rutas publicas)
-  if (!user && !isPublic) {
-    return redirectWith("/login");
-  }
-
-  // Si esta logueado y va a /login, redirigir al dashboard
-  if (user && pathname.startsWith("/login")) {
-    return redirectWith("/");
-  }
-
+  // No redirects here — all auth redirects are handled in the dashboard layout.
+  // Doing redirects in proxy causes ERR_TOO_MANY_REDIRECTS when the refreshed
+  // session cookie is not forwarded correctly to the next request.
   return supabaseResponse;
 }
