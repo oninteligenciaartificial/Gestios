@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { loginAction } from "./actions";
 
@@ -19,6 +19,16 @@ function SubmitButton() {
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(loginAction, null);
+
+  // When the server action succeeds, the auth cookies are already set
+  // by Supabase SSR via the server cookieStore. A hard navigation
+  // ensures the dashboard layout reads the fresh cookies on the next
+  // request (router.push/refresh can race the cookie propagation).
+  useEffect(() => {
+    if (state?.ok) {
+      window.location.href = "/";
+    }
+  }, [state]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-background px-4">
@@ -40,6 +50,7 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
+              autoComplete="email"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
               placeholder="admin@mitienda.com"
             />
@@ -54,13 +65,18 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
+              autoComplete="current-password"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
               placeholder="••••••••"
             />
           </div>
 
-          {state?.error && (
+          {state && !state.ok && (
             <p className="text-red-400 text-sm">{state.error}</p>
+          )}
+
+          {state?.ok && (
+            <p className="text-green-400 text-sm">Sesión iniciada. Redirigiendo…</p>
           )}
 
           <SubmitButton />

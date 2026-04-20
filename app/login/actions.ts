@@ -1,18 +1,24 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function loginAction(_: unknown, formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+type LoginResult = { ok: true } | { ok: false; error: string };
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+export async function loginAction(_: unknown, formData: FormData): Promise<LoginResult> {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
 
-  if (error) {
-    return { error: error.message };
+  if (!email || !password) {
+    return { ok: false, error: "Email y contraseña son obligatorios." };
   }
 
-  redirect("/");
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Error desconocido";
+    return { ok: false, error: message };
+  }
 }
