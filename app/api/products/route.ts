@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { PLAN_LIMITS } from "@/lib/plans";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -45,6 +46,14 @@ export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (profile.role !== "ADMIN") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+
+  const { maxProducts } = PLAN_LIMITS[profile.plan];
+  if (isFinite(maxProducts)) {
+    const count = await prisma.product.count({ where: { organizationId: profile.organizationId, active: true } });
+    if (count >= maxProducts) {
+      return NextResponse.json({ error: `Tu plan permite hasta ${maxProducts} productos activos. Actualiza tu plan para agregar más.`, upgrade: true, requiredPlan: "PRO" }, { status: 403 });
+    }
+  }
 
   let body: unknown;
   try { body = await request.json(); }

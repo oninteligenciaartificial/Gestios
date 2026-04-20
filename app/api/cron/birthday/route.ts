@@ -12,9 +12,9 @@ export async function GET(request: Request) {
   const month = today.getMonth() + 1;
   const day = today.getDate();
 
-  // Find customers whose birthday month+day matches today
+  // Find customers whose birthday month+day matches today — only EMPRESARIAL orgs
   const customers = await prisma.customer.findMany({
-    where: { email: { not: null }, birthday: { not: null } },
+    where: { email: { not: null }, birthday: { not: null }, organization: { plan: "EMPRESARIAL" } },
     include: { organization: { select: { id: true, name: true, slug: true } } },
   });
 

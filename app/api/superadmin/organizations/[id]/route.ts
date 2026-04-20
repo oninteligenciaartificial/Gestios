@@ -3,7 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-const schema = z.object({ name: z.string().min(1).optional(), phone: z.string().optional(), address: z.string().optional() });
+const schema = z.object({
+  name: z.string().min(1).optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  plan: z.enum(["BASICO", "PRO", "EMPRESARIAL"]).optional(),
+});
 
 async function getSuperAdmin() {
   const supabase = await createClient();

@@ -18,6 +18,7 @@ const schema = z.object({
   adminName: z.string().min(1),
   adminEmail: z.string().email(),
   adminPassword: z.string().min(8),
+  plan: z.enum(["BASICO", "PRO", "EMPRESARIAL"]).default("BASICO"),
 });
 
 // GET — lista todas las organizaciones
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   const result = schema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos", details: result.error.issues }, { status: 400 });
 
-  const { orgName, adminName, adminEmail, adminPassword } = result.data;
+  const { orgName, adminName, adminEmail, adminPassword, plan } = result.data;
 
   const slug = orgName
     .toLowerCase()
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
     data: {
       name: orgName.trim(),
       slug,
+      plan,
       profiles: {
         create: {
           userId: authData.user.id,

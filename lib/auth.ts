@@ -1,12 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import type { PlanType } from "@/lib/plans";
 
-/** Returns the profile of the authenticated user that has an organizationId.
- *  If the user is a SUPERADMIN impersonating an org (via cookie), returns a
- *  synthetic profile scoped to that org with ADMIN role.
- *
- *  Clears impersonation cookies if the user is not SUPERADMIN (stale cookies from prior session). */
+/** Returns the profile of the authenticated user scoped to an organization,
+ *  including the org's plan. Handles superadmin impersonation via cookie. */
 export async function getTenantProfile() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -15,7 +13,7 @@ export async function getTenantProfile() {
   const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
   if (!profile) return null;
 
-  // If NOT superadmin, clear any stale impersonation cookies
+  // Clear stale impersonation cookies for non-superadmins
   if (profile.role !== "SUPERADMIN") {
     const cookieStore = await cookies();
     if (cookieStore.get("impersonate_org_id")) {
@@ -25,14 +23,31 @@ export async function getTenantProfile() {
   }
 
   if (profile.organizationId) {
-    return profile as typeof profile & { organizationId: string };
+    const org = await prisma.organization.findUnique({
+      where: { id: profile.organizationId },
+      select: { plan: true },
+    });
+    return {
+      ...profile,
+      organizationId: profile.organizationId,
+      plan: (org?.plan ?? "BASICO") as PlanType,
+    };
   }
 
   if (profile.role === "SUPERADMIN") {
     const cookieStore = await cookies();
     const impersonateOrgId = cookieStore.get("impersonate_org_id")?.value;
     if (impersonateOrgId) {
-      return { ...profile, organizationId: impersonateOrgId, role: "ADMIN" as const };
+      const org = await prisma.organization.findUnique({
+        where: { id: impersonateOrgId },
+        select: { plan: true },
+      });
+      return {
+        ...profile,
+        organizationId: impersonateOrgId,
+        role: "ADMIN" as const,
+        plan: (org?.plan ?? "BASICO") as PlanType,
+      };
     }
   }
 

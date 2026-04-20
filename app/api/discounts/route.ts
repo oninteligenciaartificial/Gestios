@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canUseFeature, planGateError } from "@/lib/plans";
 import { z } from "zod";
 
 const schema = z.object({
@@ -14,6 +15,7 @@ const schema = z.object({
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!canUseFeature(profile.plan, "discounts")) return NextResponse.json(planGateError("discounts"), { status: 403 });
 
   const discounts = await prisma.discount.findMany({
     where: { organizationId: profile.organizationId },

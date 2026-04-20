@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canUseFeature, planGateError } from "@/lib/plans";
 import * as XLSX from "xlsx";
 
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (profile.role !== "ADMIN") return NextResponse.json({ error: "Solo admins pueden importar" }, { status: 403 });
+
+  if (!canUseFeature(profile.plan, "csv_import")) return NextResponse.json(planGateError("csv_import"), { status: 403 });
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;

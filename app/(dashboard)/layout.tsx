@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { SidebarWrapper } from "./SidebarWrapper";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { canUseFeature, type PlanType } from "@/lib/plans";
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +18,7 @@ export default async function DashboardLayout({
 
   const profile = await prisma.profile.findUnique({
     where: { userId: user.id },
-    include: { organization: { select: { name: true } } },
+    include: { organization: { select: { name: true, plan: true } } },
   });
 
   if (!profile) redirect("/setup");
@@ -29,11 +30,32 @@ export default async function DashboardLayout({
   const isImpersonating = profile.role === "SUPERADMIN" && !!impersonateOrgId;
   const isSuperAdmin = profile.role === "SUPERADMIN" && !isImpersonating;
 
+  // Resolve the active plan (impersonating superadmin gets impersonated org's plan)
+  let activePlan: PlanType = (profile.organization?.plan ?? "BASICO") as PlanType;
+  if (isImpersonating && impersonateOrgId) {
+    const impersonatedOrg = await prisma.organization.findUnique({
+      where: { id: impersonateOrgId },
+      select: { plan: true },
+    });
+    activePlan = (impersonatedOrg?.plan ?? "BASICO") as PlanType;
+  }
+
   const superAdminLinks = [
     { href: "/superadmin", label: "Panel Principal" },
     { href: "/superadmin/organizations", label: "Organizaciones" },
     { href: "/superadmin/users", label: "Usuarios" },
   ];
+
+  // Map feature keys to nav hrefs for lock detection
+  const featureHrefMap: Record<string, string> = {
+    reports: "/reports", caja: "/caja", suppliers: "/suppliers",
+    discounts: "/discounts", staff: "/staff",
+  };
+  const lockedHrefs = new Set(
+    Object.entries(featureHrefMap)
+      .filter(([feature]) => !canUseFeature(activePlan, feature))
+      .map(([, href]) => href)
+  );
 
   const tenantLinks = [
     { href: "/", label: "Dashboard" },
@@ -65,12 +87,14 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen">
       <SidebarWrapper
         links={navLinks}
+        lockedHrefs={isSuperAdmin ? [] : [...lockedHrefs]}
         orgName={orgDisplayName}
         isSuperAdmin={isSuperAdmin}
         isImpersonating={isImpersonating}
         name={profile.name}
         email={user.email ?? ""}
         role={profile.role}
+        plan={isSuperAdmin ? null : activePlan}
       />
       <main className="flex-1 w-full relative overflow-y-auto lg:overflow-y-auto">
         {isImpersonating && impersonateOrgName && (

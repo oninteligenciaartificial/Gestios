@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canUseFeature, planGateError } from "@/lib/plans";
 import { sendLowStockAlert } from "@/lib/email";
 
 export async function POST() {
@@ -11,6 +12,7 @@ export async function POST() {
 
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!canUseFeature(profile.plan, "stock_alert")) return NextResponse.json(planGateError("stock_alert"), { status: 403 });
 
   const allProducts = await prisma.product.findMany({
     where: { organizationId: profile.organizationId, active: true },

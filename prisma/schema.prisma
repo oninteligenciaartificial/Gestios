@@ -6,6 +6,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum PlanType {
+  BASICO
+  PRO
+  EMPRESARIAL
+}
+
 // =============================================
 // TENANT
 // =============================================
@@ -19,6 +25,7 @@ model Organization {
   logoUrl   String?
   rfc       String?
   currency  String   @default("MXN")
+  plan      PlanType @default(BASICO)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

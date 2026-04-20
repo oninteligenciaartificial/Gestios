@@ -30,20 +30,27 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublic = pathname.startsWith("/login") || pathname.startsWith("/setup");
+  const isPublic = pathname.startsWith("/login") || pathname.startsWith("/setup") || pathname.startsWith("/registro");
+
+  // Helper: clone redirect preserving refreshed session cookies
+  function redirectWith(destination: string) {
+    const url = request.nextUrl.clone();
+    url.pathname = destination;
+    const res = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      res.cookies.set(cookie.name, cookie.value, cookie as Parameters<typeof res.cookies.set>[2]);
+    });
+    return res;
+  }
 
   // Redirigir a login si no hay sesion (excepto rutas publicas)
   if (!user && !isPublic) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return redirectWith("/login");
   }
 
   // Si esta logueado y va a /login, redirigir al dashboard
   if (user && pathname.startsWith("/login")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
+    return redirectWith("/");
   }
 
   return supabaseResponse;

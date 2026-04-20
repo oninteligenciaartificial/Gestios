@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Building2, Pencil, Trash2, LogIn } from "lucide-react";
+import { PLAN_META, type PlanType } from "@/lib/plans";
 
 interface Org {
   id: string;
@@ -10,12 +11,23 @@ interface Org {
   slug: string;
   phone: string | null;
   address: string | null;
+  plan: PlanType;
   createdAt: string;
   _count: { profiles: number; products: number; orders: number };
 }
 
-const EMPTY_CREATE = { orgName: "", adminName: "", adminEmail: "", adminPassword: "" };
+const PLANS: PlanType[] = ["BASICO", "PRO", "EMPRESARIAL"];
+const EMPTY_CREATE = { orgName: "", adminName: "", adminEmail: "", adminPassword: "", plan: "BASICO" as PlanType };
 const input = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
+
+function PlanBadge({ plan }: { plan: PlanType }) {
+  const meta = PLAN_META[plan];
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${meta.color} ${meta.bg} border border-white/10`}>
+      {meta.label}
+    </span>
+  );
+}
 
 export default function OrganizationsPage() {
   const router = useRouter();
@@ -29,7 +41,7 @@ export default function OrganizationsPage() {
   const [success, setSuccess] = useState("");
 
   const [editOrg, setEditOrg] = useState<Org | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", phone: "", address: "" });
+  const [editForm, setEditForm] = useState({ name: "", phone: "", address: "", plan: "BASICO" as PlanType });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -52,7 +64,7 @@ export default function OrganizationsPage() {
     const res = await fetch("/api/superadmin/organizations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(createForm),
+      body: JSON.stringify({ orgName: createForm.orgName, adminName: createForm.adminName, adminEmail: createForm.adminEmail, adminPassword: createForm.adminPassword, plan: createForm.plan }),
     });
     if (res.ok) {
       setSuccess(`Tienda "${createForm.orgName}" creada. Admin: ${createForm.adminEmail} / ${createForm.adminPassword}`);
@@ -68,7 +80,7 @@ export default function OrganizationsPage() {
 
   function openEdit(org: Org) {
     setEditOrg(org);
-    setEditForm({ name: org.name, phone: org.phone ?? "", address: org.address ?? "" });
+    setEditForm({ name: org.name, phone: org.phone ?? "", address: org.address ?? "", plan: org.plan });
     setEditError("");
   }
 
@@ -80,7 +92,12 @@ export default function OrganizationsPage() {
     const res = await fetch(`/api/superadmin/organizations/${editOrg.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editForm.name, phone: editForm.phone || undefined, address: editForm.address || undefined }),
+      body: JSON.stringify({
+        name: editForm.name,
+        phone: editForm.phone || undefined,
+        address: editForm.address || undefined,
+        plan: editForm.plan,
+      }),
     });
     if (res.ok) {
       setEditOrg(null);
@@ -110,15 +127,15 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <header className="flex justify-between items-end animate-pop">
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 animate-pop">
         <div>
-          <h1 className="text-4xl font-display font-bold text-white tracking-tight">Organizaciones</h1>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">Organizaciones</h1>
           <p className="text-brand-muted mt-1">Todas las tiendas en la plataforma</p>
         </div>
         <button
           onClick={() => { setShowCreate(true); setError(""); setSuccess(""); }}
-          className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
+          className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all self-start sm:self-auto"
         >
           <Plus size={18} /> Nueva Tienda
         </button>
@@ -130,7 +147,8 @@ export default function OrganizationsPage() {
         </div>
       )}
 
-      <div className="glass-panel rounded-2xl overflow-hidden animate-pop">
+      {/* Desktop table */}
+      <div className="glass-panel rounded-2xl overflow-hidden animate-pop hidden sm:block">
         {loading ? (
           <div className="py-16 text-center text-brand-muted">Cargando...</div>
         ) : (
@@ -138,6 +156,7 @@ export default function OrganizationsPage() {
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="p-5 text-brand-muted font-medium">Tienda</th>
+                <th className="p-5 text-brand-muted font-medium">Plan</th>
                 <th className="p-5 text-brand-muted font-medium">Usuarios</th>
                 <th className="p-5 text-brand-muted font-medium">Productos</th>
                 <th className="p-5 text-brand-muted font-medium">Pedidos</th>
@@ -152,6 +171,7 @@ export default function OrganizationsPage() {
                     <div className="font-bold text-white">{org.name}</div>
                     <div className="text-xs text-brand-muted font-mono">{org.slug}</div>
                   </td>
+                  <td className="p-5"><PlanBadge plan={org.plan} /></td>
                   <td className="p-5 text-white">{org._count.profiles}</td>
                   <td className="p-5 text-white">{org._count.products}</td>
                   <td className="p-5 text-white">{org._count.orders}</td>
@@ -178,7 +198,7 @@ export default function OrganizationsPage() {
               ))}
               {orgs.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center text-brand-muted">
+                  <td colSpan={7} className="py-16 text-center text-brand-muted">
                     <Building2 size={40} className="mx-auto mb-3 opacity-30" />
                     <p>No hay tiendas aun.</p>
                   </td>
@@ -189,10 +209,55 @@ export default function OrganizationsPage() {
         )}
       </div>
 
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3 animate-pop">
+        {loading ? (
+          <div className="py-16 text-center text-brand-muted">Cargando...</div>
+        ) : orgs.length === 0 ? (
+          <div className="py-16 text-center text-brand-muted">
+            <Building2 size={40} className="mx-auto mb-3 opacity-30" />
+            <p>No hay tiendas aun.</p>
+          </div>
+        ) : orgs.map((org) => (
+          <div key={org.id} className="glass-panel rounded-2xl p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="font-bold text-white">{org.name}</div>
+                <div className="text-xs text-brand-muted font-mono mt-0.5">{org.slug}</div>
+              </div>
+              <PlanBadge plan={org.plan} />
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {[["Usuarios", org._count.profiles], ["Productos", org._count.products], ["Pedidos", org._count.orders]].map(([label, val]) => (
+                <div key={label as string} className="bg-white/5 rounded-xl p-2">
+                  <div className="text-white font-bold text-base">{val}</div>
+                  <div className="text-brand-muted text-xs">{label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => handleEnterOrg(org.id)}
+                disabled={entering === org.id}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-brand-kinetic-orange/10 text-brand-kinetic-orange hover:bg-brand-kinetic-orange/20 transition-colors text-xs font-medium disabled:opacity-50"
+              >
+                <LogIn size={13} /> {entering === org.id ? "Entrando..." : "Entrar"}
+              </button>
+              <button onClick={() => openEdit(org)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors">
+                <Pencil size={15} />
+              </button>
+              <button onClick={() => setDeleteId(org.id)} className="p-2 rounded-lg hover:bg-red-500/10 text-brand-muted hover:text-red-400 transition-colors">
+                <Trash2 size={15} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Create modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="glass-panel w-full max-w-lg rounded-3xl p-8 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4">
+          <div className="glass-panel w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-display font-bold text-white">Nueva Tienda</h2>
               <button onClick={() => setShowCreate(false)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
@@ -219,6 +284,30 @@ export default function OrganizationsPage() {
                   </div>
                 </div>
               </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Plan</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PLANS.map((p) => {
+                    const meta = PLAN_META[p];
+                    const selected = createForm.plan === p;
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setCreateForm({ ...createForm, plan: p })}
+                        className={`py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all ${
+                          selected
+                            ? `${meta.bg} ${meta.color} border-current`
+                            : "bg-white/5 text-brand-muted border-white/10 hover:border-white/20"
+                        }`}
+                      >
+                        <div>{meta.label}</div>
+                        <div className="font-normal opacity-70 mt-0.5">{meta.price}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <button type="submit" disabled={saving} className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold disabled:opacity-50">
                 {saving ? "Creando..." : "Crear Tienda y Admin"}
@@ -230,8 +319,8 @@ export default function OrganizationsPage() {
 
       {/* Edit modal */}
       {editOrg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="glass-panel w-full max-w-md rounded-3xl p-8 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4">
+          <div className="glass-panel w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-display font-bold text-white">Editar Tienda</h2>
               <button onClick={() => setEditOrg(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
@@ -249,6 +338,30 @@ export default function OrganizationsPage() {
                 <label className="text-sm text-brand-muted">Direccion</label>
                 <input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} className={input} placeholder="Calle, Ciudad" />
               </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Plan</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PLANS.map((p) => {
+                    const meta = PLAN_META[p];
+                    const selected = editForm.plan === p;
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, plan: p })}
+                        className={`py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all ${
+                          selected
+                            ? `${meta.bg} ${meta.color} border-current`
+                            : "bg-white/5 text-brand-muted border-white/10 hover:border-white/20"
+                        }`}
+                      >
+                        <div>{meta.label}</div>
+                        <div className="font-normal opacity-70 mt-0.5">{meta.price}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {editError && <p className="text-red-400 text-sm">{editError}</p>}
               <button type="submit" disabled={editSaving} className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold disabled:opacity-50">
                 {editSaving ? "Guardando..." : "Guardar Cambios"}
@@ -260,8 +373,8 @@ export default function OrganizationsPage() {
 
       {/* Delete confirm */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="glass-panel w-full max-w-sm rounded-3xl p-8 space-y-6 text-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4">
+          <div className="glass-panel w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 space-y-6 text-center">
             <Trash2 size={40} className="mx-auto text-red-400" />
             <div>
               <h3 className="text-lg font-bold text-white">Eliminar organizacion</h3>

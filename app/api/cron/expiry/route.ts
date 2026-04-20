@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     where: {
       active: true,
       batchExpiry: { gte: now, lte: in7Days },
+      organization: { plan: "EMPRESARIAL" },
     },
     include: { organization: { select: { id: true, name: true } } },
     orderBy: { batchExpiry: "asc" },

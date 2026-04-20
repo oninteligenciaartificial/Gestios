@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canUseFeature, planGateError, PLAN_LIMITS } from "@/lib/plans";
 import { z } from "zod";
 
 const createUserSchema = z.object({
@@ -26,6 +27,15 @@ export async function GET() {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile || profile.role !== "ADMIN") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  if (!canUseFeature(profile.plan, "staff")) return NextResponse.json(planGateError("staff"), { status: 403 });
+
+  const { maxStaff } = PLAN_LIMITS[profile.plan];
+  if (isFinite(maxStaff)) {
+    const currentCount = await prisma.profile.count({ where: { organizationId: profile.organizationId } });
+    if (currentCount > maxStaff) {
+      return NextResponse.json({ error: `Tu plan permite máximo ${maxStaff} usuarios adicionales al admin.`, upgrade: true, requiredPlan: "EMPRESARIAL" }, { status: 403 });
+    }
+  }
 
   let body: unknown;
   try { body = await request.json(); }

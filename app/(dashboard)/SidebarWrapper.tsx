@@ -4,21 +4,26 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarUser } from "./SidebarUser";
+import { PLAN_META, type PlanType } from "@/lib/plans";
 
 interface NavLink { href: string; label: string }
 
 interface Props {
   links: NavLink[];
+  lockedHrefs: string[];
   orgName: string;
   isSuperAdmin: boolean;
   isImpersonating: boolean;
   name: string;
   email: string;
   role: string;
+  plan: PlanType | null;
 }
 
-export function SidebarWrapper({ links, orgName, isSuperAdmin, isImpersonating, name, email, role }: Props) {
+export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isImpersonating, name, email, role, plan }: Props) {
   const [open, setOpen] = useState(false);
+
+  const planMeta = plan ? PLAN_META[plan] : null;
 
   return (
     <>
@@ -71,7 +76,14 @@ export function SidebarWrapper({ links, orgName, isSuperAdmin, isImpersonating, 
           </button>
         </div>
 
-        <SidebarNav links={links} onNavigate={() => setOpen(false)} />
+        <SidebarNav links={links} lockedHrefs={lockedHrefs} onNavigate={() => setOpen(false)} />
+
+        {planMeta && (
+          <div className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 ${planMeta.bg} border border-white/5`}>
+            <span className={planMeta.color}>{planMeta.label}</span>
+            <span className="text-brand-muted">{planMeta.price}</span>
+          </div>
+        )}
 
         <SidebarUser name={name} email={email} role={role} isSuperAdmin={isSuperAdmin} />
       </aside>
