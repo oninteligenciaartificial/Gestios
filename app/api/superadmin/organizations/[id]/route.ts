@@ -7,7 +7,8 @@ const schema = z.object({
   name: z.string().min(1).optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
-  plan: z.enum(["BASICO", "PRO", "EMPRESARIAL"]).optional(),
+  plan: z.enum(["BASICO", "CRECER", "PRO", "EMPRESARIAL"]).optional(),
+  planExpiresAt: z.string().datetime().optional().nullable(),
 });
 
 async function getSuperAdmin() {

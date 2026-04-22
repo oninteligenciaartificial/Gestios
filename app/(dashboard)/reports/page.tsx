@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download, CreditCard, UserCheck, Clock } from "lucide-react";
+import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download, CreditCard, UserCheck, Clock, Tag } from "lucide-react";
+import { formatMoney } from "@/lib/currency";
 
 interface ReportData {
+  currency: string;
   totalRevenue: number;
   totalOrders: number;
   totalCustomers: number;
   totalMargin: number;
   topSelling: { name: string; quantity: number; revenue: number; margin: number }[];
+  salesByCategory: { name: string; revenue: number; quantity: number }[];
+  topCustomers: { customerId: string | null; customerName: string; total: number; orders: number }[];
   lowStock: { id: string; name: string; stock: number; minStock: number }[];
   paymentBreakdown: Record<string, number>;
   salesByStaff: { staffId: string | null; staffName: string; total: number; orders: number }[];
@@ -52,6 +56,9 @@ export default function ReportsPage() {
 
   function handleApply() { fetchReport(from, to); }
 
+  const cur = data?.currency ?? "MXN";
+  const fmt = (n: number) => formatMoney(n, cur);
+
   function exportExcel() {
     if (!data) return;
     const rows = [
@@ -66,6 +73,14 @@ export default function ReportsPage() {
       ["Metodos de pago"],
       ["Metodo", "Monto"],
       ...Object.entries(data.paymentBreakdown).map(([m, v]) => [PAYMENT_LABELS[m] ?? m, v]),
+      [],
+      ["Ventas por categoria"],
+      ["Categoria", "Ingresos", "Unidades"],
+      ...data.salesByCategory.map((c) => [c.name, c.revenue, c.quantity]),
+      [],
+      ["Top Clientes"],
+      ["Cliente", "Pedidos", "Total"],
+      ...data.topCustomers.map((c) => [c.customerName, c.orders, c.total]),
       [],
       ["Ventas por empleado"],
       ["Empleado", "Pedidos", "Total"],
@@ -84,7 +99,7 @@ export default function ReportsPage() {
       ...data.noMovement.map((p) => [p.name, p.stock]),
     ];
     const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -94,7 +109,9 @@ export default function ReportsPage() {
 
   const avgTicket = data && data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0;
   const maxQty = data?.topSelling[0]?.quantity ?? 1;
+  const maxCategoryRev = data?.salesByCategory[0]?.revenue ?? 1;
   const totalPayments = Object.values(data?.paymentBreakdown ?? {}).reduce((s, v) => s + v, 0);
+  const maxCustomerTotal = data?.topCustomers[0]?.total ?? 1;
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -135,10 +152,10 @@ export default function ReportsPage() {
           {/* KPIs principales */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pop">
             {[
-              { label: "Ingresos totales", value: `$${data.totalRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, icon: DollarSign, color: "text-brand-growth-neon" },
-              { label: "Margen de ganancia", value: `$${data.totalMargin.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-brand-kinetic-orange" },
+              { label: "Ingresos totales", value: fmt(data.totalRevenue), icon: DollarSign, color: "text-brand-growth-neon" },
+              { label: "Margen de ganancia", value: fmt(data.totalMargin), icon: TrendingUp, color: "text-brand-kinetic-orange" },
               { label: "Pedidos", value: String(data.totalOrders), icon: ShoppingCart, color: "text-blue-400" },
-              { label: "Ticket promedio", value: `$${avgTicket.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: "text-white" },
+              { label: "Ticket promedio", value: fmt(avgTicket), icon: TrendingUp, color: "text-white" },
             ].map((kpi) => (
               <div key={kpi.label} className="glass-panel p-5 rounded-2xl hover:-translate-y-1 transition-transform duration-300">
                 <div className="flex justify-between items-start mb-3">
@@ -172,8 +189,8 @@ export default function ReportsPage() {
                             <span className="font-medium text-white">{p.name}</span>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-bold text-brand-growth-neon">${p.revenue.toLocaleString("es-MX")}</div>
-                            <div className="text-xs text-brand-kinetic-orange">+${p.margin.toLocaleString("es-MX")} margen</div>
+                            <div className="text-sm font-bold text-brand-growth-neon">{fmt(p.revenue)}</div>
+                            <div className="text-xs text-brand-kinetic-orange">+{fmt(p.margin)} margen</div>
                             <div className="text-xs text-brand-muted">{p.quantity} uds.</div>
                           </div>
                         </div>
@@ -182,6 +199,39 @@ export default function ReportsPage() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Ventas por Categoria */}
+            <section className="space-y-4 animate-pop">
+              <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                <Tag size={20} className="text-blue-400" />
+                Ventas por Categoria
+              </h2>
+              <div className="glass-panel rounded-2xl overflow-hidden">
+                {data.salesByCategory.length === 0 ? (
+                  <div className="py-12 text-center text-brand-muted text-sm">Sin ventas en este periodo.</div>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {data.salesByCategory.map((c) => {
+                      const pct = maxCategoryRev > 0 ? (c.revenue / maxCategoryRev) * 100 : 0;
+                      return (
+                        <div key={c.name} className="p-4 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">{c.name}</span>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-blue-400">{fmt(c.revenue)}</div>
+                              <div className="text-xs text-brand-muted">{c.quantity} uds.</div>
+                            </div>
+                          </div>
+                          <div className="w-full bg-white/5 rounded-full h-1.5">
+                            <div className="h-1.5 rounded-full bg-blue-400" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -233,7 +283,7 @@ export default function ReportsPage() {
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-white">{PAYMENT_LABELS[method] ?? method}</span>
                             <div className="text-right">
-                              <div className="text-sm font-bold text-brand-growth-neon">${amount.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                              <div className="text-sm font-bold text-brand-growth-neon">{fmt(amount)}</div>
                               <div className="text-xs text-brand-muted">{pct.toFixed(1)}%</div>
                             </div>
                           </div>
@@ -247,6 +297,40 @@ export default function ReportsPage() {
                 )}
               </div>
             </section>
+
+            {/* Top Clientes */}
+            {data.topCustomers.length > 0 && (
+              <section className="space-y-4 animate-pop">
+                <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                  <Users size={20} className="text-brand-growth-neon" />
+                  Top Clientes
+                </h2>
+                <div className="glass-panel rounded-2xl overflow-hidden">
+                  <div className="divide-y divide-white/5">
+                    {data.topCustomers.map((c, i) => {
+                      const pct = maxCustomerTotal > 0 ? (c.total / maxCustomerTotal) * 100 : 0;
+                      return (
+                        <div key={c.customerId} className="p-4 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3">
+                              <span className="text-brand-muted font-mono text-sm w-5">#{i + 1}</span>
+                              <div>
+                                <div className="font-medium text-white">{c.customerName}</div>
+                                <div className="text-xs text-brand-muted">{c.orders} pedido{c.orders !== 1 ? "s" : ""}</div>
+                              </div>
+                            </div>
+                            <div className="text-sm font-bold text-brand-growth-neon">{fmt(c.total)}</div>
+                          </div>
+                          <div className="w-full bg-white/5 rounded-full h-1.5">
+                            <div className="h-1.5 rounded-full bg-brand-growth-neon" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* Ventas por empleado */}
             {data.salesByStaff.length > 0 && (
@@ -263,7 +347,7 @@ export default function ReportsPage() {
                           <div className="font-medium text-white">{s.staffName}</div>
                           <div className="text-xs text-brand-muted">{s.orders} pedido{s.orders !== 1 ? "s" : ""}</div>
                         </div>
-                        <div className="text-sm font-bold text-brand-growth-neon">${s.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                        <div className="text-sm font-bold text-brand-growth-neon">{fmt(s.total)}</div>
                       </div>
                     ))}
                   </div>

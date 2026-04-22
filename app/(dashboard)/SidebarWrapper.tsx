@@ -18,12 +18,18 @@ interface Props {
   email: string;
   role: string;
   plan: PlanType | null;
+  planExpiresAt: string | null;
 }
 
-export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isImpersonating, name, email, role, plan }: Props) {
+export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isImpersonating, name, email, role, plan, planExpiresAt }: Props) {
   const [open, setOpen] = useState(false);
 
   const planMeta = plan ? PLAN_META[plan] : null;
+
+  const daysLeft = planExpiresAt
+    ? Math.ceil((new Date(planExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const showExpiryAlert = daysLeft !== null && daysLeft <= 7 && daysLeft >= 0;
 
   return (
     <>
@@ -79,9 +85,21 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
         <SidebarNav links={links} lockedHrefs={lockedHrefs} onNavigate={() => setOpen(false)} />
 
         {planMeta && (
-          <div className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 ${planMeta.bg} border border-white/5`}>
-            <span className={planMeta.color}>{planMeta.label}</span>
-            <span className="text-brand-muted">{planMeta.price}</span>
+          <div className="space-y-2">
+            <div className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 ${planMeta.bg} border border-white/5`}>
+              <span className={planMeta.color}>{planMeta.label}</span>
+              <span className="text-brand-muted">{planMeta.price}</span>
+            </div>
+            {showExpiryAlert && (
+              <div className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 animate-pulse">
+                ⚠ Plan vence en {daysLeft} dia{daysLeft !== 1 ? "s" : ""}
+              </div>
+            )}
+            {daysLeft !== null && daysLeft > 7 && daysLeft <= 30 && (
+              <div className="px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
+                Vence en {daysLeft} dias
+              </div>
+            )}
           </div>
         )}
 

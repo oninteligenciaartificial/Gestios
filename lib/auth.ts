@@ -25,12 +25,14 @@ export async function getTenantProfile() {
   if (profile.organizationId) {
     const org = await prisma.organization.findUnique({
       where: { id: profile.organizationId },
-      select: { plan: true },
+      select: { plan: true, planExpiresAt: true, trialEndsAt: true },
     });
     return {
       ...profile,
       organizationId: profile.organizationId,
       plan: (org?.plan ?? "BASICO") as PlanType,
+      planExpiresAt: org?.planExpiresAt ?? null,
+      trialEndsAt: org?.trialEndsAt ?? null,
     };
   }
 
@@ -40,13 +42,15 @@ export async function getTenantProfile() {
     if (impersonateOrgId) {
       const org = await prisma.organization.findUnique({
         where: { id: impersonateOrgId },
-        select: { plan: true },
+        select: { plan: true, planExpiresAt: true, trialEndsAt: true },
       });
       return {
         ...profile,
         organizationId: impersonateOrgId,
         role: "ADMIN" as const,
         plan: (org?.plan ?? "BASICO") as PlanType,
+        planExpiresAt: org?.planExpiresAt ?? null,
+        trialEndsAt: org?.trialEndsAt ?? null,
       };
     }
   }

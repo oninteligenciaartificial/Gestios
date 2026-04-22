@@ -33,11 +33,14 @@ export async function POST(request: Request) {
     .replace(/[^a-z0-9-]/g, "")
     .slice(0, 50) + "-" + Date.now().toString(36);
 
+  const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
   const [org] = await prisma.$transaction([
     prisma.organization.create({
       data: {
         name: organizationName.trim(),
         slug,
+        trialEndsAt,
         profiles: {
           create: {
             userId: user.id,

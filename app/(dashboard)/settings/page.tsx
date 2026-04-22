@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Building2, Lock, Save, Activity, Link, Copy, Check } from "lucide-react";
+import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard } from "lucide-react";
+import { PLAN_META, type PlanType } from "@/lib/plans";
 
 interface Profile {
   name: string;
   role: string;
+  plan?: PlanType;
+  planExpiresAt?: string | null;
+  trialEndsAt?: string | null;
   organization?: {
     name: string;
     slug: string;
@@ -37,7 +41,7 @@ export default function SettingsPage() {
   const [orgAddress, setOrgAddress] = useState("");
   const [orgRfc, setOrgRfc] = useState("");
   const [orgLogoUrl, setOrgLogoUrl] = useState("");
-  const [orgCurrency, setOrgCurrency] = useState("MXN");
+  const [orgCurrency, setOrgCurrency] = useState("BOB");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -54,7 +58,7 @@ export default function SettingsPage() {
         setOrgAddress(data.organization?.address ?? "");
         setOrgRfc(data.organization?.rfc ?? "");
         setOrgLogoUrl(data.organization?.logoUrl ?? "");
-        setOrgCurrency(data.organization?.currency ?? "MXN");
+        setOrgCurrency(data.organization?.currency ?? "BOB");
       }
     });
   }, []);
@@ -122,19 +126,22 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Telefono</label>
-                <input value={orgPhone} onChange={(e) => setOrgPhone(e.target.value)} className={inp} placeholder="55 1234 5678" />
+                <input value={orgPhone} onChange={(e) => setOrgPhone(e.target.value)} className={inp} placeholder="591 2 2345678" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">RFC</label>
-                <input value={orgRfc} onChange={(e) => setOrgRfc(e.target.value)} className={inp} placeholder="XAXX010101000" />
+                <label className="text-sm text-brand-muted">NIT</label>
+                <input value={orgRfc} onChange={(e) => setOrgRfc(e.target.value)} className={inp} placeholder="1234567890" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Moneda</label>
                 <select value={orgCurrency} onChange={(e) => setOrgCurrency(e.target.value)} className={inp}>
-                  <option value="MXN">MXN — Peso Mexicano</option>
+                  <option value="BOB">BOB — Boliviano</option>
                   <option value="USD">USD — Dolar Americano</option>
+                  <option value="MXN">MXN — Peso Mexicano</option>
                   <option value="COP">COP — Peso Colombiano</option>
                   <option value="ARS">ARS — Peso Argentino</option>
+                  <option value="PEN">PEN — Sol Peruano</option>
+                  <option value="CLP">CLP — Peso Chileno</option>
                 </select>
               </div>
             </div>
@@ -174,6 +181,10 @@ export default function SettingsPage() {
         <RegistroLink slug={profile.organization.slug} />
       )}
 
+      {profile.plan && (
+        <PlanSection plan={profile.plan} planExpiresAt={profile.planExpiresAt ?? null} trialEndsAt={profile.trialEndsAt ?? null} />
+      )}
+
       {isAdmin && (
         <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
           <div className="flex items-center justify-between">
@@ -210,6 +221,63 @@ export default function SettingsPage() {
         </section>
       )}
     </div>
+  );
+}
+
+function PlanSection({ plan, planExpiresAt, trialEndsAt }: { plan: PlanType; planExpiresAt: string | null; trialEndsAt: string | null }) {
+  const meta = PLAN_META[plan];
+  const now = Date.now();
+
+  const expiresMs = planExpiresAt ? new Date(planExpiresAt).getTime() : null;
+  const trialMs = trialEndsAt ? new Date(trialEndsAt).getTime() : null;
+
+  const daysLeft = expiresMs ? Math.ceil((expiresMs - now) / (1000 * 60 * 60 * 24)) : null;
+  const inTrial = trialMs && trialMs > now;
+  const trialDaysLeft = inTrial ? Math.ceil((trialMs - now) / (1000 * 60 * 60 * 24)) : null;
+
+  const statusColor = daysLeft === null ? "text-brand-muted" : daysLeft <= 7 ? "text-red-400" : daysLeft <= 30 ? "text-yellow-400" : "text-brand-growth-neon";
+
+  return (
+    <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="p-2 rounded-lg bg-brand-kinetic-orange/10">
+          <CreditCard size={18} className="text-brand-kinetic-orange" />
+        </div>
+        <h2 className="font-display font-bold text-white">Mi Plan</h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="text-xs text-brand-muted mb-1">Plan actual</div>
+          <div className={`font-bold text-lg ${meta.color}`}>{meta.label}</div>
+          <div className="text-xs text-brand-muted">{meta.price}</div>
+        </div>
+
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="text-xs text-brand-muted mb-1">Vencimiento</div>
+          <div className="font-bold text-white text-sm">
+            {planExpiresAt
+              ? new Date(planExpiresAt).toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" })
+              : "Sin fecha"}
+          </div>
+        </div>
+
+        <div className="bg-white/5 rounded-xl p-4">
+          <div className="text-xs text-brand-muted mb-1">Estado</div>
+          {inTrial ? (
+            <div className="font-bold text-blue-400 text-sm">Trial · {trialDaysLeft}d</div>
+          ) : daysLeft === null ? (
+            <div className="font-bold text-brand-muted text-sm">Sin vencimiento</div>
+          ) : daysLeft < 0 ? (
+            <div className="font-bold text-red-400 text-sm">Vencido</div>
+          ) : (
+            <div className={`font-bold text-sm ${statusColor}`}>{daysLeft} dias restantes</div>
+          )}
+        </div>
+      </div>
+
+      <p className="text-xs text-brand-muted">Para renovar o cambiar de plan, contacta a soporte de GestiOS.</p>
+    </section>
   );
 }
 

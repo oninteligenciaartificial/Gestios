@@ -12,11 +12,12 @@ interface Org {
   phone: string | null;
   address: string | null;
   plan: PlanType;
+  planExpiresAt: string | null;
   createdAt: string;
   _count: { profiles: number; products: number; orders: number };
 }
 
-const PLANS: PlanType[] = ["BASICO", "PRO", "EMPRESARIAL"];
+const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
 const EMPTY_CREATE = { orgName: "", adminName: "", adminEmail: "", adminPassword: "", plan: "BASICO" as PlanType };
 const input = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
 
@@ -41,7 +42,7 @@ export default function OrganizationsPage() {
   const [success, setSuccess] = useState("");
 
   const [editOrg, setEditOrg] = useState<Org | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", phone: "", address: "", plan: "BASICO" as PlanType });
+  const [editForm, setEditForm] = useState({ name: "", phone: "", address: "", plan: "BASICO" as PlanType, planExpiresAt: "" });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -80,8 +81,17 @@ export default function OrganizationsPage() {
 
   function openEdit(org: Org) {
     setEditOrg(org);
-    setEditForm({ name: org.name, phone: org.phone ?? "", address: org.address ?? "", plan: org.plan });
+    const expiresAt = org.planExpiresAt ? new Date(org.planExpiresAt).toISOString().split("T")[0] : "";
+    setEditForm({ name: org.name, phone: org.phone ?? "", address: org.address ?? "", plan: org.plan, planExpiresAt: expiresAt });
     setEditError("");
+  }
+
+  function renewDays(days: number) {
+    const base = editForm.planExpiresAt && new Date(editForm.planExpiresAt) > new Date()
+      ? new Date(editForm.planExpiresAt)
+      : new Date();
+    base.setDate(base.getDate() + days);
+    setEditForm({ ...editForm, planExpiresAt: base.toISOString().split("T")[0] });
   }
 
   async function handleEdit(e: React.FormEvent) {
@@ -97,6 +107,7 @@ export default function OrganizationsPage() {
         phone: editForm.phone || undefined,
         address: editForm.address || undefined,
         plan: editForm.plan,
+        planExpiresAt: editForm.planExpiresAt ? new Date(editForm.planExpiresAt + "T23:59:59Z").toISOString() : null,
       }),
     });
     if (res.ok) {
@@ -340,7 +351,7 @@ export default function OrganizationsPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Plan</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {PLANS.map((p) => {
                     const meta = PLAN_META[p];
                     const selected = editForm.plan === p;
@@ -360,6 +371,26 @@ export default function OrganizationsPage() {
                       </button>
                     );
                   })}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-brand-muted">Fecha de vencimiento</label>
+                <input
+                  type="date"
+                  value={editForm.planExpiresAt}
+                  onChange={(e) => setEditForm({ ...editForm, planExpiresAt: e.target.value })}
+                  className={input}
+                />
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => renewDays(30)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs text-brand-muted hover:text-white hover:border-brand-kinetic-orange transition-colors">
+                    +30 dias
+                  </button>
+                  <button type="button" onClick={() => renewDays(90)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs text-brand-muted hover:text-white hover:border-brand-kinetic-orange transition-colors">
+                    +90 dias
+                  </button>
+                  <button type="button" onClick={() => renewDays(365)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs text-brand-muted hover:text-white hover:border-brand-kinetic-orange transition-colors">
+                    +1 ano
+                  </button>
                 </div>
               </div>
               {editError && <p className="text-red-400 text-sm">{editError}</p>}

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
+import Link from "next/link";
 import { loginAction } from "./actions";
 
 function SubmitButton() {
@@ -52,7 +53,7 @@ export default function LoginPage() {
               required
               autoComplete="email"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-              placeholder="admin@mitienda.com"
+              placeholder="admin@minegocio.com"
             />
           </div>
 
@@ -81,6 +82,13 @@ export default function LoginPage() {
 
           <SubmitButton />
         </form>
+
+        <p className="text-center text-sm text-brand-muted">
+          No tienes cuenta?{" "}
+          <Link href="/signup" className="text-brand-kinetic-orange hover:underline">
+            Crear cuenta gratis
+          </Link>
+        </p>
       </div>
     </div>
   );

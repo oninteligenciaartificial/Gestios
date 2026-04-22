@@ -8,8 +8,44 @@ datasource db {
 
 enum PlanType {
   BASICO
+  CRECER
   PRO
   EMPRESARIAL
+}
+
+enum AddonType {
+  WHATSAPP
+  FACTURACION
+  MERCADOPAGO
+  ECOMMERCE
+  CONTABILIDAD
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  MANAGER
+  STAFF
+  VIEWER
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
+}
+
+enum DiscountType {
+  PORCENTAJE
+  MONTO_FIJO
 }
 
 // =============================================
@@ -17,26 +53,34 @@ enum PlanType {
 // =============================================
 
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  phone     String?
-  address   String?
-  logoUrl   String?
-  rfc       String?
-  currency  String   @default("MXN")
-  plan      PlanType @default(BASICO)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String    @id @default(cuid())
+  name             String
+  slug             String    @unique
+  phone            String?
+  address          String?
+  logoUrl          String?
+  rfc              String?
+  currency         String    @default("BOB")
+  plan             PlanType  @default(BASICO)
+  planExpiresAt    DateTime?
+  trialEndsAt      DateTime?
+  stripeCustomerId String?   @unique
+  stripeSubId      String?   @unique
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  profiles     Profile[]
-  categories   Category[]
-  products     Product[]
-  customers    Customer[]
-  orders       Order[]
-  suppliers    Supplier[]
-  discounts    Discount[]
-  activityLogs ActivityLog[]
+  profiles        Profile[]
+  categories      Category[]
+  products        Product[]
+  customers       Customer[]
+  orders          Order[]
+  suppliers       Supplier[]
+  discounts       Discount[]
+  activityLogs    ActivityLog[]
+  auditLogs       AuditLog[]
+  branches        Branch[]
+  addons          OrgAddon[]
+  waConversations WaConversation[]
 
   @@map("organizations")
 }
@@ -51,18 +95,72 @@ model Profile {
   organizationId String?
   name           String
   role           Role     @default(STAFF)
+  branchId       String?
   createdAt      DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
   orders       Order[]       @relation("StaffOrders")
 
   @@map("profiles")
 }
 
-enum Role {
-  SUPERADMIN
-  ADMIN
-  STAFF
+// =============================================
+// SUCURSALES
+// =============================================
+
+model Branch {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  address        String?
+  phone          String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  profiles     Profile[]
+  orders       Order[]
+
+  @@map("branches")
+}
+
+// =============================================
+// ADD-ONS
+// =============================================
+
+model OrgAddon {
+  id             String    @id @default(cuid())
+  organizationId String
+  addon          AddonType
+  active         Boolean   @default(true)
+  stripeItemId   String?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, addon])
+  @@map("org_addons")
+}
+
+// =============================================
+// WHATSAPP
+// =============================================
+
+model WaConversation {
+  id             String    @id @default(cuid())
+  organizationId String
+  phone          String
+  waId           String?
+  type           String    @default("user_initiated")
+  messageCount   Int       @default(0)
+  openedAt       DateTime  @default(now())
+  closedAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, openedAt])
+  @@map("wa_conversations")
 }
 
 // =============================================
@@ -144,6 +242,7 @@ model Order {
   organizationId  String
   customerId      String?
   staffId         String?
+  branchId        String?
   customerName    String
   status          OrderStatus   @default(PENDIENTE)
   paymentMethod   PaymentMethod @default(EFECTIVO)
@@ -156,6 +255,7 @@ model Order {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   staff        Profile?     @relation("StaffOrders", fields: [staffId], references: [id], onDelete: SetNull)
+  branch       Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
   items        OrderItem[]
 
   @@map("orders")
@@ -172,20 +272,6 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@map("order_items")
-}
-
-enum OrderStatus {
-  PENDIENTE
-  CONFIRMADO
-  ENVIADO
-  ENTREGADO
-  CANCELADO
-}
-
-enum PaymentMethod {
-  EFECTIVO
-  TARJETA
-  TRANSFERENCIA
 }
 
 // =============================================
@@ -229,13 +315,8 @@ model Discount {
   @@map("discounts")
 }
 
-enum DiscountType {
-  PORCENTAJE
-  MONTO_FIJO
-}
-
 // =============================================
-// LOG DE ACTIVIDAD
+// LOG DE ACTIVIDAD (feed simple, todos los planes)
 // =============================================
 
 model ActivityLog {
@@ -252,4 +333,27 @@ model ActivityLog {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("activity_logs")
+}
+
+// =============================================
+// AUDIT LOG (antes/despues JSON, solo EMPRESARIAL)
+// =============================================
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  action         String
+  entityType     String
+  entityId       String
+  before         Json?
+  after          Json?
+  ip             String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }

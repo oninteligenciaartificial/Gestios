@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, Upload, Download } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -54,6 +54,9 @@ export default function CustomersPage() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -113,6 +116,33 @@ export default function CustomersPage() {
     setSaving(false);
   }
 
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportMsg("");
+    const text = await file.text();
+    const res = await fetch("/api/customers/import", { method: "POST", body: text });
+    const data = await res.json();
+    if (res.ok) {
+      setImportMsg(`Importados: ${data.imported}${data.skipped ? `, omitidos: ${data.skipped}` : ""}`);
+      fetchCustomers();
+    } else {
+      setImportMsg(data.error ?? "Error al importar");
+    }
+    setImporting(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function downloadTemplate() {
+    const csv = "name,phone,email,address,notes\nJuan Perez,5512345678,juan@email.com,Calle 1,Cliente frecuente";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "clientes_plantilla.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const initials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   const filtered = customers.filter((c) =>
@@ -123,18 +153,42 @@ export default function CustomersPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
-      <header className="flex justify-between items-end animate-pop">
+      <header className="flex flex-wrap justify-between items-end gap-3 animate-pop">
         <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Clientes</h1>
           <p className="text-brand-muted mt-1">Base de datos de clientes de tu tienda.</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
-        >
-          <Plus size={18} /> Nuevo Cliente
-        </button>
+        <div className="flex items-center gap-2">
+          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+          <button
+            onClick={downloadTemplate}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full glass-panel text-brand-muted hover:text-white text-sm transition-colors"
+            title="Descargar plantilla CSV"
+          >
+            <Download size={15} />
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full glass-panel text-brand-muted hover:text-white text-sm transition-colors disabled:opacity-50"
+          >
+            <Upload size={15} />
+            {importing ? "Importando..." : "Importar CSV"}
+          </button>
+          <button
+            onClick={openCreate}
+            className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
+          >
+            <Plus size={18} /> Nuevo Cliente
+          </button>
+        </div>
       </header>
+
+      {importMsg && (
+        <div className={`glass-panel rounded-2xl p-3 text-sm ${importMsg.includes("Error") || importMsg.includes("error") ? "text-red-400 border border-red-500/20" : "text-brand-growth-neon border border-brand-growth-neon/20"}`}>
+          {importMsg}
+        </div>
+      )}
 
       <div className="relative">
         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" />

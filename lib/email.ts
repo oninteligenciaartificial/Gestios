@@ -1,4 +1,5 @@
-const FROM = process.env.EMAIL_FROM ?? "GestiOS <noreply@gestios.app>";
+const FROM_NAME = "GestiOS";
+const FROM_EMAIL = process.env.EMAIL_FROM_ADDRESS ?? "noreply@gestios.app";
 
 interface OrderItem {
   name: string;
@@ -68,6 +69,19 @@ interface SendLowStockAlertArgs {
   products: { name: string; stock: number; minStock: number }[];
 }
 
+interface SendPlainArgs {
+  to: string;
+  subject: string;
+  text: string;
+}
+
+interface SendInactiveCustomerArgs {
+  to: string;
+  customerName: string;
+  orgName: string;
+  daysSinceLastOrder: number;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   PENDIENTE: "Pendiente",
   CONFIRMADO: "Confirmado",
@@ -81,6 +95,44 @@ const PAYMENT_LABELS: Record<string, string> = {
   TARJETA: "Tarjeta",
   TRANSFERENCIA: "Transferencia",
 };
+
+async function sendEmail(to: string, subject: string, htmlContent: string, toName?: string) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return;
+
+  await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: to, name: toName ?? to }],
+      subject,
+      htmlContent,
+    }),
+  });
+}
+
+async function sendPlainEmail(to: string, subject: string, textContent: string) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return;
+
+  await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: to }],
+      subject,
+      textContent,
+    }),
+  });
+}
 
 function baseTemplate(content: string, orgName: string) {
   return `<!DOCTYPE html>
@@ -107,10 +159,6 @@ function baseTemplate(content: string, orgName: string) {
 }
 
 export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const itemsHtml = args.items.map(i =>
     `<tr>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
@@ -141,19 +189,10 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
     <p style="margin:20px 0 0;font-size:13px;color:#666;">Folio de pedido: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `Pedido recibido — ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `Pedido recibido — ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName);
 }
 
 export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const statusLabel = STATUS_LABELS[args.status] ?? args.status;
   const statusColor = args.status === "ENTREGADO" ? "#22c55e" : args.status === "CANCELADO" ? "#ef4444" : "#ff6b00";
 
@@ -167,19 +206,10 @@ export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
     <p style="margin:0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `Tu pedido esta ${statusLabel} — ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `Tu pedido esta ${statusLabel} — ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName);
 }
 
 export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const rowsHtml = args.products.map(p =>
     `<tr>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${p.name}</td>
@@ -202,42 +232,24 @@ export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
     <p style="margin:24px 0 0;font-size:13px;color:#666;">Entra a GestiOS para reabastecer tu inventario.</p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `⚠️ ${args.products.length} producto(s) con stock bajo — ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `${args.products.length} producto(s) con stock bajo — ${args.orgName}`, baseTemplate(content, args.orgName));
 }
 
 export async function sendWelcomeEmail(args: SendWelcomeEmailArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Bienvenido/a a ${args.orgName}</h2>
     <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu registro fue exitoso.</p>
     <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
-      <div style="font-size:32px;margin-bottom:8px;">🎉</div>
+      <div style="font-size:32px;margin-bottom:8px;">&#127881;</div>
       <div style="font-size:15px;color:#ccc;">Ya eres parte de nuestra comunidad. A partir de ahora podras acumular puntos y recibir ofertas exclusivas.</div>
     </div>
     <p style="margin:0;font-size:13px;color:#666;">Si tienes alguna pregunta, contacta directamente a ${args.orgName}.</p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `Bienvenido/a a ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `Bienvenido/a a ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName);
 }
 
 export async function sendBirthdayEmail(args: SendBirthdayEmailArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Feliz cumpleanos, ${args.customerName}!</h2>
     <p style="margin:0 0 24px;color:#888;font-size:14px;">En tu dia especial, <strong style="color:#fff;">${args.orgName}</strong> tiene un regalo para ti.</p>
@@ -249,19 +261,10 @@ export async function sendBirthdayEmail(args: SendBirthdayEmailArgs) {
     <p style="margin:0;font-size:13px;color:#666;">Valido solo hoy. Presentalo al realizar tu pedido.</p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `Feliz cumpleanos ${args.customerName}! Tienes un regalo de ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `Feliz cumpleanos ${args.customerName}! Regalo de ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName);
 }
 
 export async function sendLoyaltyPointsEmail(args: SendLoyaltyPointsEmailArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Puntos acumulados</h2>
     <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu pedido fue entregado.</p>
@@ -276,19 +279,10 @@ export async function sendLoyaltyPointsEmail(args: SendLoyaltyPointsEmailArgs) {
     <p style="margin:0;font-size:13px;color:#666;">Sigue comprando en <strong style="color:#ff6b00;">${args.orgName}</strong> para acumular mas puntos.</p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `+${args.pointsEarned} puntos acumulados en ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `+${args.pointsEarned} puntos acumulados en ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName);
 }
 
 export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const itemsHtml = args.items.map(i =>
     `<tr>
       <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
@@ -319,19 +313,10 @@ export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
     <p style="margin:16px 0 0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `Nuevo pedido de ${args.customerName} — ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `Nuevo pedido de ${args.customerName} — ${args.orgName}`, baseTemplate(content, args.orgName));
 }
 
 export async function sendExpiryAlert(args: SendExpiryAlertArgs) {
-  if (!process.env.RESEND_API_KEY) return;
-  const { Resend } = await import("resend");
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
   const rowsHtml = args.products.map(p =>
     `<tr>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${p.name}${p.sku ? ` <span style="color:#555;font-size:11px;">(${p.sku})</span>` : ""}</td>
@@ -354,10 +339,51 @@ export async function sendExpiryAlert(args: SendExpiryAlertArgs) {
     <p style="margin:24px 0 0;font-size:13px;color:#666;">Entra a GestiOS para gestionar tu inventario.</p>
   `;
 
-  await resend.emails.send({
-    from: FROM,
-    to: args.to,
-    subject: `⚠️ ${args.products.length} producto(s) proximos a vencer — ${args.orgName}`,
-    html: baseTemplate(content, args.orgName),
-  });
+  await sendEmail(args.to, `${args.products.length} producto(s) proximos a vencer — ${args.orgName}`, baseTemplate(content, args.orgName));
+}
+
+export async function sendInactiveCustomerEmail(args: SendInactiveCustomerArgs) {
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Te echamos de menos, ${args.customerName}</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Han pasado <strong style="color:#fff;">${args.daysSinceLastOrder} dias</strong> desde tu ultima compra en <strong style="color:#fff;">${args.orgName}</strong>.</p>
+    <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:32px;margin-bottom:12px;">&#128717;</div>
+      <div style="font-size:15px;color:#ccc;line-height:1.6;">Tenemos novedades esperandote. Visita ${args.orgName} y descubre lo nuevo.</div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Si necesitas ayuda, contacta directamente a ${args.orgName}.</p>
+  `;
+
+  await sendEmail(args.to, `Te echamos de menos — ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName);
+}
+
+export async function sendPlainNotification(args: SendPlainArgs) {
+  await sendPlainEmail(args.to, args.subject, args.text);
+}
+
+export async function sendPlanExpiryWarning(args: { to: string; orgName: string; daysLeft: number; planLabel: string }) {
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Tu plan vence en ${args.daysLeft} dia${args.daysLeft !== 1 ? "s" : ""}</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">El plan <strong style="color:#fff;">${args.planLabel}</strong> de <strong style="color:#fff;">${args.orgName}</strong> esta proximo a vencer.</p>
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:40px;margin-bottom:12px;">&#9200;</div>
+      <div style="font-size:22px;font-weight:800;color:#f59e0b;margin-bottom:8px;">${args.daysLeft} dia${args.daysLeft !== 1 ? "s" : ""} restante${args.daysLeft !== 1 ? "s" : ""}</div>
+      <div style="font-size:14px;color:#aaa;">Renueva para mantener el acceso a todas tus funcionalidades.</div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Para renovar, contacta a soporte de GestiOS.</p>
+  `;
+  await sendEmail(args.to, `Tu plan vence en ${args.daysLeft} dia${args.daysLeft !== 1 ? "s" : ""} — ${args.orgName}`, baseTemplate(content, args.orgName));
+}
+
+export async function sendPlanExpired(args: { to: string; orgName: string; planLabel: string }) {
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Tu plan ha vencido</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">El plan <strong style="color:#fff;">${args.planLabel}</strong> de <strong style="color:#fff;">${args.orgName}</strong> vencio hoy.</p>
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:40px;margin-bottom:12px;">&#128274;</div>
+      <div style="font-size:18px;font-weight:700;color:#ef4444;margin-bottom:8px;">Acceso suspendido</div>
+      <div style="font-size:14px;color:#aaa;line-height:1.6;">Tu cuenta ha sido suspendida temporalmente. Renueva tu plan para retomar el acceso sin perder ningun dato.</div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Para renovar, contacta a soporte de GestiOS de inmediato.</p>
+  `;
+  await sendEmail(args.to, `Plan vencido — ${args.orgName} necesita renovacion`, baseTemplate(content, args.orgName));
 }

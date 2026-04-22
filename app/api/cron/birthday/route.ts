@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendBirthdayEmail } from "@/lib/email";
+import { sendBirthdayEmail, sendPlainNotification } from "@/lib/email";
 
 export async function GET(request: Request) {
   if (request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -71,12 +71,7 @@ export async function GET(request: Request) {
     for (const p of adminProfiles) {
       const { data } = await supabaseAdmin.auth.admin.getUserById(p.userId);
       if (data.user?.email) {
-        // Simple notification — reuse low stock alert template shape isn't ideal,
-        // but avoid adding more email types; a plain text note is enough for admin
-        const { Resend } = await import("resend");
-        const resend = new Resend(process.env.RESEND_API_KEY!);
-        await resend.emails.send({
-          from: process.env.EMAIL_FROM ?? "GestiOS <noreply@gestios.app>",
+        await sendPlainNotification({
           to: data.user.email,
           subject: `${orgCustomers.length} cliente(s) cumplen anos hoy — ${orgName}`,
           text: `Hoy cumplen anos: ${orgCustomers.map(c => c.name).join(", ")}. Se les envio automaticamente su codigo de descuento.`,

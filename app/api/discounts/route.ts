@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canUseFeature, planGateError } from "@/lib/plans";
+import { PLAN_LIMITS, limitGateError } from "@/lib/plans";
 import { z } from "zod";
 
 const schema = z.object({
@@ -15,7 +15,6 @@ const schema = z.object({
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  if (!canUseFeature(profile.plan, "discounts")) return NextResponse.json(planGateError("discounts"), { status: 403 });
 
   const discounts = await prisma.discount.findMany({
     where: { organizationId: profile.organizationId },
@@ -36,6 +35,16 @@ export async function POST(request: Request) {
 
   const result = schema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
+
+  const maxDiscounts = PLAN_LIMITS[profile.plan].maxDiscounts;
+  if (maxDiscounts !== Infinity) {
+    const activeCount = await prisma.discount.count({
+      where: { organizationId: profile.organizationId, active: true },
+    });
+    if (activeCount >= maxDiscounts) {
+      return NextResponse.json(limitGateError("descuentos activos", maxDiscounts, profile.plan), { status: 403 });
+    }
+  }
 
   const discount = await prisma.discount.create({
     data: {
