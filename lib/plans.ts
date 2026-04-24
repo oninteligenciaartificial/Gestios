@@ -15,12 +15,12 @@ export const PLAN_LIMITS: Record<PlanType, { maxProducts: number; maxCustomers: 
   EMPRESARIAL: { maxProducts: Infinity, maxCustomers: Infinity, maxStaff: Infinity, maxDiscounts: Infinity },
 };
 
-export const ADDON_META: Record<AddonType, { label: string; price: string; description: string }> = {
-  WHATSAPP:    { label: "WhatsApp Business", price: "$40/mes",  description: "300 conversaciones incluidas, excedente $0.08 c/u" },
-  FACTURACION: { label: "Facturación CFDI",  price: "$25/mes",  description: "Emite facturas electrónicas" },
-  MERCADOPAGO: { label: "Mercado Pago",      price: "$15/mes",  description: "Acepta pagos con Mercado Pago" },
-  ECOMMERCE:   { label: "E-commerce",        price: "$20/mes",  description: "Conecta Shopify o WooCommerce" },
-  CONTABILIDAD: { label: "Contabilidad",     price: "$18/mes",  description: "Sincroniza con QuickBooks" },
+export const ADDON_META: Record<AddonType, { label: string; price: string; description: string; comingSoon?: boolean }> = {
+  WHATSAPP:    { label: "WhatsApp Business",   price: "$40/mes", description: "300 conversaciones incluidas, excedente $0.08 c/u" },
+  FACTURACION: { label: "Facturación SIAT",    price: "$25/mes", description: "Facturas electrónicas oficiales según el SIN Bolivia", comingSoon: true },
+  MERCADOPAGO: { label: "Pagos QR Bolivia",    price: "$15/mes", description: "Acepta pagos con QR bancario, Tigo Money y BiPago" },
+  ECOMMERCE:   { label: "E-commerce",          price: "$20/mes", description: "Conecta Shopify o WooCommerce" },
+  CONTABILIDAD: { label: "Exportación Contable", price: "$18/mes", description: "Exporta ventas y gastos en CSV/Excel para tu contador" },
 };
 
 const PLAN_ORDER: Record<PlanType, number> = { BASICO: 0, CRECER: 1, PRO: 2, EMPRESARIAL: 3 };

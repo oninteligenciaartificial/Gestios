@@ -84,11 +84,11 @@ const PLANS = [
 ];
 
 const ADDONS = [
-  { name: "WhatsApp Business", price: "$40/mes", desc: "300 conversaciones incluidas, excedente $0.08 c/u" },
-  { name: "Facturación electrónica", price: "$25/mes", desc: "Facturas electrónicas oficiales" },
-  { name: "Mercado Pago", price: "$15/mes", desc: "Acepta pagos con Mercado Pago" },
-  { name: "E-commerce", price: "$20/mes", desc: "Conecta Shopify o WooCommerce" },
-  { name: "Contabilidad", price: "$18/mes", desc: "Sincroniza con QuickBooks" },
+  { name: "WhatsApp Business",    price: "$40/mes", desc: "300 conversaciones incluidas, excedente $0.08 c/u" },
+  { name: "Facturación SIAT",     price: "$25/mes", desc: "Facturas electrónicas según el SIN Bolivia (próximamente)" },
+  { name: "Pagos QR Bolivia",     price: "$15/mes", desc: "QR bancario, Tigo Money y BiPago" },
+  { name: "E-commerce",           price: "$20/mes", desc: "Conecta Shopify o WooCommerce" },
+  { name: "Exportación Contable", price: "$18/mes", desc: "CSV/Excel de ventas para tu contador local" },
 ];
 
 export default function PricingPage() {

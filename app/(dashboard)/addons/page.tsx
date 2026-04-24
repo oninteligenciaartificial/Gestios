@@ -100,22 +100,31 @@ export default function AddonsPage() {
                       <Zap size={18} className={active ? "text-brand-kinetic-orange" : "text-brand-muted"} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white text-sm">{meta.label}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-white text-sm">{meta.label}</h3>
+                        {meta.comingSoon && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-white/40 text-[10px] font-bold">Próximamente</span>
+                        )}
+                      </div>
                       <p className="text-brand-kinetic-orange text-xs font-semibold mt-0.5">{meta.price}</p>
                     </div>
                   </div>
 
                   <button
-                    onClick={() => !upgradeMsg && toggle(addon, active)}
-                    disabled={isSaving || !!upgradeMsg}
+                    onClick={() => !upgradeMsg && !meta.comingSoon && toggle(addon, active)}
+                    disabled={isSaving || !!upgradeMsg || !!meta.comingSoon}
                     className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all
-                      ${active
-                        ? "bg-brand-kinetic-orange/15 text-brand-kinetic-orange hover:bg-red-500/15 hover:text-red-400"
-                        : "bg-white/5 text-brand-muted hover:bg-brand-kinetic-orange/10 hover:text-brand-kinetic-orange"
+                      ${meta.comingSoon
+                        ? "bg-white/5 text-white/25 cursor-not-allowed"
+                        : active
+                          ? "bg-brand-kinetic-orange/15 text-brand-kinetic-orange hover:bg-red-500/15 hover:text-red-400"
+                          : "bg-white/5 text-brand-muted hover:bg-brand-kinetic-orange/10 hover:text-brand-kinetic-orange"
                       } disabled:opacity-40 disabled:cursor-not-allowed`}
                   >
                     {isSaving ? (
                       <Loader2 size={13} className="animate-spin" />
+                    ) : meta.comingSoon ? (
+                      <><X size={13} /> Pronto</>
                     ) : active ? (
                       <><Check size={13} /> Activo</>
                     ) : (
