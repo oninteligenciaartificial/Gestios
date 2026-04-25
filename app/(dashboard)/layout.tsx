@@ -104,7 +104,7 @@ export default async function DashboardLayout({
     ...(showAddons && (profile.role === "ADMIN" || isImpersonating) ? [{ href: "/addons", label: "Add-ons" }] : []),
     ...(!isImpersonating && (profile.role === "ADMIN" || profile.role === "MANAGER") ? [{ href: "/staff", label: "Equipo" }] : []),
     ...(isImpersonating ? [] : [{ href: "/settings", label: "Configuracion" }]),
-    ...(!isImpersonating && profile.role === "ADMIN" ? [{ href: "/billing", label: "Facturacion" }] : []),
+    ...(profile.role === "ADMIN" ? [{ href: "/billing", label: "Facturacion" }] : []),
   ];
 
   const navLinks = isSuperAdmin ? superAdminLinks : tenantLinks;
@@ -119,7 +119,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <SidebarWrapper
         links={navLinks}
         lockedHrefs={isSuperAdmin ? [] : [...lockedHrefs]}
@@ -132,12 +132,11 @@ export default async function DashboardLayout({
         plan={isSuperAdmin ? null : activePlan}
         planExpiresAt={isSuperAdmin ? null : (profile.organization?.planExpiresAt?.toISOString() ?? null)}
       />
-      <main className="flex-1 w-full relative overflow-y-auto lg:overflow-y-auto">
+      <main className="flex-1 w-full overflow-y-auto">
         {isImpersonating && impersonateOrgName && (
           <ImpersonationBanner orgName={impersonateOrgName} />
         )}
-        {/* Padding top on mobile to avoid hamburger overlap */}
-        <div className="pt-16 lg:pt-0 h-full">
+        <div className="pt-16 lg:pt-0">
           {children}
         </div>
       </main>

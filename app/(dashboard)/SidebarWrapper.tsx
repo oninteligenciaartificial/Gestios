@@ -52,12 +52,12 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        w-64 border-r border-white/5 bg-[#0a0a0a] lg:bg-brand-surface-lowest/50
+        fixed lg:sticky lg:top-0 inset-y-0 left-0 z-50
+        w-64 h-screen border-r border-white/5 bg-[#0a0a0a] lg:bg-brand-surface-lowest/50
         p-6 flex flex-col gap-6 lg:gap-8
         transition-transform duration-300 lg:transition-none lg:translate-x-0
         ${open ? "translate-x-0" : "-translate-x-full"}
-        overflow-y-auto
+        overflow-y-auto flex-shrink-0
       `}>
         <div className="flex items-start justify-between">
           <div>
