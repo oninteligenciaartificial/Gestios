@@ -81,6 +81,7 @@ model Organization {
   branches        Branch[]
   addons          OrgAddon[]
   waConversations WaConversation[]
+  paymentRequests PaymentRequest[]
 
   @@map("organizations")
 }
@@ -333,6 +334,35 @@ model ActivityLog {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("activity_logs")
+}
+
+// =============================================
+// SOLICITUDES DE PAGO (QR manual)
+// =============================================
+
+enum PaymentRequestStatus {
+  PENDIENTE
+  CONFIRMADO
+  RECHAZADO
+}
+
+model PaymentRequest {
+  id             String               @id @default(cuid())
+  organizationId String
+  plan           PlanType
+  months         Int                  @default(1)
+  amountBOB      Decimal              @db.Decimal(10, 2)
+  reference      String?
+  notes          String?
+  status         PaymentRequestStatus @default(PENDIENTE)
+  confirmedAt    DateTime?
+  confirmedBy    String?
+  createdAt      DateTime             @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@map("payment_requests")
 }
 
 // =============================================

@@ -1,4 +1,11 @@
 export type PlanType = "BASICO" | "CRECER" | "PRO" | "EMPRESARIAL";
+
+export const PLAN_PRICES_BOB: Record<PlanType, number> = {
+  BASICO: 270,
+  CRECER: 410,
+  PRO: 620,
+  EMPRESARIAL: 965,
+};
 export type AddonType = "WHATSAPP" | "FACTURACION" | "MERCADOPAGO" | "ECOMMERCE" | "CONTABILIDAD";
 
 export const PLAN_META: Record<PlanType, { label: string; price: string; color: string; bg: string }> = {

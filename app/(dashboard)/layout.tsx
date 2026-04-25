@@ -70,6 +70,7 @@ export default async function DashboardLayout({
     { href: "/superadmin", label: "Panel Principal" },
     { href: "/superadmin/organizations", label: "Organizaciones" },
     { href: "/superadmin/users", label: "Usuarios" },
+    { href: "/superadmin/payments", label: "Pagos y Planes" },
   ];
 
   // Map feature keys to nav hrefs for lock detection
@@ -103,6 +104,7 @@ export default async function DashboardLayout({
     ...(showAddons && (profile.role === "ADMIN" || isImpersonating) ? [{ href: "/addons", label: "Add-ons" }] : []),
     ...(!isImpersonating && (profile.role === "ADMIN" || profile.role === "MANAGER") ? [{ href: "/staff", label: "Equipo" }] : []),
     ...(isImpersonating ? [] : [{ href: "/settings", label: "Configuracion" }]),
+    ...(!isImpersonating && profile.role === "ADMIN" ? [{ href: "/billing", label: "Facturacion" }] : []),
   ];
 
   const navLinks = isSuperAdmin ? superAdminLinks : tenantLinks;

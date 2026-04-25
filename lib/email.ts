@@ -374,6 +374,23 @@ export async function sendPlanExpiryWarning(args: { to: string; orgName: string;
   await sendEmail(args.to, `Tu plan vence en ${args.daysLeft} dia${args.daysLeft !== 1 ? "s" : ""} — ${args.orgName}`, baseTemplate(content, args.orgName));
 }
 
+export async function sendPlanActivatedEmail(args: { to: string; orgName: string; plan: string; expiresAt: Date }) {
+  const planLabels: Record<string, string> = { BASICO: "Básico", CRECER: "Crecer", PRO: "Pro", EMPRESARIAL: "Empresarial" };
+  const label = planLabels[args.plan] ?? args.plan;
+  const expiry = args.expiresAt.toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" });
+  const content = `
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">¡Pago confirmado!</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Tu plan ha sido activado para <strong style="color:#fff;">${args.orgName}</strong>.</p>
+    <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:40px;margin-bottom:12px;">✅</div>
+      <div style="font-size:22px;font-weight:800;color:#ff6b00;margin-bottom:4px;">Plan ${label}</div>
+      <div style="font-size:13px;color:#888;">Activo hasta el ${expiry}</div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#666;">Ya puedes acceder a todas las funciones de tu plan. Si tienes dudas, responde este correo.</p>
+  `;
+  await sendEmail(args.to, `Plan ${label} activado — ${args.orgName}`, baseTemplate(content, "GestiOS"));
+}
+
 export async function sendPlanExpired(args: { to: string; orgName: string; planLabel: string }) {
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Tu plan ha vencido</h2>
