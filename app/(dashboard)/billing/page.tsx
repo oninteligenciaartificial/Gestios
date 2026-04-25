@@ -234,20 +234,33 @@ export default function BillingPage() {
               )}
             </div>
 
-            {QR_IMAGE_URL ? (
-              <div className="glass-panel rounded-2xl p-5 flex flex-col items-center gap-3">
-                <p className="text-xs text-brand-muted">Escanea con tu app bancaria o Tigo Money</p>
-                <img src={QR_IMAGE_URL} alt="QR de pago" className="w-48 h-48 rounded-xl" />
-                <p className="text-xs text-brand-muted text-center">QR Interbancario Bolivia</p>
+            {/* Card de pago OnIA */}
+            <div className="rounded-2xl overflow-hidden border border-white/10 bg-white">
+              {/* Header OnIA */}
+              <div className="bg-white px-5 py-4 flex items-center justify-between border-b border-gray-100">
+                <img src="/LOGO ONIA.jpeg" alt="OnIA" className="h-8 object-contain" />
+                <span className="text-xs text-gray-400 font-medium">Banco Ganadero S.A.</span>
               </div>
-            ) : (
-              <div className="glass-panel rounded-2xl p-5 flex flex-col items-center gap-3 border-2 border-dashed border-white/10">
-                <QrCode size={64} className="text-white/20" />
-                <p className="text-xs text-brand-muted text-center">
-                  Configura <code className="text-brand-kinetic-orange">NEXT_PUBLIC_QR_IMAGE_URL</code> en Vercel para mostrar tu QR aquí.
-                </p>
+
+              {/* QR — crop solo el código, ocultar header/footer del banco */}
+              <div className="bg-white flex items-center justify-center px-6 py-2 overflow-hidden">
+                <div className="relative w-56 overflow-hidden" style={{ height: "224px" }}>
+                  <img
+                    src="/QR GANADERO GESTIOS.jpeg"
+                    alt="QR de pago"
+                    className="absolute w-full"
+                    style={{ top: "-18%", transform: "scale(1.05)" }}
+                  />
+                </div>
               </div>
-            )}
+
+              {/* Datos de cuenta */}
+              <div className="bg-white px-5 py-4 border-t border-gray-100 space-y-1 text-center">
+                <p className="text-gray-800 font-bold text-sm">Urcullo Montenegro Ruddy</p>
+                <p className="text-gray-500 text-xs">Cuenta <span className="font-mono font-bold text-gray-700">1311455296</span></p>
+                <p className="text-gray-400 text-xs">GestiOS Suscripción · QR Interbancario Bolivia</p>
+              </div>
+            </div>
 
             <p className="text-xs text-brand-muted text-center">
               ¿Preguntas? Escríbenos al {QR_PHONE}
