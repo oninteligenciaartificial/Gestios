@@ -37,6 +37,7 @@ const patchSchema = z.object({
   orgRfc: z.string().optional(),
   orgLogoUrl: z.string().optional(),
   orgCurrency: z.string().optional(),
+  orgBusinessType: z.string().optional(),
 });
 
 export async function PATCH(request: Request) {
@@ -63,7 +64,7 @@ export async function PATCH(request: Request) {
   const result = patchSchema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
 
-  const { name, orgName, orgPhone, orgAddress, orgRfc, orgLogoUrl, orgCurrency } = result.data;
+  const { name, orgName, orgPhone, orgAddress, orgRfc, orgLogoUrl, orgCurrency, orgBusinessType } = result.data;
 
   await prisma.profile.update({
     where: { id: profile.id },
@@ -80,6 +81,7 @@ export async function PATCH(request: Request) {
         rfc: orgRfc ?? undefined,
         logoUrl: orgLogoUrl ?? undefined,
         currency: orgCurrency ?? undefined,
+        businessType: orgBusinessType ?? undefined,
       },
     });
   }

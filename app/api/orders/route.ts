@@ -17,6 +17,8 @@ const createSchema = z.object({
     productId: z.string(),
     quantity: z.number().int().min(1),
     unitPrice: z.number().min(0),
+    variantId: z.string().optional(),
+    variantSnapshot: z.record(z.unknown()).optional(),
   })).min(1),
 });
 
@@ -93,6 +95,8 @@ export async function POST(request: Request) {
           productId: i.productId,
           quantity: i.quantity,
           unitPrice: i.unitPrice,
+          variantId: i.variantId ?? null,
+          variantSnapshot: i.variantSnapshot ?? null,
         })),
       },
     },
@@ -101,10 +105,15 @@ export async function POST(request: Request) {
 
   await Promise.all(
     items.map((i) =>
-      prisma.product.update({
-        where: { id: i.productId },
-        data: { stock: { decrement: i.quantity } },
-      })
+      i.variantId
+        ? prisma.productVariant.update({
+            where: { id: i.variantId },
+            data: { stock: { decrement: i.quantity } },
+          })
+        : prisma.product.update({
+            where: { id: i.productId },
+            data: { stock: { decrement: i.quantity } },
+          })
     )
   );
 

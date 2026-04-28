@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, X, Pencil, Trash2, Package, Upload, Download, PackagePlus } from "lucide-react";
+import { Search, Plus, X, Pencil, Trash2, Package, Upload, Download, PackagePlus, Layers, ChevronDown, ChevronUp } from "lucide-react";
 import { useRef } from "react";
+import { getBusinessSchema, type BusinessType } from "@/lib/business-types";
 
 interface Category { id: string; name: string }
+
+interface ProductVariant {
+  id: string;
+  attributes: Record<string, string>;
+  sku: string | null;
+  stock: number;
+  price: string | null;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -18,15 +28,22 @@ interface Product {
   batchExpiry: string | null;
   imageUrl: string | null;
   active: boolean;
+  hasVariants: boolean;
+  attributeSchema: Record<string, string[]> | null;
   category: { id: string; name: string } | null;
+  variants?: ProductVariant[];
 }
 
 const EMPTY_FORM = {
   name: "", sku: "", barcode: "", unit: "", categoryId: "", price: "", cost: "",
   stock: "0", minStock: "5", batchExpiry: "", imageUrl: "",
+  hasVariants: false,
 };
 
-function stockStatus(stock: number, minStock: number) {
+const EMPTY_VARIANT = { sku: "", stock: "0", price: "" };
+
+function stockStatus(stock: number, minStock: number, hasVariants: boolean) {
+  if (hasVariants) return { label: "Variantes", cls: "bg-blue-500/20 text-blue-400" };
   if (stock <= minStock) return { label: "Critico", cls: "bg-red-500/20 text-red-400" };
   if (stock <= minStock * 2) return { label: "Bajo", cls: "bg-yellow-500/20 text-yellow-400" };
   return { label: "En Stock", cls: "bg-brand-growth-neon/20 text-brand-growth-neon" };
@@ -35,6 +52,7 @@ function stockStatus(stock: number, minStock: number) {
 export default function Inventory() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [businessType, setBusinessType] = useState<BusinessType>("GENERAL");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +61,14 @@ export default function Inventory() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Variant management state
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [showVariants, setShowVariants] = useState(false);
+  const [variantForm, setVariantForm] = useState(EMPTY_VARIANT);
+  const [variantAttrs, setVariantAttrs] = useState<Record<string, string>>({});
+  const [savingVariant, setSavingVariant] = useState(false);
+  const [variantError, setVariantError] = useState("");
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [stockEntry, setStockEntry] = useState<Product | null>(null);
@@ -83,16 +109,26 @@ export default function Inventory() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [prodRes, catRes] = await Promise.all([
+    const [prodRes, catRes, meRes] = await Promise.all([
       fetch("/api/products"),
       fetch("/api/categories"),
+      fetch("/api/me"),
     ]);
     if (prodRes.ok) { const d = await prodRes.json(); setProducts(d.data ?? d); }
     if (catRes.ok) setCategories(await catRes.json());
+    if (meRes.ok) {
+      const me = await meRes.json();
+      setBusinessType((me.organization?.businessType ?? "GENERAL") as BusinessType);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  async function fetchVariants(productId: string) {
+    const res = await fetch(`/api/products/${productId}/variants`);
+    if (res.ok) setVariants(await res.json());
+  }
 
   async function handleStockEntry(e: React.FormEvent) {
     e.preventDefault();
@@ -116,6 +152,8 @@ export default function Inventory() {
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
+    setVariants([]);
+    setShowVariants(false);
     setFormError("");
     setShowModal(true);
   }
@@ -134,8 +172,11 @@ export default function Inventory() {
       minStock: String(product.minStock),
       batchExpiry: product.batchExpiry ? product.batchExpiry.split("T")[0] : "",
       imageUrl: product.imageUrl ?? "",
+      hasVariants: product.hasVariants,
     });
     setFormError("");
+    setVariants(product.variants ?? []);
+    setShowVariants(product.hasVariants);
     setShowModal(true);
   }
 
@@ -144,6 +185,7 @@ export default function Inventory() {
     setSaving(true);
     setFormError("");
 
+    const schema = getBusinessSchema(businessType);
     const body = {
       name: form.name,
       sku: form.sku || undefined,
@@ -152,10 +194,12 @@ export default function Inventory() {
       categoryId: form.categoryId || undefined,
       price: parseFloat(form.price),
       cost: parseFloat(form.cost),
-      stock: parseInt(form.stock),
+      stock: form.hasVariants ? 0 : parseInt(form.stock),
       minStock: parseInt(form.minStock),
       batchExpiry: form.batchExpiry || undefined,
       imageUrl: form.imageUrl || undefined,
+      hasVariants: form.hasVariants,
+      attributeSchema: form.hasVariants ? schema : undefined,
     };
 
     const res = editing
@@ -163,8 +207,17 @@ export default function Inventory() {
       : await fetch("/api/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
     if (res.ok) {
-      setShowModal(false);
-      fetchData();
+      if (form.hasVariants) {
+        const saved = await res.json();
+        const productId = editing?.id ?? saved.id;
+        await fetchVariants(productId);
+        setEditing(prev => prev ? { ...prev, hasVariants: true } : { ...saved, hasVariants: true });
+        setShowVariants(true);
+        fetchData();
+      } else {
+        setShowModal(false);
+        fetchData();
+      }
     } else {
       const data = await res.json();
       setFormError(data.error ?? "Error al guardar");
@@ -172,11 +225,48 @@ export default function Inventory() {
     setSaving(false);
   }
 
+  async function handleAddVariant(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editing) return;
+    setSavingVariant(true);
+    setVariantError("");
+
+    const res = await fetch(`/api/products/${editing.id}/variants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        attributes: variantAttrs,
+        sku: variantForm.sku || undefined,
+        stock: parseInt(variantForm.stock) || 0,
+        price: variantForm.price ? parseFloat(variantForm.price) : undefined,
+      }),
+    });
+
+    if (res.ok) {
+      await fetchVariants(editing.id);
+      setVariantForm(EMPTY_VARIANT);
+      setVariantAttrs({});
+    } else {
+      const d = await res.json();
+      setVariantError(d.error ?? "Error al guardar variante");
+    }
+    setSavingVariant(false);
+  }
+
+  async function handleDeleteVariant(variantId: string) {
+    if (!editing) return;
+    await fetch(`/api/products/${editing.id}/variants?variantId=${variantId}`, { method: "DELETE" });
+    await fetchVariants(editing.id);
+  }
+
   async function handleDelete(id: string) {
     await fetch(`/api/products/${id}`, { method: "DELETE" });
     setDeleteId(null);
     fetchData();
   }
+
+  const attrSchema = getBusinessSchema(businessType);
+  const attrKeys = Object.keys(attrSchema);
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-5 md:space-y-8">
@@ -204,6 +294,7 @@ export default function Inventory() {
           </label>
         </div>
       </header>
+
       {importMsg && (
         <div className={`px-4 py-3 rounded-xl text-sm ${importMsg.includes("Error") || importMsg.includes("error") ? "bg-red-500/10 text-red-400" : "bg-brand-growth-neon/10 text-brand-growth-neon"}`}>
           {importMsg}
@@ -239,23 +330,33 @@ export default function Inventory() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {filtered.map((item) => {
-                const status = stockStatus(item.stock, item.minStock);
+                const status = stockStatus(item.stock, item.minStock, item.hasVariants);
+                const totalVariantStock = item.hasVariants
+                  ? (item.variants ?? []).reduce((s, v) => s + v.stock, 0)
+                  : item.stock;
                 return (
                   <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="p-5">
-                      <div className="font-bold text-white">{item.name}</div>
+                      <div className="font-bold text-white flex items-center gap-2">
+                        {item.name}
+                        {item.hasVariants && <Layers size={13} className="text-blue-400 flex-shrink-0" />}
+                      </div>
                       {item.sku && <div className="text-xs text-brand-muted mt-0.5">SKU: {item.sku}</div>}
                       {item.unit && <div className="text-xs text-brand-muted/60">{item.unit}</div>}
                     </td>
                     <td className="p-5 text-gray-400">{item.category?.name ?? "—"}</td>
                     <td className="p-5 text-gray-300 font-mono">${Number(item.price).toFixed(2)}</td>
-                    <td className="p-5 text-white font-display font-medium">{item.stock}</td>
+                    <td className="p-5 text-white font-display font-medium">
+                      {item.hasVariants ? `${totalVariantStock} (${(item.variants ?? []).length} var.)` : item.stock}
+                    </td>
                     <td className="p-5">
                       <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${status.cls}`}>{status.label}</span>
                     </td>
                     <td className="p-5 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock"><PackagePlus size={16} /></button>
+                        {!item.hasVariants && (
+                          <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock"><PackagePlus size={16} /></button>
+                        )}
                         <button onClick={() => openEdit(item)} className="text-brand-muted hover:text-white transition-colors"><Pencil size={16} /></button>
                         <button onClick={() => setDeleteId(item.id)} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
                       </div>
@@ -284,16 +385,19 @@ export default function Inventory() {
             <p>{search ? "No hay productos que coincidan." : "Aun no tienes productos."}</p>
           </div>
         ) : filtered.map((item) => {
-          const status = stockStatus(item.stock, item.minStock);
+          const status = stockStatus(item.stock, item.minStock, item.hasVariants);
+          const totalVariantStock = item.hasVariants ? (item.variants ?? []).reduce((s, v) => s + v.stock, 0) : item.stock;
           return (
             <div key={item.id} className="glass-panel rounded-2xl p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-white truncate">{item.name}</div>
+                  <div className="font-bold text-white truncate flex items-center gap-2">
+                    {item.name}
+                    {item.hasVariants && <Layers size={12} className="text-blue-400 flex-shrink-0" />}
+                  </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {item.sku && <span className="text-xs text-brand-muted font-mono">SKU: {item.sku}</span>}
                     {item.category && <span className="text-xs text-brand-muted/70">{item.category.name}</span>}
-                    {item.unit && <span className="text-xs text-brand-muted/60">{item.unit}</span>}
                   </div>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0 ${status.cls}`}>{status.label}</span>
@@ -306,11 +410,13 @@ export default function Inventory() {
                   </div>
                   <div>
                     <div className="text-xs text-brand-muted">Stock</div>
-                    <div className="font-bold text-white">{item.stock} {item.unit ?? "uds"}</div>
+                    <div className="font-bold text-white">{item.hasVariants ? `${totalVariantStock} total` : `${item.stock} ${item.unit ?? "uds"}`}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="p-2 rounded-lg bg-white/5 text-brand-growth-neon hover:bg-white/10 transition-colors"><PackagePlus size={15} /></button>
+                  {!item.hasVariants && (
+                    <button onClick={() => { setStockEntry(item); setStockQty("1"); }} className="p-2 rounded-lg bg-white/5 text-brand-growth-neon hover:bg-white/10 transition-colors"><PackagePlus size={15} /></button>
+                  )}
                   <button onClick={() => openEdit(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white hover:bg-white/10 transition-colors"><Pencil size={15} /></button>
                   <button onClick={() => setDeleteId(item.id)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-red-400 hover:bg-white/10 transition-colors"><Trash2 size={15} /></button>
                 </div>
@@ -333,79 +439,208 @@ export default function Inventory() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4 overflow-y-auto flex-1 pr-1">
-              <Field label="Nombre *">
-                <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={input} placeholder="Whey Protein 100%" />
-              </Field>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="SKU">
-                  <input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={input} placeholder="WP-100" />
+            <div className="overflow-y-auto flex-1 pr-1 space-y-4">
+              <form onSubmit={handleSave} className="space-y-4">
+                <Field label="Nombre *">
+                  <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={input} placeholder="Whey Protein 100%" />
                 </Field>
-                <Field label="Cod. barras">
-                  <input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className={input} placeholder="7501234..." />
-                </Field>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Unidad">
-                  <select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className={input}>
-                    <option value="">Sin especificar</option>
-                    <option value="pieza">Pieza</option>
-                    <option value="kg">Kilogramo (kg)</option>
-                    <option value="g">Gramo (g)</option>
-                    <option value="litro">Litro</option>
-                    <option value="ml">Mililitro (ml)</option>
-                    <option value="capsula">Capsula</option>
-                    <option value="tableta">Tableta</option>
-                    <option value="sobre">Sobre</option>
-                    <option value="frasco">Frasco</option>
-                  </select>
-                </Field>
-                <Field label="Categoria">
-                  <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className={input}>
-                    <option value="">Sin categoria</option>
-                    {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </Field>
-              </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="SKU">
+                    <input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={input} placeholder="WP-100" />
+                  </Field>
+                  <Field label="Cod. barras">
+                    <input value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className={input} placeholder="7501234..." />
+                  </Field>
+                </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Precio venta *">
-                  <input required type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={input} placeholder="55.00" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Unidad">
+                    <select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className={input}>
+                      <option value="">Sin especificar</option>
+                      <option value="pieza">Pieza</option>
+                      <option value="kg">Kilogramo (kg)</option>
+                      <option value="g">Gramo (g)</option>
+                      <option value="litro">Litro</option>
+                      <option value="ml">Mililitro (ml)</option>
+                      <option value="capsula">Capsula</option>
+                      <option value="tableta">Tableta</option>
+                      <option value="sobre">Sobre</option>
+                      <option value="frasco">Frasco</option>
+                    </select>
+                  </Field>
+                  <Field label="Categoria">
+                    <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className={input}>
+                      <option value="">Sin categoria</option>
+                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </Field>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Precio venta *">
+                    <input required type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={input} placeholder="55.00" />
+                  </Field>
+                  <Field label="Costo">
+                    <input type="number" min="0" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className={input} placeholder="30.00" />
+                  </Field>
+                </div>
+
+                {/* Variantes toggle — solo si el tipo de negocio las soporta */}
+                {attrKeys.length > 0 && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-2">
+                      <Layers size={15} className="text-blue-400" />
+                      <div>
+                        <p className="text-sm text-white font-medium">Variantes</p>
+                        <p className="text-xs text-brand-muted">Talla, color, sabor u otras opciones</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, hasVariants: !form.hasVariants })}
+                      className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${form.hasVariants ? "bg-blue-500" : "bg-white/20"}`}
+                    >
+                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.hasVariants ? "translate-x-6" : "translate-x-1"}`} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Stock — solo si no tiene variantes */}
+                {!form.hasVariants && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Stock actual">
+                      <input required type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={input} />
+                    </Field>
+                    <Field label="Stock minimo">
+                      <input required type="number" min="0" value={form.minStock} onChange={(e) => setForm({ ...form, minStock: e.target.value })} className={input} />
+                    </Field>
+                  </div>
+                )}
+
+                {form.hasVariants && (
+                  <div className="grid grid-cols-1 gap-3">
+                    <Field label="Stock minimo total">
+                      <input required type="number" min="0" value={form.minStock} onChange={(e) => setForm({ ...form, minStock: e.target.value })} className={input} />
+                    </Field>
+                  </div>
+                )}
+
+                <Field label="Fecha vencimiento del lote">
+                  <input type="date" value={form.batchExpiry} onChange={(e) => setForm({ ...form, batchExpiry: e.target.value })} className={input} />
                 </Field>
-                <Field label="Costo">
-                  <input type="number" min="0" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className={input} placeholder="30.00" />
+
+                <Field label="URL de imagen">
+                  <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={input} placeholder="https://..." />
                 </Field>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Stock actual">
-                  <input required type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={input} />
-                </Field>
-                <Field label="Stock minimo">
-                  <input required type="number" min="0" value={form.minStock} onChange={(e) => setForm({ ...form, minStock: e.target.value })} className={input} />
-                </Field>
-              </div>
+                {formError && <p className="text-red-400 text-sm">{formError}</p>}
 
-              <Field label="Fecha vencimiento del lote">
-                <input type="date" value={form.batchExpiry} onChange={(e) => setForm({ ...form, batchExpiry: e.target.value })} className={input} />
-              </Field>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold transition-opacity disabled:opacity-50"
+                >
+                  {saving ? "Guardando..." : editing ? "Guardar Cambios" : "Crear Producto"}
+                </button>
+              </form>
 
-              <Field label="URL de imagen">
-                <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={input} placeholder="https://..." />
-              </Field>
+              {/* Panel de variantes — solo cuando editando un producto con hasVariants */}
+              {editing && form.hasVariants && (
+                <div className="border-t border-white/10 pt-4 space-y-3">
+                  <button
+                    onClick={() => setShowVariants(!showVariants)}
+                    className="w-full flex items-center justify-between text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    <span className="flex items-center gap-2"><Layers size={14} /> Gestionar variantes ({variants.length})</span>
+                    {showVariants ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
 
-              {formError && <p className="text-red-400 text-sm">{formError}</p>}
+                  {showVariants && (
+                    <div className="space-y-3">
+                      {/* Lista de variantes existentes */}
+                      {variants.length > 0 && (
+                        <div className="space-y-2">
+                          {variants.map((v) => (
+                            <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 gap-2">
+                              <div className="min-w-0">
+                                <p className="text-sm text-white font-medium">
+                                  {Object.entries(v.attributes).map(([k, val]) => `${k}: ${val}`).join(" · ")}
+                                </p>
+                                <p className="text-xs text-brand-muted">
+                                  Stock: {v.stock}
+                                  {v.price && ` · $${Number(v.price).toFixed(2)}`}
+                                  {v.sku && ` · ${v.sku}`}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteVariant(v.id)}
+                                className="text-brand-muted hover:text-red-400 transition-colors flex-shrink-0"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold transition-opacity disabled:opacity-50"
-              >
-                {saving ? "Guardando..." : editing ? "Guardar Cambios" : "Crear Producto"}
-              </button>
-            </form>
+                      {/* Form nueva variante */}
+                      <form onSubmit={handleAddVariant} className="space-y-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                        <p className="text-xs font-bold text-brand-muted uppercase tracking-wider">Nueva variante</p>
+
+                        {/* Atributos dinámicos según tipo de negocio */}
+                        {attrKeys.map((key) => {
+                          const options = attrSchema[key];
+                          return (
+                            <Field key={key} label={key.charAt(0).toUpperCase() + key.slice(1)}>
+                              {options.length > 0 ? (
+                                <select
+                                  value={variantAttrs[key] ?? ""}
+                                  onChange={(e) => setVariantAttrs({ ...variantAttrs, [key]: e.target.value })}
+                                  className={input}
+                                >
+                                  <option value="">Seleccionar...</option>
+                                  {options.map(o => <option key={o} value={o}>{o}</option>)}
+                                </select>
+                              ) : (
+                                <input
+                                  value={variantAttrs[key] ?? ""}
+                                  onChange={(e) => setVariantAttrs({ ...variantAttrs, [key]: e.target.value })}
+                                  className={input}
+                                  placeholder={`Ej: ${key === "color" ? "Rojo" : key === "sabor" ? "Chocolate" : "..."}`}
+                                />
+                              )}
+                            </Field>
+                          );
+                        })}
+
+                        <div className="grid grid-cols-3 gap-2">
+                          <Field label="Stock">
+                            <input type="number" min="0" value={variantForm.stock} onChange={(e) => setVariantForm({ ...variantForm, stock: e.target.value })} className={input} />
+                          </Field>
+                          <Field label="Precio (opcional)">
+                            <input type="number" min="0" step="0.01" value={variantForm.price} onChange={(e) => setVariantForm({ ...variantForm, price: e.target.value })} className={input} placeholder="—" />
+                          </Field>
+                          <Field label="SKU (opcional)">
+                            <input value={variantForm.sku} onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })} className={input} placeholder="—" />
+                          </Field>
+                        </div>
+
+                        {variantError && <p className="text-red-400 text-xs">{variantError}</p>}
+
+                        <button
+                          type="submit"
+                          disabled={savingVariant}
+                          className="w-full py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-bold text-sm hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {savingVariant ? "Guardando..." : "+ Agregar variante"}
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

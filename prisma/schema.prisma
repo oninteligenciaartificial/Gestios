@@ -61,6 +61,7 @@ model Organization {
   logoUrl          String?
   rfc              String?
   currency         String    @default("BOB")
+  businessType     String    @default("GENERAL")
   plan             PlanType  @default(BASICO)
   planExpiresAt    DateTime?
   trialEndsAt      DateTime?
@@ -196,18 +197,42 @@ model Product {
   stock          Int       @default(0)
   minStock       Int       @default(5)
   batchExpiry    DateTime?
-  imageUrl       String?
+  imageUrl        String?
+  active          Boolean   @default(true)
+  hasVariants     Boolean   @default(false)
+  attributeSchema Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  supplier     Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  orderItems   OrderItem[]
+  variants     ProductVariant[]
+
+  @@unique([organizationId, sku])
+  @@map("products")
+}
+
+model ProductVariant {
+  id             String    @id @default(cuid())
+  organizationId String
+  productId      String
+  attributes     Json
+  sku            String?
+  stock          Int       @default(0)
+  price          Decimal?  @db.Decimal(10, 2)
   active         Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  category     Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  supplier     Supplier?    @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-  orderItems   OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
 
   @@unique([organizationId, sku])
-  @@map("products")
+  @@index([productId, active])
+  @@index([organizationId])
+  @@map("product_variants")
 }
 
 // =============================================
@@ -263,15 +288,19 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  unitPrice Decimal @db.Decimal(10, 2)
+  id              String  @id @default(cuid())
+  orderId         String
+  productId       String
+  variantId       String?
+  quantity        Int
+  unitPrice       Decimal @db.Decimal(10, 2)
+  variantSnapshot Json?
 
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
+  @@index([variantId])
   @@map("order_items")
 }
 

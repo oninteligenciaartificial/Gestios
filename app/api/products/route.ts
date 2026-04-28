@@ -19,6 +19,8 @@ const createSchema = z.object({
   minStock: z.number().int().min(0).default(5),
   batchExpiry: z.string().optional(),
   imageUrl: z.string().optional(),
+  hasVariants: z.boolean().default(false),
+  attributeSchema: z.record(z.array(z.string())).optional(),
 });
 
 export async function GET(request: Request) {
@@ -42,7 +44,11 @@ export async function GET(request: Request) {
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { category: { select: { id: true, name: true } }, supplier: { select: { id: true, name: true } } },
+      include: {
+        category: { select: { id: true, name: true } },
+        supplier: { select: { id: true, name: true } },
+        variants: { where: { active: true }, orderBy: { createdAt: "asc" } },
+      },
       orderBy: { name: "asc" },
       skip,
       take: limit,
@@ -73,7 +79,7 @@ export async function POST(request: Request) {
   const result = createSchema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos", details: result.error.issues }, { status: 400 });
 
-  const { name, description, sku, barcode, unit, categoryId, supplierId, price, cost, stock, minStock, batchExpiry, imageUrl } = result.data;
+  const { name, description, sku, barcode, unit, categoryId, supplierId, price, cost, stock, minStock, batchExpiry, imageUrl, hasVariants, attributeSchema } = result.data;
 
   const product = await prisma.product.create({
     data: {
@@ -87,10 +93,12 @@ export async function POST(request: Request) {
       supplierId: supplierId ?? null,
       price,
       cost,
-      stock,
+      stock: hasVariants ? 0 : stock,
       minStock,
       batchExpiry: batchExpiry ? new Date(batchExpiry) : null,
       imageUrl: imageUrl ?? null,
+      hasVariants,
+      attributeSchema: attributeSchema ?? null,
     },
   });
 

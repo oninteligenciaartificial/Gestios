@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, Receipt, Package } from "lucide-react";
 import { PLAN_META, type PlanType } from "@/lib/plans";
+import { BUSINESS_TYPES, BUSINESS_TYPE_LABELS } from "@/lib/business-types";
 
 interface Profile {
   name: string;
@@ -18,6 +19,7 @@ interface Profile {
     rfc?: string;
     logoUrl?: string;
     currency?: string;
+    businessType?: string;
   };
 }
 
@@ -43,6 +45,7 @@ export default function SettingsPage() {
   const [orgRfc, setOrgRfc] = useState("");
   const [orgLogoUrl, setOrgLogoUrl] = useState("");
   const [orgCurrency, setOrgCurrency] = useState("BOB");
+  const [orgBusinessType, setOrgBusinessType] = useState("GENERAL");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -60,6 +63,7 @@ export default function SettingsPage() {
         setOrgRfc(data.organization?.rfc ?? "");
         setOrgLogoUrl(data.organization?.logoUrl ?? "");
         setOrgCurrency(data.organization?.currency ?? "BOB");
+        setOrgBusinessType(data.organization?.businessType ?? "GENERAL");
       }
     });
   }, []);
@@ -77,7 +81,7 @@ export default function SettingsPage() {
     const res = await fetch("/api/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, orgName, orgPhone, orgAddress, orgRfc, orgLogoUrl, orgCurrency }),
+      body: JSON.stringify({ name, orgName, orgPhone, orgAddress, orgRfc, orgLogoUrl, orgCurrency, orgBusinessType }),
     });
     setMsg(res.ok ? "Cambios guardados." : "Error al guardar.");
     setSaving(false);
@@ -182,6 +186,15 @@ export default function SettingsPage() {
                   <option value="PEN">PEN — Sol Peruano</option>
                   <option value="CLP">CLP — Peso Chileno</option>
                 </select>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-sm text-brand-muted">Tipo de negocio</label>
+                <select value={orgBusinessType} onChange={(e) => setOrgBusinessType(e.target.value)} className={sel} style={{ colorScheme: "dark" }}>
+                  {BUSINESS_TYPES.map(bt => (
+                    <option key={bt} value={bt}>{BUSINESS_TYPE_LABELS[bt]}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-brand-muted">Define las variantes disponibles para tus productos (talla, color, sabor, etc.)</p>
               </div>
             </div>
             <div className="space-y-1.5">
