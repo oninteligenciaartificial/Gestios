@@ -1,8 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Zap, Check, X, Loader2 } from "lucide-react";
+import { Zap, Check, X, Loader2, MessageCircle } from "lucide-react";
 import { ADDON_META } from "@/lib/plans";
+
+const WA_NUMBER = "59175470140";
+const ADDON_WA_MSG: Record<string, string> = {
+  WHATSAPP:    "Hola! Me interesa activar el add-on *WhatsApp Business* ($40/mes) en GestiOS. ¿Cómo procedo?",
+  FACTURACION: "Hola! Me interesa el add-on de *Facturación SIAT* para Bolivia en GestiOS. ¿Cuándo estará disponible?",
+  MERCADOPAGO: "Hola! Quiero activar el add-on de *Pagos QR Bolivia* ($15/mes) en GestiOS. ¿Cómo procedo?",
+  ECOMMERCE:   "Hola! Me interesa el add-on de *E-commerce* ($20/mes) en GestiOS para conectar mi tienda online. ¿Cómo procedo?",
+  CONTABILIDAD:"Hola! Quiero activar la *Exportación Contable* ($18/mes) en GestiOS. ¿Cómo procedo?",
+};
 
 type AddonType = "WHATSAPP" | "FACTURACION" | "MERCADOPAGO" | "ECOMMERCE" | "CONTABILIDAD";
 
@@ -134,6 +143,13 @@ export default function AddonsPage() {
                 </div>
 
                 <p className="text-xs text-brand-muted mt-3 leading-relaxed">{meta.description}</p>
+
+                <button
+                  onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(ADDON_WA_MSG[addon] ?? "")}`, "_blank")}
+                  className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-xs font-bold hover:bg-[#25D366]/20 transition-all"
+                >
+                  <MessageCircle size={13} /> {meta.comingSoon ? "Consultar disponibilidad" : active ? "Soporte por WhatsApp" : "Solicitar por WhatsApp"}
+                </button>
               </div>
             );
           })}
