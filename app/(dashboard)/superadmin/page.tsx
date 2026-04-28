@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Building2, Users, ShoppingCart, Package, TrendingUp, Plus } from "lucide-react";
+import { Building2, Users, ShoppingCart, Package, TrendingUp, Plus, ArrowRight } from "lucide-react";
 
 export default async function SuperAdminPage() {
   const supabase = await createClient();
@@ -12,10 +12,9 @@ export default async function SuperAdminPage() {
   const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
   if (!profile || profile.role !== "SUPERADMIN") redirect("/");
 
-  // When impersonating an org, redirect to the org's dashboard
   const cookieStore = await cookies();
   const impersonateOrgId = cookieStore.get("impersonate_org_id")?.value;
-  if (impersonateOrgId) redirect("/");
+  const impersonateOrgName = cookieStore.get("impersonate_org_name")?.value;
 
   const totalOrgs = await prisma.organization.count();
   const totalUsers = await prisma.profile.count({ where: { role: { not: "SUPERADMIN" } } });
@@ -57,6 +56,20 @@ export default async function SuperAdminPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
+
+      {impersonateOrgId && impersonateOrgName && (
+        <a
+          href="/"
+          className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/30 hover:bg-brand-kinetic-orange/15 transition-colors group"
+        >
+          <div>
+            <p className="text-brand-kinetic-orange font-bold text-sm">Estás viendo el panel global</p>
+            <p className="text-brand-muted text-xs mt-0.5">Haz clic aquí para ir al dashboard de <strong className="text-white">{impersonateOrgName}</strong></p>
+          </div>
+          <ArrowRight size={18} className="text-brand-kinetic-orange flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+        </a>
+      )}
+
       <header className="flex flex-wrap justify-between items-start gap-3 animate-pop">
         <div>
           <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">Panel de Control</h1>
