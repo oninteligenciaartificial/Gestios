@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { Building2, Users, ShoppingCart, Package, TrendingUp, Plus } from "lucide-react";
 
 export default async function SuperAdminPage() {
@@ -10,6 +11,11 @@ export default async function SuperAdminPage() {
 
   const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
   if (!profile || profile.role !== "SUPERADMIN") redirect("/");
+
+  // When impersonating an org, redirect to the org's dashboard
+  const cookieStore = await cookies();
+  const impersonateOrgId = cookieStore.get("impersonate_org_id")?.value;
+  if (impersonateOrgId) redirect("/");
 
   const totalOrgs = await prisma.organization.count();
   const totalUsers = await prisma.profile.count({ where: { role: { not: "SUPERADMIN" } } });

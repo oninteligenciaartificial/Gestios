@@ -2,10 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { PLAN_META, PLAN_PRICES_BOB, type PlanType } from "@/lib/plans";
-import { Check, Clock, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
 const WA_NUMBER = "59175470140";
+
+const MONTH_DISCOUNT: Record<number, number> = { 1: 0, 3: 5, 6: 10, 12: 15 };
+
+function calcTotal(pricePerMonth: number, months: number): number {
+  const discount = MONTH_DISCOUNT[months] ?? 0;
+  return Math.round(pricePerMonth * months * (1 - discount / 100));
+}
 
 const PLAN_WA_MSG: Record<PlanType, (org: string, months: number, total: number) => string> = {
   BASICO:      (org, m, t) => `Hola! Quiero contratar el *Plan Básico* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: Básico ($39/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`,
@@ -31,9 +38,11 @@ export default function BillingPage() {
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [copied, setCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   const pricePerMonth = PLAN_PRICES_BOB[selectedPlan];
-  const total = pricePerMonth * months;
+  const discount = MONTH_DISCOUNT[months] ?? 0;
+  const total = calcTotal(pricePerMonth, months);
 
   useEffect(() => {
     fetch("/api/payments")
@@ -47,6 +56,14 @@ export default function BillingPage() {
   function openWhatsApp() {
     const msg = PLAN_WA_MSG[selectedPlan](orgName, months, total);
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+  }
+
+  async function cancelRequest(id: string) {
+    setCancelling(id);
+    await fetch(`/api/payments?id=${id}`, { method: "DELETE" });
+    const data = await fetch("/api/payments").then(r => r.json());
+    setRequests(Array.isArray(data) ? data : []);
+    setCancelling(null);
   }
 
   function copyNumber() {
@@ -91,13 +108,25 @@ export default function BillingPage() {
                     <span className="text-brand-muted text-xs ml-2">Bs. {Number(r.amountBOB).toLocaleString("es-BO")}</span>
                     <div className="text-brand-muted text-xs">{new Date(r.createdAt).toLocaleDateString("es-BO")}</div>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                    r.status === "CONFIRMADO" ? "bg-green-500/15 text-green-400" :
-                    r.status === "RECHAZADO"  ? "bg-red-500/15 text-red-400" :
-                    "bg-yellow-500/15 text-yellow-400"
-                  }`}>
-                    {r.status === "CONFIRMADO" ? "Confirmado" : r.status === "RECHAZADO" ? "Rechazado" : "Pendiente"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      r.status === "CONFIRMADO" ? "bg-green-500/15 text-green-400" :
+                      r.status === "RECHAZADO"  ? "bg-red-500/15 text-red-400" :
+                      "bg-yellow-500/15 text-yellow-400"
+                    }`}>
+                      {r.status === "CONFIRMADO" ? "Confirmado" : r.status === "RECHAZADO" ? "Rechazado" : "Pendiente"}
+                    </span>
+                    {r.status === "PENDIENTE" && (
+                      <button
+                        onClick={() => cancelRequest(r.id)}
+                        disabled={cancelling === r.id}
+                        className="text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
+                        title="Cancelar solicitud"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -140,19 +169,31 @@ export default function BillingPage() {
                   key={m}
                   type="button"
                   onClick={() => setMonths(m)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${
+                  className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all relative ${
                     months === m
                       ? "border-brand-kinetic-orange bg-brand-kinetic-orange/10 text-brand-kinetic-orange"
                       : "border-white/10 text-brand-muted hover:border-white/20"
                   }`}
                 >
                   {m === 1 ? "1 mes" : `${m}m`}
+                  {MONTH_DISCOUNT[m] > 0 && (
+                    <span className="absolute -top-2 -right-1 text-[9px] font-bold bg-brand-growth-neon text-black px-1 rounded-full">
+                      -{MONTH_DISCOUNT[m]}%
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
 
             <div className="bg-white/5 rounded-xl p-4 flex justify-between items-center">
-              <span className="text-brand-muted text-sm">Total a pagar</span>
+              <div>
+                <span className="text-brand-muted text-sm">Total a pagar</span>
+                {discount > 0 && (
+                  <div className="text-xs text-brand-growth-neon mt-0.5">
+                    Ahorras Bs. {(pricePerMonth * months - total).toLocaleString("es-BO")} ({discount}% off)
+                  </div>
+                )}
+              </div>
               <span className="text-2xl font-display font-bold text-brand-kinetic-orange">
                 Bs. {total.toLocaleString("es-BO")}
               </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard } from "lucide-react";
+import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, Receipt } from "lucide-react";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 
 interface Profile {
@@ -111,7 +111,26 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {isAdmin && profile.organization && (
+        {isAdmin && (
+          <section className="glass-panel p-6 rounded-3xl animate-pop">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-brand-kinetic-orange/10">
+                  <Receipt size={18} className="text-brand-kinetic-orange" />
+                </div>
+                <div>
+                  <h2 className="font-display font-bold text-white">Facturación y Plan</h2>
+                  <p className="text-xs text-brand-muted mt-0.5">Gestiona tu plan, pagos y solicitudes</p>
+                </div>
+              </div>
+              <a href="/billing" className="text-sm font-bold text-brand-kinetic-orange hover:underline">
+                Gestionar →
+              </a>
+            </div>
+          </section>
+        )}
+
+      {isAdmin && profile.organization && (
           <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-brand-growth-neon/10">

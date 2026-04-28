@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { SidebarWrapper } from "./SidebarWrapper";
 import { ImpersonationBanner } from "./ImpersonationBanner";
-import { canUseFeature, isPlanAtLeast, type PlanType } from "@/lib/plans";
+import { canUseFeature, type PlanType } from "@/lib/plans";
 
 export default async function DashboardLayout({
   children,
@@ -86,7 +86,6 @@ export default async function DashboardLayout({
   );
 
   const showBranches = canUseFeature(activePlan, "sucursales");
-  const showAddons = isPlanAtLeast(activePlan, "CRECER");
 
   const tenantLinks = [
     { href: "/", label: "Dashboard" },
@@ -101,10 +100,8 @@ export default async function DashboardLayout({
     { href: "/categories", label: "Categorias" },
     ...(showBranches ? [{ href: "/branches", label: "Sucursales" }] : []),
     ...(hasWhatsApp ? [{ href: "/conversations", label: "WhatsApp" }] : []),
-    ...(showAddons && (profile.role === "ADMIN" || isImpersonating) ? [{ href: "/addons", label: "Add-ons" }] : []),
     ...(!isImpersonating && (profile.role === "ADMIN" || profile.role === "MANAGER") ? [{ href: "/staff", label: "Equipo" }] : []),
     ...(isImpersonating ? [] : [{ href: "/settings", label: "Configuracion" }]),
-    ...((profile.role === "ADMIN" || isImpersonating) ? [{ href: "/billing", label: "Facturacion" }] : []),
   ];
 
   const navLinks = isSuperAdmin ? superAdminLinks : tenantLinks;

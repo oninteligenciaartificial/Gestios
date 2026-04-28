@@ -60,3 +60,21 @@ export async function POST(request: Request) {
 
   return NextResponse.json(paymentRequest, { status: 201 });
 }
+
+export async function DELETE(request: Request) {
+  const profile = await getTenantProfile();
+  if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (profile.role !== "ADMIN") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "ID requerido" }, { status: 400 });
+
+  const existing = await prisma.paymentRequest.findFirst({
+    where: { id, organizationId: profile.organizationId, status: "PENDIENTE" },
+  });
+  if (!existing) return NextResponse.json({ error: "Solicitud no encontrada o ya procesada" }, { status: 404 });
+
+  await prisma.paymentRequest.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}
