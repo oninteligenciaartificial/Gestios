@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, RefreshCcw, PackageSearch } from "lucide-react";
-import { StockAlertButton } from "./StockAlertButton";
+import { StockAlertButton } from "../StockAlertButton";
 
 export default async function Dashboard() {
   const profile = await getTenantProfile();

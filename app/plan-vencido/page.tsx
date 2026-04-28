@@ -24,7 +24,7 @@ export default async function PlanVencidoPage() {
   const now = new Date();
   const planExpired = org.planExpiresAt && org.planExpiresAt < now;
   const trialActive = org.trialEndsAt && org.trialEndsAt > now;
-  if (!planExpired || trialActive) redirect("/");
+  if (!planExpired || trialActive) redirect("/dashboard");
 
   const planLabel = PLAN_META[org.plan as PlanType].label;
   const expiredDate = org.planExpiresAt!.toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" });

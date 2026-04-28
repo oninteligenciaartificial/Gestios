@@ -88,7 +88,7 @@ export default async function DashboardLayout({
   const showBranches = canUseFeature(activePlan, "sucursales");
 
   const tenantLinks = [
-    { href: "/", label: "Dashboard" },
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/pos", label: "Punto de Venta" },
     { href: "/inventory", label: "Inventario" },
     { href: "/orders", label: "Pedidos" },

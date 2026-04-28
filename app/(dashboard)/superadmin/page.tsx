@@ -59,7 +59,7 @@ export default async function SuperAdminPage() {
 
       {impersonateOrgId && impersonateOrgName && (
         <a
-          href="/"
+          href="/dashboard"
           className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/30 hover:bg-brand-kinetic-orange/15 transition-colors group"
         >
           <div>

@@ -22,7 +22,7 @@ export default async function HomePage() {
   if (user) {
     const profile = await prisma.profile.findUnique({ where: { userId: user.id }, select: { role: true } });
     if (profile?.role === "SUPERADMIN") redirect("/superadmin");
-    else if (profile) redirect("/inventory");
+    else if (profile) redirect("/dashboard");
   }
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">

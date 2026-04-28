@@ -28,7 +28,7 @@ export function SidebarNav({ links, lockedHrefs, onNavigate }: Props) {
   }, []);
 
   function isActive(href: string) {
-    if (href === "/") return pathname === "/";
+    if (href === "/dashboard") return pathname === "/dashboard";
     if (href === "/superadmin") return pathname === "/superadmin";
     return pathname.startsWith(href);
   }
