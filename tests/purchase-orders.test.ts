@@ -1,18 +1,483 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-describe("Purchase Order Status Workflow", () => {
+// Mock prisma before any imports that use it
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    purchaseOrder: {
+      count: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    purchaseOrderItem: { findMany: vi.fn() },
+    supplier: { findFirst: vi.fn() },
+    product: { update: vi.fn() },
+    $transaction: vi.fn(),
+  },
+}));
+
+vi.mock("@/lib/auth", () => ({
+  getTenantProfile: vi.fn(),
+}));
+
+vi.mock("@/lib/audit", () => ({
+  logAudit: vi.fn().mockResolvedValue(undefined),
+}));
+
+import { prisma } from "@/lib/prisma";
+import { getTenantProfile } from "@/lib/auth";
+import { GET, POST, PATCH, DELETE } from "@/app/api/purchase-orders/route";
+
+const MOCK_PROFILE = {
+  organizationId: "org-1",
+  plan: "PRO" as const,
+  businessType: "GENERAL",
+  role: "ADMIN" as const,
+  userId: "user-1",
+  id: "profile-1",
+};
+
+function makeRequest(url: string, options?: RequestInit): Request {
+  return new Request(url, options);
+}
+
+// ──────────────────────────────────────────────
+// GET
+// ──────────────────────────────────────────────
+describe("GET /api/purchase-orders", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 401 when unauthenticated", async () => {
+    (getTenantProfile as any).mockResolvedValue(null);
+
+    const res = await GET(makeRequest("http://localhost/api/purchase-orders"));
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body.error).toBeDefined();
+  });
+
+  it("returns 403 when role lacks suppliers:view permission", async () => {
+    (getTenantProfile as any).mockResolvedValue({ ...MOCK_PROFILE, role: "CAJERO" });
+
+    const res = await GET(makeRequest("http://localhost/api/purchase-orders"));
+    expect(res.status).toBe(403);
+  });
+
+  it("returns list filtered by organizationId", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+
+    const mockOrders = [
+      { id: "po-1", organizationId: "org-1", status: "BORRADOR", total: 500 },
+      { id: "po-2", organizationId: "org-1", status: "ENVIADO", total: 300 },
+    ];
+    (prisma.purchaseOrder.count as any).mockResolvedValue(2);
+    (prisma.purchaseOrder.findMany as any).mockResolvedValue(mockOrders);
+
+    const res = await GET(makeRequest("http://localhost/api/purchase-orders"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data).toHaveLength(2);
+    expect(body.meta.total).toBe(2);
+    expect(body.meta.page).toBe(1);
+
+    expect(prisma.purchaseOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: "org-1" }),
+      })
+    );
+  });
+
+  it("filters by status when provided", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.count as any).mockResolvedValue(1);
+    (prisma.purchaseOrder.findMany as any).mockResolvedValue([]);
+
+    await GET(makeRequest("http://localhost/api/purchase-orders?status=ENVIADO"));
+
+    expect(prisma.purchaseOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: "org-1", status: "ENVIADO" }),
+      })
+    );
+  });
+
+  it("filters by supplierId when provided", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.count as any).mockResolvedValue(0);
+    (prisma.purchaseOrder.findMany as any).mockResolvedValue([]);
+
+    await GET(makeRequest("http://localhost/api/purchase-orders?supplierId=sup-1"));
+
+    expect(prisma.purchaseOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ supplierId: "sup-1" }),
+      })
+    );
+  });
+
+  it("paginates using page and limit params", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.count as any).mockResolvedValue(50);
+    (prisma.purchaseOrder.findMany as any).mockResolvedValue([]);
+
+    await GET(makeRequest("http://localhost/api/purchase-orders?page=2&limit=10"));
+
+    expect(prisma.purchaseOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 })
+    );
+  });
+});
+
+// ──────────────────────────────────────────────
+// POST
+// ──────────────────────────────────────────────
+describe("POST /api/purchase-orders", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 401 when unauthenticated", async () => {
+    (getTenantProfile as any).mockResolvedValue(null);
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({}),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 403 when role lacks suppliers:create permission", async () => {
+    (getTenantProfile as any).mockResolvedValue({ ...MOCK_PROFILE, role: "CAJERO" });
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({ supplierId: "sup-1", items: [{ productId: "p", quantity: 1, unitCost: 10 }] }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 400 when body is invalid (empty items)", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({ supplierId: "sup-1", items: [] }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBeDefined();
+  });
+
+  it("returns 400 when required fields are missing", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({}),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 when supplier not found in org", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.supplier.findFirst as any).mockResolvedValue(null);
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({
+          supplierId: "sup-x",
+          items: [{ productId: "prod-1", quantity: 2, unitCost: 50 }],
+        }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("creates a purchase order and returns 201 with correct total", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.supplier.findFirst as any).mockResolvedValue({ id: "sup-1", name: "ACME" });
+
+    const createdPO = {
+      id: "po-new",
+      organizationId: "org-1",
+      supplierId: "sup-1",
+      total: 200,
+      status: "BORRADOR",
+      supplier: { name: "ACME" },
+      items: [],
+    };
+    (prisma.purchaseOrder.create as any).mockResolvedValue(createdPO);
+
+    const payload = {
+      supplierId: "sup-1",
+      items: [
+        { productId: "prod-1", quantity: 2, unitCost: 50 },
+        { productId: "prod-2", quantity: 1, unitCost: 100 },
+      ],
+    };
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.data.id).toBe("po-new");
+
+    // Total = 2*50 + 1*100 = 200
+    expect(prisma.purchaseOrder.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          organizationId: "org-1",
+          supplierId: "sup-1",
+          total: 200,
+        }),
+      })
+    );
+  });
+
+  it("includes items in the create call", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.supplier.findFirst as any).mockResolvedValue({ id: "sup-1", name: "ACME" });
+    (prisma.purchaseOrder.create as any).mockResolvedValue({
+      id: "po-new",
+      supplier: { name: "ACME" },
+      items: [],
+    });
+
+    await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({
+          supplierId: "sup-1",
+          items: [{ productId: "prod-1", quantity: 3, unitCost: 20 }],
+        }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    expect(prisma.purchaseOrder.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          items: {
+            create: [{ productId: "prod-1", quantity: 3, unitCost: 20 }],
+          },
+        }),
+      })
+    );
+  });
+});
+
+// ──────────────────────────────────────────────
+// PATCH
+// ──────────────────────────────────────────────
+describe("PATCH /api/purchase-orders", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 401 when unauthenticated", async () => {
+    (getTenantProfile as any).mockResolvedValue(null);
+
+    const res = await PATCH(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "ENVIADO" }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 400 when id is missing", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+
+    const res = await PATCH(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "ENVIADO" }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 when purchase order not found in org", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue(null);
+
+    const res = await PATCH(
+      makeRequest("http://localhost/api/purchase-orders?id=po-x", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "ENVIADO" }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("updates status without touching stock when not transitioning to RECIBIDO", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "BORRADOR" });
+    (prisma.purchaseOrder.update as any).mockResolvedValue({
+      id: "po-1",
+      status: "ENVIADO",
+      supplier: { name: "ACME" },
+      items: [],
+    });
+
+    const res = await PATCH(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "ENVIADO" }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("increments product stock when transitioning to RECIBIDO", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "ENVIADO" });
+    (prisma.purchaseOrder.update as any).mockResolvedValue({
+      id: "po-1",
+      status: "RECIBIDO",
+      supplier: { name: "ACME" },
+      items: [],
+    });
+    (prisma.purchaseOrderItem.findMany as any).mockResolvedValue([
+      { purchaseOrderId: "po-1", productId: "prod-1", quantity: 10 },
+      { purchaseOrderId: "po-1", productId: "prod-2", quantity: 5 },
+    ]);
+    (prisma.$transaction as any).mockResolvedValue([]);
+
+    const res = await PATCH(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "RECIBIDO" }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(prisma.product.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "prod-1" },
+        data: { stock: { increment: 10 } },
+      })
+    );
+    expect(prisma.product.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "prod-2" },
+        data: { stock: { increment: 5 } },
+      })
+    );
+  });
+
+  it("does NOT increment stock when order was already RECIBIDO", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "RECIBIDO" });
+    (prisma.purchaseOrder.update as any).mockResolvedValue({
+      id: "po-1",
+      status: "RECIBIDO",
+      supplier: { name: "ACME" },
+      items: [],
+    });
+
+    await PATCH(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "RECIBIDO" }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});
+
+// ──────────────────────────────────────────────
+// DELETE
+// ──────────────────────────────────────────────
+describe("DELETE /api/purchase-orders", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 401 when unauthenticated", async () => {
+    (getTenantProfile as any).mockResolvedValue(null);
+
+    const res = await DELETE(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", { method: "DELETE" })
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 400 when id is missing", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+
+    const res = await DELETE(
+      makeRequest("http://localhost/api/purchase-orders", { method: "DELETE" })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 when order not found in org", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue(null);
+
+    const res = await DELETE(
+      makeRequest("http://localhost/api/purchase-orders?id=po-x", { method: "DELETE" })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 when trying to delete a RECIBIDO order", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "RECIBIDO" });
+
+    const res = await DELETE(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", { method: "DELETE" })
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toContain("recibida");
+  });
+
+  it("deletes a BORRADOR order successfully", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "BORRADOR" });
+    (prisma.purchaseOrder.delete as any).mockResolvedValue({ id: "po-1" });
+
+    const res = await DELETE(
+      makeRequest("http://localhost/api/purchase-orders?id=po-1", { method: "DELETE" })
+    );
+    expect(res.status).toBe(200);
+    expect(prisma.purchaseOrder.delete).toHaveBeenCalledWith({ where: { id: "po-1" } });
+  });
+});
+
+// ──────────────────────────────────────────────
+// Logic-only (no DB) — preserved from original
+// ──────────────────────────────────────────────
+describe("Purchase Order Status Workflow (logic)", () => {
   it("allows BORRADOR → ENVIADO → PARCIAL → RECIBIDO", () => {
     const workflow = ["BORRADOR", "ENVIADO", "PARCIAL", "RECIBIDO"];
     expect(workflow).toContain("BORRADOR");
-    expect(workflow).toContain("ENVIADO");
-    expect(workflow).toContain("PARCIAL");
     expect(workflow).toContain("RECIBIDO");
-  });
-
-  it("allows cancellation from any non-final state", () => {
-    const cancellable = ["BORRADOR", "ENVIADO", "PARCIAL"];
-    expect(cancellable).not.toContain("RECIBIDO");
-    expect(cancellable).not.toContain("CANCELADO");
   });
 
   it("prevents deletion of RECIBIDO orders", () => {
@@ -21,7 +486,7 @@ describe("Purchase Order Status Workflow", () => {
   });
 });
 
-describe("Purchase Order Total Calculation", () => {
+describe("Purchase Order Total Calculation (logic)", () => {
   it("calculates total correctly", () => {
     const items = [
       { quantity: 10, unitCost: 10 },
@@ -31,56 +496,9 @@ describe("Purchase Order Total Calculation", () => {
     expect(total).toBe(200);
   });
 
-  it("handles single item", () => {
-    const items = [{ quantity: 1, unitCost: 50 }];
-    const total = items.reduce((sum, i) => sum + i.quantity * i.unitCost, 0);
-    expect(total).toBe(50);
-  });
-
   it("handles zero quantity", () => {
     const items = [{ quantity: 0, unitCost: 50 }];
     const total = items.reduce((sum, i) => sum + i.quantity * i.unitCost, 0);
     expect(total).toBe(0);
-  });
-});
-
-describe("Purchase Order Validation Rules", () => {
-  it("requires at least one item", () => {
-    const items: any[] = [];
-    expect(items.length).toBe(0);
-  });
-
-  it("requires valid supplierId", () => {
-    const supplierId = "";
-    expect(supplierId.length).toBe(0);
-  });
-
-  it("requires positive quantities", () => {
-    const validItems = [{ quantity: 1, unitCost: 10 }];
-    const invalidItems = [{ quantity: -1, unitCost: 10 }];
-    expect(validItems[0].quantity).toBeGreaterThan(0);
-    expect(invalidItems[0].quantity).toBeLessThan(0);
-  });
-
-  it("requires positive unitCost", () => {
-    const validItems = [{ quantity: 1, unitCost: 10 }];
-    const invalidItems = [{ quantity: 1, unitCost: -5 }];
-    expect(validItems[0].unitCost).toBeGreaterThan(0);
-    expect(invalidItems[0].unitCost).toBeLessThan(0);
-  });
-});
-
-describe("Purchase Order Stock Update Logic", () => {
-  it("increments stock when PO is marked as RECIBIDO", () => {
-    const initialStock = 10;
-    const poQuantity = 20;
-    const newStock = initialStock + poQuantity;
-    expect(newStock).toBe(30);
-  });
-
-  it("does not update stock for other status changes", () => {
-    const initialStock = 10;
-    // Status changes BORRADOR → ENVIADO → PARCIAL don't affect stock
-    expect(initialStock).toBe(10);
   });
 });
