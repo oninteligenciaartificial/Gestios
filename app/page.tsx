@@ -135,6 +135,29 @@ export default async function HomePage() {
         />
       </section>
 
+      {/* Video demo */}
+      <section className="max-w-4xl mx-auto px-6 py-20 relative">
+        <div className="text-center mb-10 space-y-2">
+          <h2 className="text-2xl font-display font-bold">Mirá cómo funciona</h2>
+          <p className="text-brand-muted text-sm">Todo el sistema en 90 segundos</p>
+        </div>
+        <div className="rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(255,107,0,0.15)]">
+          <video
+            src="/onboarding.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+            className="w-full"
+          />
+        </div>
+        <div
+          className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
+          style={{ background: "linear-gradient(90deg, transparent, #FF6B00 30%, #FF6B00 70%, transparent)" }}
+        />
+      </section>
+
       {/* How it works */}
       <section className="max-w-4xl mx-auto px-6 pb-20 pt-20">
         <div className="text-center mb-12">
