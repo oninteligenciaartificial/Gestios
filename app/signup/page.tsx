@@ -80,7 +80,7 @@ function SignupForm() {
           <p className="text-brand-muted mt-2 text-sm">Crea tu cuenta — 7 dias gratis, sin tarjeta</p>
           {selectedPlan && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-medium">
-              Plan {selectedPlan} seleccionado
+              Plan {selectedPlan} seleccionado · 7 días gratis
             </div>
           )}
         </div>
