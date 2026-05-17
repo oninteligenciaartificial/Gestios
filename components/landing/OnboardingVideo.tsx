@@ -7,7 +7,7 @@ export function OnboardingVideo() {
 
   useEffect(() => {
     if (ref.current) {
-      ref.current.playbackRate = 2;
+      ref.current.playbackRate = 1.5;
     }
   }, []);
 
