@@ -11,12 +11,14 @@ const BREVO_EVENTS: Record<string, "DELIVERED" | "BOUNCED" | "BLOCKED" | "SPAM">
 
 export async function POST(request: Request) {
   const webhookKey = process.env.BREVO_WEBHOOK_KEY;
-  if (webhookKey) {
-    const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-    if (token !== webhookKey) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!webhookKey) {
+    console.error("BREVO_WEBHOOK_KEY not configured");
+    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+  }
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (token !== webhookKey) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   let body: unknown;

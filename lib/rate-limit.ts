@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 // Lazy init — avoids crash during static build without UPSTASH env vars
 const redis = new Proxy({} as Redis, {
   get(_target, prop) {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
     if (!url || !token) {
       // Fallback: no-op Redis for dev without Upstash
@@ -51,8 +51,8 @@ export async function consumeRateLimit(
   key: string,
   options: RateLimitOptions
 ): Promise<RateLimitResult> {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
   // Fallback to in-memory if Upstash not configured
   if (!url || !token) {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
+import { isPlanAtLeast } from "@/lib/plans";
+import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { logAudit } from "@/lib/audit";
@@ -25,6 +27,7 @@ const updateSchema = z.object({
 export async function GET(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!isPlanAtLeast(profile.plan, "CRECER")) return NextResponse.json({ error: "Plan CRECER o superior requerido" }, { status: 403 });
   if (!hasPermission(profile.role, "suppliers:view")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
@@ -60,7 +63,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!isPlanAtLeast(profile.plan, "CRECER")) return NextResponse.json({ error: "Plan CRECER o superior requerido" }, { status: 403 });
   if (!hasPermission(profile.role, "suppliers:create")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "purchase-orders:write", RATE_LIMITS.write);
+  if (rateLimited) return rateLimited;
 
   const body = await request.json();
   const parsed = createSchema.safeParse(body);
@@ -113,7 +120,11 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!isPlanAtLeast(profile.plan, "CRECER")) return NextResponse.json({ error: "Plan CRECER o superior requerido" }, { status: 403 });
   if (!hasPermission(profile.role, "suppliers:create")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "purchase-orders:write", RATE_LIMITS.write);
+  if (rateLimited) return rateLimited;
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -173,6 +184,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!isPlanAtLeast(profile.plan, "CRECER")) return NextResponse.json({ error: "Plan CRECER o superior requerido" }, { status: 403 });
   if (!hasPermission(profile.role, "suppliers:create")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
