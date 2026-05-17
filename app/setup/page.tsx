@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Shirt, Pill, ShoppingBag, Wrench, Zap, Store } from "lucide-react";
 import type { BusinessType } from "@/lib/business-types";
 import { BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BUSINESS_TYPE_SCHEMAS } from "@/lib/business-types";
@@ -50,6 +51,13 @@ const inp = "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-
 export default function SetupPage() {
   const router = useRouter();
   const [orgName, setOrgName] = useState("");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) router.replace("/login");
+    });
+  }, [router]);
   const [userName, setUserName] = useState("");
   const [businessType, setBusinessType] = useState<BusinessType>("GENERAL");
   const [loading, setLoading] = useState(false);
