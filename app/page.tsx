@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Store, Shirt, Pill, Monitor, Wrench, Dumbbell, ArrowRight, Zap, Shield, Clock, Users, TrendingUp, Mail } from "lucide-react";
 import { DashboardMockup } from "@/components/landing/DashboardMockup";
+import { OnboardingVideo } from "@/components/landing/OnboardingVideo";
 import { FAQAccordion } from "@/components/landing/FAQAccordion";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -142,15 +143,7 @@ export default async function HomePage() {
           <p className="text-brand-muted text-sm">Todo el sistema en 90 segundos</p>
         </div>
         <div className="rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_60px_rgba(255,107,0,0.15)]">
-          <video
-            src="/onboarding.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            controls
-            className="w-full"
-          />
+          <OnboardingVideo />
         </div>
         <div
           className="absolute bottom-0 left-0 right-0 h-px pointer-events-none"
