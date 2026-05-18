@@ -43,5 +43,23 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.5"
-  }
+  },
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oninteligenciaartificial/Gestios.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oninteligenciaartificial/Gestios/issues"
+  },
+  "homepage": "https://github.com/oninteligenciaartificial/Gestios#readme"
 }
