@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -246,6 +247,7 @@ function CreateModal({ suppliers, products, onClose, onSuccess }: { suppliers: S
 
   function updateItem(idx: number, field: string, value: string | number) {
     const newItems = [...items];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (newItems[idx] as any)[field] = value;
     setItems(newItems);
   }

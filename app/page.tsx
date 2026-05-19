@@ -215,7 +215,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="glass-panel rounded-2xl p-6 space-y-3 border border-white/8 hover:border-white/15 transition-colors duration-200">
-              <div className="text-white/80 text-sm italic leading-relaxed">"{t.quote}"</div>
+              <div className="text-white/80 text-sm italic leading-relaxed">&quot;{t.quote}&quot;</div>
               <div className="border-t border-white/5 pt-3 flex items-center gap-3">
                 <div
                   className={`w-8 h-8 rounded-full ${t.color} flex items-center justify-center text-[10px] font-bold text-black shrink-0`}

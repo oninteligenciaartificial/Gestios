@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 const WA_API_URL = `https://graph.facebook.com/v20.0`;
 
@@ -98,7 +99,6 @@ export function verifyWebhookSignature(body: string, signature: string): boolean
   const appSecret = process.env.WA_APP_SECRET;
   if (!appSecret) return false;
 
-  const crypto = require("crypto") as typeof import("crypto");
   const expected = crypto.createHmac("sha256", appSecret).update(body).digest("hex");
   return `sha256=${expected}` === signature;
 }

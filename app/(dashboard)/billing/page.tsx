@@ -496,7 +496,7 @@ export default function BillingPage() {
             <ol className="space-y-3 text-sm text-white/80">
               <li className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                <span>Haz clic en "Solicitar por WhatsApp" — el mensaje ya viene listo con tu plan y monto.</span>
+                <span>Haz clic en &quot;Solicitar por WhatsApp&quot; — el mensaje ya viene listo con tu plan y monto.</span>
               </li>
               <li className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>

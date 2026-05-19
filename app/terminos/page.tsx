@@ -26,7 +26,7 @@ export default function TerminosPage() {
           <section>
             <h2 className="text-lg font-bold text-white mb-3">1. Aceptación de los términos</h2>
             <p>
-              Al crear una cuenta o utilizar la plataforma GestiOS (en adelante "el Servicio"), operada por ONIA, aceptás estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no debés usar el Servicio. El uso continuado del Servicio implica la aceptación de cualquier modificación futura a estos términos.
+              Al crear una cuenta o utilizar la plataforma GestiOS (en adelante &quot;el Servicio&quot;), operada por ONIA, aceptás estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no debés usar el Servicio. El uso continuado del Servicio implica la aceptación de cualquier modificación futura a estos términos.
             </p>
           </section>
 

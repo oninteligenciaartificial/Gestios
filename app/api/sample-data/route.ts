@@ -9,6 +9,7 @@ export async function POST() {
 
   const result = await generateSampleData({
     organizationId: profile.organizationId,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     businessType: profile.businessType as any,
   });
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";

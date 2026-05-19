@@ -37,6 +37,7 @@ export async function GET(request: Request) {
   const supplierId = searchParams.get("supplierId");
 
   const where: Record<string, unknown> = { organizationId: profile.organizationId };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (status) where.status = status as any;
   if (supplierId) where.supplierId = supplierId;
 

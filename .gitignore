@@ -44,3 +44,5 @@ next-env.d.ts
 /lib/generated/prisma
 
 .obsidian/
+
+remotion-video/node_modules/
