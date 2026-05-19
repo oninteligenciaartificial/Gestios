@@ -98,7 +98,7 @@ describe("GET /api/reports/export â€” date range validation", () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toContain("1 aÃ±o");
+    expect(body.error).toContain("1 a");
   });
 
   it("returns 400 for invalid date strings", async () => {

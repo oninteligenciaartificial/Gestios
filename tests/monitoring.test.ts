@@ -27,7 +27,7 @@ describe("reportAsyncError", () => {
     reportAsyncError("test-scope", error, { key: "value" });
 
     expect(console.error).toHaveBeenCalledWith(
-      "[test-scope] operaciÃ³n async fallÃ³",
+      "[test-scope] operación async falló",
       { error, key: "value" }
     );
   });
