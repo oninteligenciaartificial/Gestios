@@ -1,7 +1,8 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import { hasPermission, getRolePermissions } from "@/lib/permissions";
 
-describe("hasPermission — SUPERADMIN/ADMIN", () => {
+describe("hasPermission â€” SUPERADMIN/ADMIN", () => {
   it("SUPERADMIN can do anything", () => {
     expect(hasPermission("SUPERADMIN", "products:delete")).toBe(true);
     expect(hasPermission("SUPERADMIN", "staff:manage")).toBe(true);
@@ -15,7 +16,7 @@ describe("hasPermission — SUPERADMIN/ADMIN", () => {
   });
 });
 
-describe("hasPermission — MANAGER", () => {
+describe("hasPermission â€” MANAGER", () => {
   it("MANAGER can create products and orders", () => {
     expect(hasPermission("MANAGER", "products:create")).toBe(true);
     expect(hasPermission("MANAGER", "orders:create")).toBe(true);
@@ -39,7 +40,7 @@ describe("hasPermission — MANAGER", () => {
   });
 });
 
-describe("hasPermission — STAFF", () => {
+describe("hasPermission â€” STAFF", () => {
   it("STAFF can create orders and edit products", () => {
     expect(hasPermission("STAFF", "orders:create")).toBe(true);
     expect(hasPermission("STAFF", "products:edit")).toBe(true);
@@ -60,7 +61,7 @@ describe("hasPermission — STAFF", () => {
   });
 });
 
-describe("hasPermission — VIEWER", () => {
+describe("hasPermission â€” VIEWER", () => {
   it("VIEWER can only view (customers, reports, caja)", () => {
     expect(hasPermission("VIEWER", "customers:view")).toBe(true);
     expect(hasPermission("VIEWER", "reports:view")).toBe(true);
@@ -79,14 +80,14 @@ describe("hasPermission — VIEWER", () => {
   });
 });
 
-describe("hasPermission — unknown role", () => {
+describe("hasPermission â€” unknown role", () => {
   it("unknown role has no permissions", () => {
     expect(hasPermission("UNKNOWN", "products:create")).toBe(false);
     expect(hasPermission("UNKNOWN", "orders:create")).toBe(false);
   });
 });
 
-describe("hasPermission — extraPermissions override", () => {
+describe("hasPermission â€” extraPermissions override", () => {
   it("STAFF gains permission via extraPermissions", () => {
     expect(hasPermission("STAFF", "reports:view", ["reports:view"])).toBe(true);
   });

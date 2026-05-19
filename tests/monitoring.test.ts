@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   reportAsyncError,
@@ -26,7 +27,7 @@ describe("reportAsyncError", () => {
     reportAsyncError("test-scope", error, { key: "value" });
 
     expect(console.error).toHaveBeenCalledWith(
-      "[test-scope] operación async falló",
+      "[test-scope] operaciÃ³n async fallÃ³",
       { error, key: "value" }
     );
   });

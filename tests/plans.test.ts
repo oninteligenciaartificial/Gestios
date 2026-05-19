@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import {
   PLAN_LIMITS,
@@ -50,7 +51,7 @@ describe("canUseFeature", () => {
   });
 });
 
-describe("PLAN_LIMITS — products", () => {
+describe("PLAN_LIMITS â€” products", () => {
   it("BASICO has 150 product limit", () => {
     expect(PLAN_LIMITS.BASICO.maxProducts).toBe(150);
   });
@@ -68,7 +69,7 @@ describe("PLAN_LIMITS — products", () => {
   });
 });
 
-describe("PLAN_LIMITS — customers", () => {
+describe("PLAN_LIMITS â€” customers", () => {
   it("BASICO has 50 customer limit", () => {
     expect(PLAN_LIMITS.BASICO.maxCustomers).toBe(50);
   });

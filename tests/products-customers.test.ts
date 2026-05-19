@@ -1,7 +1,8 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS } from "@/lib/plans";
 
-describe("Products — plan limits", () => {
+describe("Products â€” plan limits", () => {
   it("BASICO has maxProducts=150", () => {
     expect(PLAN_LIMITS.BASICO.maxProducts).toBe(150);
   });
@@ -52,7 +53,7 @@ describe("Products — plan limits", () => {
   });
 });
 
-describe("Customers — plan limits", () => {
+describe("Customers â€” plan limits", () => {
   it("BASICO has maxCustomers=50", () => {
     expect(PLAN_LIMITS.BASICO.maxCustomers).toBe(50);
   });
@@ -84,7 +85,7 @@ describe("Customers — plan limits", () => {
     const { maxCustomers } = PLAN_LIMITS.BASICO;
     const currentCount = 50;
     const requiresUpgrade = currentCount >= maxCustomers;
-    const errorMsg = `Tu plan permite hasta ${maxCustomers} clientes. Actualiza tu plan para agregar más.`;
+    const errorMsg = `Tu plan permite hasta ${maxCustomers} clientes. Actualiza tu plan para agregar mÃ¡s.`;
     expect(errorMsg).toContain("50");
     expect(errorMsg).toContain("clientes");
   });
@@ -97,7 +98,7 @@ describe("Customers — plan limits", () => {
   });
 });
 
-describe("Products — variant creation respects maxProducts", () => {
+describe("Products â€” variant creation respects maxProducts", () => {
   it("product with hasVariants=true sets stock to 0 initially", () => {
     const hasVariants = true;
     const stock = hasVariants ? 0 : 10;
@@ -123,7 +124,7 @@ describe("Products — variant creation respects maxProducts", () => {
   });
 });
 
-describe("Customers — birthday handling", () => {
+describe("Customers â€” birthday handling", () => {
   it("stores birthday as Date object", () => {
     const birthdayStr = "1990-05-15";
     const birthday = new Date(birthdayStr);
@@ -168,7 +169,7 @@ describe("Customers — birthday handling", () => {
   });
 });
 
-describe("Products — pagination", () => {
+describe("Products â€” pagination", () => {
   it("calculates skip correctly for page 1", () => {
     const page = 1;
     const limit = 100;
@@ -202,7 +203,7 @@ describe("Products — pagination", () => {
   });
 });
 
-describe("Products — search and filter", () => {
+describe("Products â€” search and filter", () => {
   it("search filter is case-insensitive", () => {
     const search = "laptop";
     const where = { name: { contains: search, mode: "insensitive" as const } };
@@ -229,7 +230,7 @@ describe("Products — search and filter", () => {
   });
 });
 
-describe("Products — name trimming", () => {
+describe("Products â€” name trimming", () => {
   it("trims whitespace from product name", () => {
     const name = "  Laptop Lenovo   ";
     const trimmed = name.trim();
@@ -251,7 +252,7 @@ describe("Products — name trimming", () => {
   });
 });
 
-describe("Products — audit logging", () => {
+describe("Products â€” audit logging", () => {
   it("audit logs product creation", () => {
     const product = { id: "prod-123", name: "Laptop", price: 500, stock: 10 };
     const audit = {
@@ -266,7 +267,7 @@ describe("Products — audit logging", () => {
   });
 });
 
-describe("Customers — audit logging", () => {
+describe("Customers â€” audit logging", () => {
   it("audit logs customer creation", () => {
     const customer = { id: "cust-123", name: "Juan Perez", phone: "+5911234567", email: "juan@example.com" };
     const audit = {
@@ -282,7 +283,7 @@ describe("Customers — audit logging", () => {
   });
 });
 
-describe("Products — permission checks", () => {
+describe("Products â€” permission checks", () => {
   it("products:create permission is needed for POST", () => {
     const role = "OWNER";
     const hasPerm = ["OWNER", "ADMIN"].includes(role);
@@ -308,7 +309,7 @@ describe("Products — permission checks", () => {
   });
 });
 
-describe("Customers — permission checks", () => {
+describe("Customers â€” permission checks", () => {
   it("VIEWER has customers:view permission", () => {
     const VIEWER_PERMS = ["customers:view", "reports:view", "caja:view"];
     const hasPerm = VIEWER_PERMS.includes("customers:view");
@@ -334,7 +335,7 @@ describe("Customers — permission checks", () => {
   });
 });
 
-describe("Products — cost and margin", () => {
+describe("Products â€” cost and margin", () => {
   it("cost can be 0", () => {
     const cost = 0;
     const price = 100;
@@ -353,7 +354,7 @@ describe("Products — cost and margin", () => {
   });
 });
 
-describe("Customers — search", () => {
+describe("Customers â€” search", () => {
   it("searches across name, phone, and email", () => {
     const search = "juan";
     const where = {

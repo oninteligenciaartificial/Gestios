@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
@@ -31,7 +32,7 @@ vi.mock("@/lib/supabase/admin", () => ({
   })),
 }));
 
-describe("Team API — permissions", () => {
+describe("Team API â€” permissions", () => {
   it("only ADMIN can access team:manage", async () => {
     const { hasPermission } = await import("@/lib/permissions");
 
@@ -41,14 +42,14 @@ describe("Team API — permissions", () => {
   });
 });
 
-describe("Team CRUD — schema", () => {
+describe("Team CRUD â€” schema", () => {
   it("Profile has userId, name, role, branchId", async () => {
     const requiredFields = ["id", "userId", "name", "role", "branchId", "organizationId", "createdAt"];
     expect(requiredFields).toEqual(requiredFields);
   });
 });
 
-describe("Team management — list", () => {
+describe("Team management â€” list", () => {
   it("GET /api/team returns list of members", async () => {
     const mockResponse = [
       { id: "prof1", name: "Alice", role: "ADMIN" },
@@ -58,7 +59,7 @@ describe("Team management — list", () => {
   });
 });
 
-describe("Team creation — validation", () => {
+describe("Team creation â€” validation", () => {
   it("POST /api/team requires email, name, password, role", async () => {
     const validBody = { email: "new@org.com", name: "Carol", password: "temp123", role: "STAFF" };
     expect(validBody.email).toBeDefined();
@@ -73,7 +74,7 @@ describe("Team creation — validation", () => {
   });
 });
 
-describe("Team update — role change", () => {
+describe("Team update â€” role change", () => {
   it("PATCH /api/team/[id] updates role and branchId", async () => {
     const updateBody = { role: "STAFF", branchId: "branch123" };
     expect(updateBody).toHaveProperty("role");

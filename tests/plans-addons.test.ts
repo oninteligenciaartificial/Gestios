@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import {
   PLAN_PRICES_BOB,
@@ -33,7 +34,7 @@ describe("PLAN_PRICES_BOB", () => {
   });
 });
 
-describe("PLAN_LIMITS — staff", () => {
+describe("PLAN_LIMITS â€” staff", () => {
   it("BASICO has 1 staff limit", () => {
     expect(PLAN_LIMITS.BASICO.maxStaff).toBe(1);
   });
@@ -51,7 +52,7 @@ describe("PLAN_LIMITS — staff", () => {
   });
 });
 
-describe("PLAN_LIMITS — discounts", () => {
+describe("PLAN_LIMITS â€” discounts", () => {
   it("BASICO has 3 discount limit", () => {
     expect(PLAN_LIMITS.BASICO.maxDiscounts).toBe(3);
   });
@@ -99,7 +100,7 @@ describe("ADDON_META", () => {
   });
 });
 
-describe("canUseFeature — extended", () => {
+describe("canUseFeature â€” extended", () => {
   it("BASICO cannot use suppliers (requires CRECER)", () => {
     expect(canUseFeature("BASICO", "suppliers")).toBe(false);
   });
@@ -131,7 +132,7 @@ describe("canUseFeature — extended", () => {
   });
 });
 
-describe("isPlanAtLeast — full matrix", () => {
+describe("isPlanAtLeast â€” full matrix", () => {
   it("every plan is at least BASICO", () => {
     const plans = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] as const;
     plans.forEach((p) => expect(isPlanAtLeast(p, "BASICO")).toBe(true));

@@ -1,7 +1,8 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from "vitest";
 import { isPlanAtLeast } from "@/lib/plans";
 
-// Mock prisma at top level (required by Vitest — hoisted before tests)
+// Mock prisma at top level (required by Vitest â€” hoisted before tests)
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     auditLog: {

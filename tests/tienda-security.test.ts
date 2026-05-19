@@ -1,7 +1,8 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import { consumeRateLimit, getRequestIp } from "@/lib/rate-limit";
 
-describe("V-02 — tienda/checkout unitPrice validation", () => {
+describe("V-02 â€” tienda/checkout unitPrice validation", () => {
 describe("price comparison logic", () => {
     it("rejects price manipulation (client -2.00)", () => {
       const diff = Math.abs(98 - 100);
@@ -61,7 +62,7 @@ describe("price comparison logic", () => {
   });
 });
 
-describe("V-07 — magic bytes MIME detection", () => {
+describe("V-07 â€” magic bytes MIME detection", () => {
   describe("JPEG detection", () => {
     it("matches JPEG magic bytes [FF D8 FF]", () => {
       const jpegHeader = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10]);

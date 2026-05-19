@@ -1,3 +1,4 @@
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { consumeRateLimit, getRequestIp, checkRateLimit, checkOrgRateLimit } from "@/lib/rate-limit";
 
