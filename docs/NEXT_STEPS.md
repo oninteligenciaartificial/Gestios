@@ -3,6 +3,13 @@
 Análisis al 2026-05-13. Basado en lectura directa del código y ejecución de herramientas.
 Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN.md`.
 
+**Últimas actualizaciones (2026-05-19):**
+- ✅ CI Pipeline: todos los jobs pasando (Lint, TypeCheck, UnitTests)
+- ✅ RLS habilitado en 17 tablas públicas de Supabase
+- ✅ Email auth: migrado Brevo → Resend, dominio `onia.com.bo` verificado
+- ✅ Auth redirect fix: login → `/dashboard` (no más loop con landing page)
+- 🔲 Feature pendiente: gestión de sesiones/dispositivos activos
+
 **Últimas actualizaciones (2026-05-13):**
 - ✅ Deploy de todos los cambios pendientes (67 archivos, 3808 inserciones)
 - ✅ Landing page mejorada: cómo funciona, testimonios, FAQ, CTA

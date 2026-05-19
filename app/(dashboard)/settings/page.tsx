@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, Receipt, Package, ChevronRight } from "lucide-react";
+import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, Receipt, Package, ChevronRight, Monitor, Smartphone, LogOut, Loader2 } from "lucide-react";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 import { BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BUSINESS_TYPE_SCHEMAS } from "@/lib/business-types";
 import { Shirt, Pill, ShoppingBag, Wrench, Zap, Store } from "lucide-react";
@@ -343,6 +343,8 @@ export default function SettingsPage() {
             <p className="text-sm text-brand-muted">Para cambiar tu contrasena, usa el enlace de recuperacion desde la pantalla de login.</p>
           </section>
 
+          <SessionsSection />
+
           {isAdmin && (
             <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
               <div className="flex items-center gap-3">
@@ -379,6 +381,135 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+interface SessionItem {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  userAgent: string | null;
+  isCurrent: boolean;
+}
+
+function parseDevice(ua: string | null): { label: string; icon: React.ReactNode } {
+  if (!ua) return { label: "Dispositivo desconocido", icon: <Monitor size={16} /> };
+  const lower = ua.toLowerCase();
+  const isMobile = /mobile|android|iphone|ipad/.test(lower);
+  const browser = lower.includes("chrome") ? "Chrome"
+    : lower.includes("firefox") ? "Firefox"
+    : lower.includes("safari") ? "Safari"
+    : lower.includes("edge") ? "Edge"
+    : "Navegador";
+  const os = lower.includes("windows") ? "Windows"
+    : lower.includes("mac") ? "Mac"
+    : lower.includes("linux") ? "Linux"
+    : lower.includes("android") ? "Android"
+    : lower.includes("iphone") || lower.includes("ipad") ? "iOS"
+    : "desconocido";
+  return {
+    label: `${browser} · ${os}`,
+    icon: isMobile ? <Smartphone size={16} /> : <Monitor size={16} />,
+  };
+}
+
+function SessionsSection() {
+  /* eslint-disable react-hooks/immutability, react-hooks/set-state-in-effect */
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  async function loadSessions() {
+    setLoading(true);
+    const r = await fetch("/api/sessions");
+    if (r.ok) setSessions(await r.json());
+    setLoaded(true);
+    setLoading(false);
+  }
+
+  async function revoke(id: string) {
+    setRevoking(id);
+    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+    setRevoking(null);
+  }
+
+  async function revokeAll() {
+    const others = sessions.filter((s) => !s.isCurrent);
+    for (const s of others) await revoke(s.id);
+  }
+  /* eslint-enable react-hooks/immutability, react-hooks/set-state-in-effect */
+
+  return (
+    <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-white/5">
+            <Monitor size={18} className="text-brand-muted" />
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-white">Sesiones activas</h2>
+            <p className="text-xs text-brand-muted mt-0.5">Dispositivos con sesion iniciada</p>
+          </div>
+        </div>
+        {!loaded && (
+          <button onClick={loadSessions} className="text-sm text-brand-kinetic-orange hover:underline">
+            Ver sesiones
+          </button>
+        )}
+        {loaded && sessions.filter((s) => !s.isCurrent).length > 0 && (
+          <button onClick={revokeAll} className="text-xs text-red-400 hover:underline flex items-center gap-1">
+            <LogOut size={12} /> Cerrar todas las otras
+          </button>
+        )}
+      </div>
+
+      {loading && (
+        <div className="flex items-center gap-2 text-sm text-brand-muted">
+          <Loader2 size={14} className="animate-spin" /> Cargando...
+        </div>
+      )}
+
+      {loaded && !loading && (
+        <div className="divide-y divide-white/5">
+          {sessions.length === 0 && (
+            <p className="text-sm text-brand-muted py-2">Sin sesiones activas.</p>
+          )}
+          {sessions.map((s) => {
+            const { label, icon } = parseDevice(s.userAgent);
+            return (
+              <div key={s.id} className="py-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`p-1.5 rounded-lg ${s.isCurrent ? "bg-brand-kinetic-orange/10 text-brand-kinetic-orange" : "bg-white/5 text-brand-muted"}`}>
+                    {icon}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm text-white font-medium truncate">
+                      {label}
+                      {s.isCurrent && <span className="ml-2 text-xs text-brand-kinetic-orange font-normal">Este dispositivo</span>}
+                    </div>
+                    <div className="text-xs text-brand-muted">
+                      Ultimo acceso: {new Date(s.updatedAt).toLocaleString("es-BO")}
+                    </div>
+                  </div>
+                </div>
+                {!s.isCurrent && (
+                  <button
+                    onClick={() => revoke(s.id)}
+                    disabled={revoking === s.id}
+                    className="flex-shrink-0 flex items-center gap-1 text-xs text-red-400 hover:underline disabled:opacity-50"
+                  >
+                    {revoking === s.id ? <Loader2 size={12} className="animate-spin" /> : <LogOut size={12} />}
+                    Cerrar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 

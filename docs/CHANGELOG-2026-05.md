@@ -94,6 +94,35 @@
 
 ---
 
+## 2026-05-19 — CI fix + Email migration Brevo→Resend + Auth redirect fix
+
+### CI Pipeline — Completamente funcional ✅
+- Node 20 → Node 22 (requerido por `@prisma/streams-local`)
+- `npm ci` → `npm install --prefer-offline` (lockfile mismatch fix)
+- ESLint: react-compiler rules, no-explicit-any en tests, no-unescaped-entities
+- Encoding fix en tests (`operación async falló`, `1 año`)
+- `.obsidian/` y `remotion-video/node_modules/` agregados a .gitignore
+- **Todos los jobs pasan: Lint ✅ TypeCheck ✅ UnitTests ✅**
+
+### RLS habilitado en todas las tablas públicas ✅
+- 17 tablas con RLS habilitado via Supabase MCP
+- App usa `service_role` → bypassa RLS, sin cambios en comportamiento
+- 0 CRITICAL advisors (eran 17)
+
+### Email: Brevo → Resend ✅
+- **Problema:** Brevo IP whitelist requiere plan de pago
+- **Solución:** Migrado a Resend (3,000 emails/mes gratis, sin IP whitelist)
+- Dominio `onia.com.bo` verificado en Resend
+- Supabase SMTP: `smtp.resend.com:465`, user `resend`, sender `business@onia.com.bo`
+- Emails de confirmación Supabase Auth funcionando en producción
+
+### Auth redirect fix ✅
+- **Bug:** Login redirigía a landing page (`/`) en vez de `/dashboard`
+- **Root cause:** `app/auth/callback/route.ts:7` — default `?? "/setup"` enviaba usuarios con perfil existente a `/setup`, que luego redirigía a `/`
+- **Fix:** Cambiado a `?? "/dashboard"` — usuarios existentes → dashboard, nuevos → caught by layout guard → `/setup`
+
+---
+
 ## Pendiente para próximo deploy
 
 ### Requiere acción externa
