@@ -1,12 +1,21 @@
+import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { reportAsyncError } from "@/lib/monitoring";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
-const FROM_NAME = process.env.BREVO_SENDER_NAME ?? "GestiOS";
-const FROM_EMAIL = process.env.BREVO_SENDER_EMAIL ?? process.env.EMAIL_FROM_ADDRESS ?? "noreply@onia.com.bo";
+const FROM_NAME = process.env.EMAIL_FROM_NAME ?? process.env.BREVO_SENDER_NAME ?? "GestiOS";
+const FROM_EMAIL = process.env.EMAIL_FROM_ADDRESS ?? process.env.BREVO_SENDER_EMAIL ?? "noreply@onia.com.bo";
 
-// Daily email counter to stay under Brevo free plan limit (300/day)
-const DAILY_EMAIL_LIMIT = 280; // Leave 20 as buffer
+// Resend free: 3000/month (~100/day). Keep daily guard.
+const DAILY_EMAIL_LIMIT = 90; // Leave buffer under 100/day free tier
+
+let _resend: Resend | null = null;
+function getResend(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  if (!_resend) _resend = new Resend(key);
+  return _resend;
+}
 
 async function checkDailyEmailLimit(): Promise<boolean> {
   const today = new Date().toISOString().split("T")[0];
@@ -17,12 +26,6 @@ async function checkDailyEmailLimit(): Promise<boolean> {
     return false;
   }
   return true;
-}
-
-if (!process.env.BREVO_API_KEY) {
-  // Silently skip — emails are fire-and-forget
-} else if (!FROM_EMAIL || FROM_EMAIL === "noreply@gestios.app") {
-  console.warn("[email] BREVO_SENDER_EMAIL not configured. Using default sender. Set BREVO_SENDER_EMAIL in Vercel to avoid deliverability issues.");
 }
 
 interface OrderItem {
@@ -152,9 +155,9 @@ async function logEmailSend(
 }
 
 async function sendEmail(to: string, subject: string, htmlContent: string, toName?: string, type?: string, organizationId?: string | null) {
-  const apiKey = process.env.BREVO_API_KEY;
-  if (!apiKey) {
-    await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, "BREVO_API_KEY not configured");
+  const resend = getResend();
+  if (!resend) {
+    await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, "RESEND_API_KEY not configured");
     return;
   }
 
@@ -165,26 +168,17 @@ async function sendEmail(to: string, subject: string, htmlContent: string, toNam
   }
 
   try {
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: FROM_NAME, email: FROM_EMAIL },
-        to: [{ email: to, name: toName ?? to }],
-        subject,
-        htmlContent,
-      }),
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: [to],
+      subject,
+      html: htmlContent,
     });
 
-    if (response.ok) {
-      const data = await response.json() as { messageId?: string };
-      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "SENT", data.messageId);
+    if (error) {
+      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, error.message);
     } else {
-      const errorBody = await response.text().catch(() => "Unknown error");
-      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, `Brevo API error: ${response.status} ${errorBody}`);
+      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "SENT", data?.id);
     }
   } catch (error) {
     await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, error instanceof Error ? error.message : String(error));
@@ -192,9 +186,9 @@ async function sendEmail(to: string, subject: string, htmlContent: string, toNam
 }
 
 async function sendPlainEmail(to: string, subject: string, textContent: string, type?: string, organizationId?: string | null) {
-  const apiKey = process.env.BREVO_API_KEY;
-  if (!apiKey) {
-    await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, "BREVO_API_KEY not configured");
+  const resend = getResend();
+  if (!resend) {
+    await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, "RESEND_API_KEY not configured");
     return;
   }
 
@@ -205,26 +199,17 @@ async function sendPlainEmail(to: string, subject: string, textContent: string, 
   }
 
   try {
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: FROM_NAME, email: FROM_EMAIL },
-        to: [{ email: to }],
-        subject,
-        textContent,
-      }),
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: [to],
+      subject,
+      text: textContent,
     });
 
-    if (response.ok) {
-      const data = await response.json() as { messageId?: string };
-      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "SENT", data.messageId);
+    if (error) {
+      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, error.message);
     } else {
-      const errorBody = await response.text().catch(() => "Unknown error");
-      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, `Brevo API error: ${response.status} ${errorBody}`);
+      await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "SENT", data?.id);
     }
   } catch (error) {
     await logEmailSend(organizationId ?? null, to, type ?? "unknown", subject, "FAILED", undefined, error instanceof Error ? error.message : String(error));

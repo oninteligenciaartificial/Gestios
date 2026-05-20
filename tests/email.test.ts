@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock prisma before importing email module
@@ -19,26 +19,38 @@ vi.mock("@/lib/monitoring", () => ({
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
-  consumeRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 280, resetAt: Date.now() + 86400000 }),
+  consumeRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 90, resetAt: Date.now() + 86400000 }),
+}));
+
+// Mock Resend SDK — vi.hoisted ensures mockResendSend is available inside vi.mock factory
+const { mockResendSend } = vi.hoisted(() => ({
+  mockResendSend: vi.fn().mockResolvedValue({ data: { id: "msg-123" }, error: null }),
+}));
+
+vi.mock("resend", () => ({
+  Resend: class {
+    emails = { send: mockResendSend };
+  },
 }));
 
 describe("sendEmail core", () => {
   beforeEach(() => {
     vi.resetModules();
     mockCreate.mockClear();
-    // Set BREVO_API_KEY for tests that need it
-    process.env.BREVO_API_KEY = "test-api-key";
-    process.env.BREVO_SENDER_EMAIL = "test@gmail.com";
+    mockResendSend.mockClear();
+    mockResendSend.mockResolvedValue({ data: { id: "msg-123" }, error: null });
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.EMAIL_FROM_ADDRESS = "noreply@onia.com.bo";
   });
 
   afterEach(() => {
-    delete process.env.BREVO_API_KEY;
-    delete process.env.BREVO_SENDER_EMAIL;
+    delete process.env.RESEND_API_KEY;
+    delete process.env.EMAIL_FROM_ADDRESS;
     vi.restoreAllMocks();
   });
 
-  it("should skip sending when BREVO_API_KEY is not set", async () => {
-    delete process.env.BREVO_API_KEY;
+  it("should skip sending when RESEND_API_KEY is not set", async () => {
+    delete process.env.RESEND_API_KEY;
 
     const { sendOrderConfirmation } = await import("@/lib/email");
     await sendOrderConfirmation({
@@ -51,28 +63,21 @@ describe("sendEmail core", () => {
       paymentMethod: "EFECTIVO",
     });
 
-    // Should log as FAILED due to missing API key
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           status: "FAILED",
-          error: expect.stringContaining("BREVO_API_KEY not configured"),
+          error: expect.stringContaining("RESEND_API_KEY not configured"),
         }),
       })
     );
+    expect(mockResendSend).not.toHaveBeenCalled();
   });
 
-  it("should use BREVO_SENDER_EMAIL when configured", async () => {
-    process.env.BREVO_SENDER_EMAIL = "verified@gmail.com";
+  it("should use EMAIL_FROM_ADDRESS when configured", async () => {
+    process.env.EMAIL_FROM_ADDRESS = "custom@onia.com.bo";
 
     const { sendOrderConfirmation } = await import("@/lib/email");
-
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ messageId: "msg-123" }),
-    });
-    vi.stubGlobal("fetch", mockFetch);
-
     await sendOrderConfirmation({
       to: "customer@example.com",
       customerName: "Customer",
@@ -83,23 +88,18 @@ describe("sendEmail core", () => {
       paymentMethod: "TARJETA",
     });
 
-    const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(callBody.sender.email).toBe("verified@gmail.com");
-
-    vi.unstubAllGlobals();
+    expect(mockResendSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: expect.stringContaining("custom@onia.com.bo"),
+      })
+    );
   });
 
-  it("should fallback to Gmail when BREVO_SENDER_EMAIL is not set", async () => {
+  it("should fallback to noreply@onia.com.bo when no sender env set", async () => {
+    delete process.env.EMAIL_FROM_ADDRESS;
     delete process.env.BREVO_SENDER_EMAIL;
 
     const { sendOrderConfirmation } = await import("@/lib/email");
-
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ messageId: "msg-123" }),
-    });
-    vi.stubGlobal("fetch", mockFetch);
-
     await sendOrderConfirmation({
       to: "customer@example.com",
       customerName: "Customer",
@@ -110,10 +110,11 @@ describe("sendEmail core", () => {
       paymentMethod: "EFECTIVO",
     });
 
-    const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(callBody.sender.email).toBe("noreply@onia.com.bo");
-
-    vi.unstubAllGlobals();
+    expect(mockResendSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: expect.stringContaining("noreply@onia.com.bo"),
+      })
+    );
   });
 });
 
@@ -122,20 +123,15 @@ describe("email types", () => {
     vi.resetModules();
     mockCreate.mockClear();
     mockCreate.mockResolvedValue({ id: "log-1" });
-    process.env.BREVO_API_KEY = "test-api-key";
-    process.env.BREVO_SENDER_EMAIL = "test@gmail.com";
-
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ messageId: "msg-123" }),
-    });
-    vi.stubGlobal("fetch", mockFetch);
+    mockResendSend.mockClear();
+    mockResendSend.mockResolvedValue({ data: { id: "msg-123" }, error: null });
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.EMAIL_FROM_ADDRESS = "noreply@onia.com.bo";
   });
 
   afterEach(() => {
-    delete process.env.BREVO_API_KEY;
-    delete process.env.BREVO_SENDER_EMAIL;
-    vi.unstubAllGlobals();
+    delete process.env.RESEND_API_KEY;
+    delete process.env.EMAIL_FROM_ADDRESS;
     vi.restoreAllMocks();
   });
 
@@ -171,10 +167,7 @@ describe("email types", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "birthday_email",
-          to: "birthday@example.com",
-        }),
+        data: expect.objectContaining({ type: "birthday_email", to: "birthday@example.com" }),
       })
     );
   });
@@ -189,66 +182,40 @@ describe("email types", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "low_stock_alert",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "low_stock_alert", to: "admin@example.com" }),
       })
     );
   });
 
   it("sendPlanExpiryWarning should log with type 'plan_expiry_warning'", async () => {
     const { sendPlanExpiryWarning } = await import("@/lib/email");
-    await sendPlanExpiryWarning({
-      to: "admin@example.com",
-      orgName: "Test Org",
-      daysLeft: 3,
-      planLabel: "Pro",
-    });
+    await sendPlanExpiryWarning({ to: "admin@example.com", orgName: "Test Org", daysLeft: 3, planLabel: "Pro" });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "plan_expiry_warning",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "plan_expiry_warning", to: "admin@example.com" }),
       })
     );
   });
 
   it("sendPlanExpired should log with type 'plan_expired'", async () => {
     const { sendPlanExpired } = await import("@/lib/email");
-    await sendPlanExpired({
-      to: "admin@example.com",
-      orgName: "Test Org",
-      planLabel: "Pro",
-    });
+    await sendPlanExpired({ to: "admin@example.com", orgName: "Test Org", planLabel: "Pro" });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "plan_expired",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "plan_expired", to: "admin@example.com" }),
       })
     );
   });
 
   it("sendPlanActivatedEmail should log with type 'plan_activated'", async () => {
     const { sendPlanActivatedEmail } = await import("@/lib/email");
-    await sendPlanActivatedEmail({
-      to: "admin@example.com",
-      orgName: "Test Org",
-      plan: "PRO",
-      expiresAt: new Date("2026-06-01"),
-    });
+    await sendPlanActivatedEmail({ to: "admin@example.com", orgName: "Test Org", plan: "PRO", expiresAt: new Date("2026-06-01") });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "plan_activated",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "plan_activated", to: "admin@example.com" }),
       })
     );
   });
@@ -267,50 +234,29 @@ describe("email types", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "new_order_alert",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "new_order_alert", to: "admin@example.com" }),
       })
     );
   });
 
   it("sendOrderStatusUpdate should log with type 'order_status_update'", async () => {
     const { sendOrderStatusUpdate } = await import("@/lib/email");
-    await sendOrderStatusUpdate({
-      to: "customer@example.com",
-      customerName: "Customer",
-      orgName: "Test Org",
-      orderId: "cm1234567890",
-      status: "ENTREGADO",
-    });
+    await sendOrderStatusUpdate({ to: "customer@example.com", customerName: "Customer", orgName: "Test Org", orderId: "cm1234567890", status: "ENTREGADO" });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "order_status_update",
-          to: "customer@example.com",
-        }),
+        data: expect.objectContaining({ type: "order_status_update", to: "customer@example.com" }),
       })
     );
   });
 
   it("sendLoyaltyPointsEmail should log with type 'loyalty_points_email'", async () => {
     const { sendLoyaltyPointsEmail } = await import("@/lib/email");
-    await sendLoyaltyPointsEmail({
-      to: "customer@example.com",
-      customerName: "Customer",
-      orgName: "Test Org",
-      pointsEarned: 15,
-      totalPoints: 150,
-    });
+    await sendLoyaltyPointsEmail({ to: "customer@example.com", customerName: "Customer", orgName: "Test Org", pointsEarned: 15, totalPoints: 150 });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "loyalty_points_email",
-          to: "customer@example.com",
-        }),
+        data: expect.objectContaining({ type: "loyalty_points_email", to: "customer@example.com" }),
       })
     );
   });
@@ -325,47 +271,29 @@ describe("email types", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "expiry_alert",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "expiry_alert", to: "admin@example.com" }),
       })
     );
   });
 
   it("sendInactiveCustomerEmail should log with type 'inactive_customer_email'", async () => {
     const { sendInactiveCustomerEmail } = await import("@/lib/email");
-    await sendInactiveCustomerEmail({
-      to: "inactive@example.com",
-      customerName: "Inactive",
-      orgName: "Test Org",
-      daysSinceLastOrder: 45,
-    });
+    await sendInactiveCustomerEmail({ to: "inactive@example.com", customerName: "Inactive", orgName: "Test Org", daysSinceLastOrder: 45 });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "inactive_customer_email",
-          to: "inactive@example.com",
-        }),
+        data: expect.objectContaining({ type: "inactive_customer_email", to: "inactive@example.com" }),
       })
     );
   });
 
   it("sendPlainNotification should log with type 'plain_notification'", async () => {
     const { sendPlainNotification } = await import("@/lib/email");
-    await sendPlainNotification({
-      to: "admin@example.com",
-      subject: "Test",
-      text: "Test content",
-    });
+    await sendPlainNotification({ to: "admin@example.com", subject: "Test", text: "Test content" });
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "plain_notification",
-          to: "admin@example.com",
-        }),
+        data: expect.objectContaining({ type: "plain_notification", to: "admin@example.com" }),
       })
     );
   });
@@ -384,10 +312,7 @@ describe("email types", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          type: "order_confirmation",
-          to: "customer@example.com",
-        }),
+        data: expect.objectContaining({ type: "order_confirmation", to: "customer@example.com" }),
       })
     );
   });
@@ -398,24 +323,19 @@ describe("error handling", () => {
     vi.resetModules();
     mockCreate.mockClear();
     mockCreate.mockResolvedValue({ id: "log-1" });
-    process.env.BREVO_API_KEY = "test-api-key";
-    process.env.BREVO_SENDER_EMAIL = "test@gmail.com";
+    mockResendSend.mockClear();
+    process.env.RESEND_API_KEY = "re_test_key";
+    process.env.EMAIL_FROM_ADDRESS = "noreply@onia.com.bo";
   });
 
   afterEach(() => {
-    delete process.env.BREVO_API_KEY;
-    delete process.env.BREVO_SENDER_EMAIL;
-    vi.unstubAllGlobals();
+    delete process.env.RESEND_API_KEY;
+    delete process.env.EMAIL_FROM_ADDRESS;
     vi.restoreAllMocks();
   });
 
-  it("should log FAILED status when Brevo API returns error", async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      text: () => Promise.resolve("Invalid API key"),
-    });
-    vi.stubGlobal("fetch", mockFetch);
+  it("should log FAILED status when Resend returns error", async () => {
+    mockResendSend.mockResolvedValue({ data: null, error: { message: "Invalid API key", name: "validation_error" } });
 
     const { sendOrderConfirmation } = await import("@/lib/email");
     await sendOrderConfirmation({
@@ -432,15 +352,14 @@ describe("error handling", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           status: "FAILED",
-          error: expect.stringContaining("Brevo API error: 401"),
+          error: "Invalid API key",
         }),
       })
     );
   });
 
-  it("should log FAILED status when fetch throws", async () => {
-    const mockFetch = vi.fn().mockRejectedValue(new Error("Network error"));
-    vi.stubGlobal("fetch", mockFetch);
+  it("should log FAILED status when Resend SDK throws", async () => {
+    mockResendSend.mockRejectedValue(new Error("Network error"));
 
     const { sendOrderConfirmation } = await import("@/lib/email");
     await sendOrderConfirmation({
