@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download, CreditCard, UserCheck, Clock, Tag } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
+import { SalesLineChart } from "@/components/dashboard/charts/SalesLineChart";
+import { CategoryBarChart } from "@/components/dashboard/charts/CategoryBarChart";
 
 interface ReportData {
   currency: string;
@@ -19,6 +21,7 @@ interface ReportData {
   salesByStaff: { staffId: string | null; staffName: string; total: number; orders: number }[];
   noMovement: { id: string; name: string; stock: number; updatedAt: string }[];
   branches: { id: string; name: string }[];
+  dailySales: { date: string; revenue: number; orders: number }[];
 }
 
 const PRESETS = [
@@ -114,7 +117,6 @@ export default function ReportsPage() {
 
   const avgTicket = data && data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0;
   const maxQty = data?.topSelling[0]?.quantity ?? 1;
-  const maxCategoryRev = data?.salesByCategory[0]?.revenue ?? 1;
   const totalPayments = Object.values(data?.paymentBreakdown ?? {}).reduce((s, v) => s + v, 0);
   const maxCustomerTotal = data?.topCustomers[0]?.total ?? 1;
 
@@ -216,6 +218,19 @@ export default function ReportsPage() {
             ))}
           </section>
 
+          {/* Ventas por día */}
+          <section className="space-y-4 animate-pop">
+            <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+              <TrendingUp size={20} className="text-brand-kinetic-orange" />
+              Ventas por Dia
+            </h2>
+            <div className="glass-panel rounded-2xl p-5">
+              <Suspense fallback={<div className="h-64 animate-pulse bg-white/5 rounded-xl" />}>
+                <SalesLineChart data={(data.dailySales ?? []).map((d) => ({ date: d.date, revenue: d.revenue }))} height={260} />
+              </Suspense>
+            </div>
+          </section>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Top Productos */}
             <section className="space-y-4 animate-pop">
@@ -257,30 +272,13 @@ export default function ReportsPage() {
                 <Tag size={20} className="text-blue-400" />
                 Ventas por Categoria
               </h2>
-              <div className="glass-panel rounded-2xl overflow-hidden">
-                {data.salesByCategory.length === 0 ? (
-                  <div className="py-12 text-center text-brand-muted text-sm">Sin ventas en este periodo.</div>
-                ) : (
-                  <div className="divide-y divide-white/5">
-                    {data.salesByCategory.map((c) => {
-                      const pct = maxCategoryRev > 0 ? (c.revenue / maxCategoryRev) * 100 : 0;
-                      return (
-                        <div key={c.name} className="p-4 space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-white">{c.name}</span>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-blue-400">{fmt(c.revenue)}</div>
-                              <div className="text-xs text-brand-muted">{c.quantity} uds.</div>
-                            </div>
-                          </div>
-                          <div className="w-full bg-white/5 rounded-full h-1.5">
-                            <div className="h-1.5 rounded-full bg-blue-400" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+              <div className="glass-panel rounded-2xl p-5">
+                <Suspense fallback={<div className="h-56 animate-pulse bg-white/5 rounded-xl" />}>
+                  <CategoryBarChart
+                    data={data.salesByCategory.map((c) => ({ name: c.name, value: c.revenue }))}
+                    height={220}
+                  />
+                </Suspense>
               </div>
             </section>
 

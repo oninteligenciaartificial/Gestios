@@ -129,6 +129,18 @@ export async function GET(request: Request) {
 
   const totalMargin = Object.values(productSales).reduce((sum, p) => sum + p.margin, 0);
 
+  // Time-series: group orders by day
+  const dailySalesMap: Record<string, { revenue: number; orders: number }> = {};
+  for (const o of orders) {
+    const day = o.createdAt.toISOString().split("T")[0];
+    if (!dailySalesMap[day]) dailySalesMap[day] = { revenue: 0, orders: 0 };
+    dailySalesMap[day].revenue += Number(o.total);
+    dailySalesMap[day].orders += 1;
+  }
+  const dailySales = Object.entries(dailySalesMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, v]) => ({ date, ...v }));
+
   return NextResponse.json({
     currency,
     totalRevenue,
@@ -143,5 +155,6 @@ export async function GET(request: Request) {
     salesByStaff,
     noMovement: noMovementProducts,
     branches,
+    dailySales,
   });
 }

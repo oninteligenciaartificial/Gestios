@@ -86,6 +86,7 @@ export default async function DashboardLayout({
     reports: "/reports",
     suppliers: "/suppliers",
     sucursales: "/branches",
+    tienda_online: "/tienda",
   };
   const lockedHrefs = new Set(
     Object.entries(featureHrefMap)
@@ -108,6 +109,7 @@ export default async function DashboardLayout({
     { href: "/customers", label: "Clientes" },
     { href: "/reports", label: "Reportes" },
     { href: "/caja", label: "Corte de Caja" },
+    { href: "/tienda", label: "Tienda Online" },
     { href: "/suppliers", label: ui.sidebarLabels.suppliers },
     { href: "/discounts", label: "Descuentos" },
     { href: "/categories", label: ui.sidebarLabels.categories },
