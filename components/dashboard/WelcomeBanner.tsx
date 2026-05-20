@@ -1,4 +1,7 @@
-import { Package, ShoppingCart, Users, Sparkles } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Package, ShoppingCart, Users, Sparkles, Database, Loader2, CheckCircle2 } from "lucide-react";
 
 interface ActionCard {
   icon: React.ComponentType<{ size?: number; className?: string }>;
@@ -37,6 +40,22 @@ interface WelcomeBannerProps {
 }
 
 export function WelcomeBanner({ orgName }: WelcomeBannerProps) {
+  const [loadingData, setLoadingData] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  async function handleLoadSampleData() {
+    setLoadingData(true);
+    try {
+      const res = await fetch("/api/sample-data", { method: "POST" });
+      if (res.ok) {
+        setDataLoaded(true);
+        setTimeout(() => window.location.reload(), 1200);
+      }
+    } finally {
+      setLoadingData(false);
+    }
+  }
+
   return (
     <section
       className="glass-panel rounded-3xl p-6 sm:p-8 border border-brand-kinetic-orange/30 shadow-[0_0_40px_rgba(255,107,0,0.08)] animate-pop"
@@ -56,6 +75,30 @@ export function WelcomeBanner({ orgName }: WelcomeBannerProps) {
             Tu prueba de 7 días está activa — explorá todo sin límites.
           </p>
         </div>
+      </div>
+
+      {/* Sample data CTA */}
+      <div className="mb-6 flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
+        <div className="p-2 rounded-xl bg-brand-growth-neon/10 flex-shrink-0">
+          <Database size={18} className="text-brand-growth-neon" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white">Cargá datos de ejemplo</p>
+          <p className="text-xs text-brand-muted mt-0.5">Productos, clientes y ventas ficticios para explorar sin riesgo.</p>
+        </div>
+        <button
+          onClick={handleLoadSampleData}
+          disabled={loadingData || dataLoaded}
+          className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-growth-neon/10 border border-brand-growth-neon/30 text-brand-growth-neon text-sm font-bold hover:bg-brand-growth-neon/20 transition-all disabled:opacity-60"
+        >
+          {dataLoaded ? (
+            <><CheckCircle2 size={14} /> Listo</>
+          ) : loadingData ? (
+            <><Loader2 size={14} className="animate-spin" /> Cargando...</>
+          ) : (
+            "Cargar datos"
+          )}
+        </button>
       </div>
 
       {/* Action cards */}

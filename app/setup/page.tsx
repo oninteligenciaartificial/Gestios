@@ -75,7 +75,7 @@ export default function SetupPage() {
     });
 
     if (res.ok) {
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } else {
       const data = await res.json();
