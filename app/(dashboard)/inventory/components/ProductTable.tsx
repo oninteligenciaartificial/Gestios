@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2, Package, PackagePlus, Layers } from "lucide-react";
+import { Pencil, Trash2, Package, PackagePlus, Layers, History } from "lucide-react";
 import type { BusinessUIConfig } from "@/lib/business-ui";
 import { type Product, stockStatus } from "./types";
 
@@ -12,9 +12,10 @@ interface Props {
   onEdit: (p: Product) => void;
   onDelete: (id: string) => void;
   onStockEntry: (p: Product) => void;
+  onViewHistory: (p: Product) => void;
 }
 
-export function ProductTable({ products, loading, search, ui, onEdit, onDelete, onStockEntry }: Props) {
+export function ProductTable({ products, loading, search, ui, onEdit, onDelete, onStockEntry, onViewHistory }: Props) {
   if (loading) {
     return <div className="py-16 text-center text-brand-muted">Cargando productos...</div>;
   }
@@ -74,6 +75,9 @@ export function ProductTable({ products, loading, search, ui, onEdit, onDelete, 
                           <PackagePlus size={16} />
                         </button>
                       )}
+                      <button onClick={() => onViewHistory(item)} className="text-brand-muted hover:text-blue-400 transition-colors" title="Ver movimientos">
+                        <History size={16} />
+                      </button>
                       <button onClick={() => onEdit(item)} className="text-brand-muted hover:text-white transition-colors"><Pencil size={16} /></button>
                       <button onClick={() => onDelete(item.id)} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
                     </div>
@@ -120,6 +124,7 @@ export function ProductTable({ products, loading, search, ui, onEdit, onDelete, 
                   {!item.hasVariants && (
                     <button onClick={() => onStockEntry(item)} className="p-2 rounded-lg bg-white/5 text-brand-growth-neon hover:bg-white/10 transition-colors"><PackagePlus size={15} /></button>
                   )}
+                  <button onClick={() => onViewHistory(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-blue-400 hover:bg-white/10 transition-colors" title="Ver movimientos"><History size={15} /></button>
                   <button onClick={() => onEdit(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white hover:bg-white/10 transition-colors"><Pencil size={15} /></button>
                   <button onClick={() => onDelete(item.id)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-red-400 hover:bg-white/10 transition-colors"><Trash2 size={15} /></button>
                 </div>

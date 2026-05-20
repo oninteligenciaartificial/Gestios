@@ -3,6 +3,28 @@ import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
+export async function GET(request: Request) {
+  const profile = await getTenantProfile();
+  if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const { searchParams } = new URL(request.url);
+  const productId = searchParams.get("productId");
+  if (!productId) return NextResponse.json({ error: "productId requerido" }, { status: 400 });
+
+  const entries = await prisma.activityLog.findMany({
+    where: {
+      organizationId: profile.organizationId,
+      entity: "product",
+      entityId: productId,
+      action: "stock_entry",
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
+  return NextResponse.json(entries);
+}
+
 const schema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
@@ -39,6 +61,19 @@ export async function POST(request: Request) {
       where: { id: variantId },
       data: { stock: { increment: quantity } },
     });
+
+    prisma.activityLog.create({
+      data: {
+        organizationId: profile.organizationId,
+        userId: profile.userId,
+        userName: profile.name,
+        action: "stock_entry",
+        entity: "product",
+        entityId: productId,
+        details: JSON.stringify({ quantity, variantId, notes: result.data.notes ?? null }),
+      },
+    }).catch(() => {});
+
     return NextResponse.json(updated);
   }
 
@@ -46,5 +81,18 @@ export async function POST(request: Request) {
     where: { id: productId },
     data: { stock: { increment: quantity } },
   });
+
+  prisma.activityLog.create({
+    data: {
+      organizationId: profile.organizationId,
+      userId: profile.userId,
+      userName: profile.name,
+      action: "stock_entry",
+      entity: "product",
+      entityId: productId,
+      details: JSON.stringify({ quantity, notes: result.data.notes ?? null }),
+    },
+  }).catch(() => {});
+
   return NextResponse.json(updated);
 }

@@ -15,6 +15,50 @@ const updateSchema = z.object({
   notes: z.string().optional(),
 });
 
+const patchSchema = z.object({
+  loyaltyPointsAdjustment: z.number().int(),
+  reason: z.string().min(1),
+});
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const profile = await getTenantProfile();
+  if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!hasPermission(profile.role, "customers:edit")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+
+  const { id } = await params;
+
+  let body: unknown;
+  try { body = await request.json(); }
+  catch { return NextResponse.json({ error: "JSON invalido" }, { status: 400 }); }
+
+  const result = patchSchema.safeParse(body);
+  if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
+
+  const existing = await prisma.customer.findFirst({ where: { id, organizationId: profile.organizationId } });
+  if (!existing) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+  const { loyaltyPointsAdjustment, reason } = result.data;
+  const newPoints = Math.max(0, existing.loyaltyPoints + loyaltyPointsAdjustment);
+
+  const customer = await prisma.customer.update({
+    where: { id },
+    data: { loyaltyPoints: newPoints },
+  });
+
+  logAudit({
+    orgId: profile.organizationId,
+    orgPlan: profile.plan,
+    userId: profile.userId,
+    action: "loyalty_adjustment",
+    entityType: "customer",
+    entityId: id,
+    before: { loyaltyPoints: existing.loyaltyPoints },
+    after: { loyaltyPoints: newPoints, adjustment: loyaltyPointsAdjustment, reason },
+  });
+
+  return NextResponse.json(customer);
+}
+
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });

@@ -48,6 +48,11 @@ export default function CustomersPage() {
   const [viewCustomer, setViewCustomer] = useState<Customer | null>(null);
   const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [showPointsForm, setShowPointsForm] = useState(false);
+  const [pointsAdjustment, setPointsAdjustment] = useState("");
+  const [pointsReason, setPointsReason] = useState("");
+  const [savingPoints, setSavingPoints] = useState(false);
+  const [pointsError, setPointsError] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -66,8 +71,38 @@ export default function CustomersPage() {
     setLoading(false);
   }, [search]);
 
+  async function handlePointsAdjust(e: React.FormEvent) {
+    e.preventDefault();
+    if (!viewCustomer) return;
+    const adj = parseInt(pointsAdjustment);
+    if (isNaN(adj)) { setPointsError("Ingresa un numero valido"); return; }
+    setSavingPoints(true);
+    setPointsError("");
+    const res = await fetch(`/api/customers/${viewCustomer.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ loyaltyPointsAdjustment: adj, reason: pointsReason }),
+    });
+    if (res.ok) {
+      const updated = await res.json() as Customer;
+      setViewCustomer({ ...viewCustomer, loyaltyPoints: updated.loyaltyPoints });
+      setCustomers((prev) => prev.map((c) => c.id === updated.id ? { ...c, loyaltyPoints: updated.loyaltyPoints } : c));
+      setShowPointsForm(false);
+      setPointsAdjustment("");
+      setPointsReason("");
+    } else {
+      const d = await res.json() as { error?: string };
+      setPointsError(d.error ?? "Error al ajustar puntos");
+    }
+    setSavingPoints(false);
+  }
+
   async function openHistory(c: Customer) {
     setViewCustomer(c);
+    setShowPointsForm(false);
+    setPointsAdjustment("");
+    setPointsReason("");
+    setPointsError("");
     setLoadingOrders(true);
     const res = await fetch("/api/orders?limit=200");
     if (res.ok) {
@@ -269,6 +304,53 @@ export default function CustomersPage() {
               </div>
               <button onClick={() => setViewCustomer(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
             </div>
+
+            {/* Loyalty points */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div>
+                <p className="text-xs text-brand-muted">Puntos de lealtad</p>
+                <p className="text-xl font-display font-bold text-brand-kinetic-orange">{viewCustomer.loyaltyPoints}</p>
+              </div>
+              <button
+                onClick={() => { setShowPointsForm((v) => !v); setPointsError(""); }}
+                className="px-3 py-1.5 rounded-lg border border-brand-kinetic-orange/40 text-brand-kinetic-orange text-xs font-medium hover:bg-brand-kinetic-orange/10 transition-colors"
+              >
+                Ajustar puntos
+              </button>
+            </div>
+
+            {showPointsForm && (
+              <form onSubmit={handlePointsAdjust} className="space-y-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs text-brand-muted font-medium">Ajuste manual de puntos</p>
+                <div className="flex gap-3">
+                  <input
+                    required
+                    type="number"
+                    placeholder="Ej: 50 o -20"
+                    value={pointsAdjustment}
+                    onChange={(e) => setPointsAdjustment(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm"
+                  />
+                  <input
+                    required
+                    type="text"
+                    placeholder="Razon del ajuste"
+                    value={pointsReason}
+                    onChange={(e) => setPointsReason(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm"
+                  />
+                </div>
+                {pointsError && <p className="text-red-400 text-xs">{pointsError}</p>}
+                <div className="flex gap-2 justify-end">
+                  <button type="button" onClick={() => setShowPointsForm(false)} className="px-3 py-1.5 rounded-lg text-xs text-brand-muted hover:text-white transition-colors">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={savingPoints} className="px-4 py-1.5 rounded-lg bg-brand-kinetic-orange text-black text-xs font-bold disabled:opacity-50">
+                    {savingPoints ? "Guardando..." : "Confirmar"}
+                  </button>
+                </div>
+              </form>
+            )}
 
             {loadingOrders ? (
               <p className="text-center text-brand-muted py-8">Cargando...</p>

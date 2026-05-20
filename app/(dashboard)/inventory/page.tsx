@@ -9,6 +9,7 @@ import { isPlanAtLeast, type PlanType } from "@/lib/plans";
 import { ProductTable } from "./components/ProductTable";
 import { ProductFormModal } from "./components/ProductFormModal";
 import { StockEntryModal } from "./components/StockEntryModal";
+import { StockHistoryModal } from "./components/StockHistoryModal";
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
 import {
   type Category, type Product, type ProductVariant, type ProductForm, type VariantForm,
@@ -39,6 +40,7 @@ export default function Inventory() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [stockEntry, setStockEntry] = useState<Product | null>(null);
+  const [historyProduct, setHistoryProduct] = useState<Product | null>(null);
   const [stockQty, setStockQty] = useState("1");
   const [stockSaving, setStockSaving] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -302,6 +304,7 @@ export default function Inventory() {
         onEdit={openEdit}
         onDelete={setDeleteId}
         onStockEntry={(p) => { setStockEntry(p); setStockQty("1"); }}
+        onViewHistory={(p) => setHistoryProduct(p)}
       />
 
       {showModal && (
@@ -342,6 +345,15 @@ export default function Inventory() {
           onQtyChange={setStockQty}
           onSubmit={handleStockEntry}
           onClose={() => setStockEntry(null)}
+        />
+      )}
+
+      {historyProduct && (
+        <StockHistoryModal
+          productId={historyProduct.id}
+          productName={historyProduct.name}
+          open={!!historyProduct}
+          onClose={() => setHistoryProduct(null)}
         />
       )}
 
