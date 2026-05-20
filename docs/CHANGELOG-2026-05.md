@@ -94,7 +94,47 @@
 
 ---
 
-## 2026-05-19 — CI fix + Email migration Brevo→Resend + Auth redirect fix
+## 2026-05-19 tarde — Analytics, Stock History, Loyalty Points, Charts, Tienda Dashboard
+
+### PostHog Analytics Integration ✅
+- `components/PostHogProvider.tsx` — Provider para context
+- `components/PostHogPageview.tsx` — Automatic pageview tracking
+- `next.config.ts` — Reverse proxy en `/ingest` para privacidad
+- Pendiente: `NEXT_PUBLIC_POSTHOG_KEY` en env vars de Vercel
+
+### SyncButton ✅
+- `components/dashboard/SyncButton.tsx` — Botón de refresh en dashboard
+- Implementa refetch de datos del dashboard
+
+### Stock Movement History ✅
+- `app/(dashboard)/inventory/components/StockHistoryModal.tsx` — Modal con historial de movimientos
+- `GET /api/products/stock-entry?productId=X` — API para obtener historial
+- Muestra entrada, salida, usuario, fecha
+
+### Loyalty Points Adjustment ✅
+- Formulario inline en modal de detalle de cliente
+- `PATCH /api/customers/[id]` con parámetro `loyaltyPointsAdjustment`
+- Permite sumar/restar puntos manualmente
+
+### Recharts Charts ✅
+- `components/dashboard/charts/SalesLineChart.tsx` — Gráfico de línea de ventas
+- `components/dashboard/charts/CategoryBarChart.tsx` — Gráfico de barras por categoría
+- Integrados en página de reportes
+
+### Tienda Online Dashboard ✅
+- `app/(dashboard)/tienda/page.tsx` — Dashboard principal
+- `app/(dashboard)/tienda/TiendaSettings.tsx` — Configuración
+- `GET /api/tienda/settings` — API para obtener/actualizar configuración
+- Métricas de ventas online, control de visibilidad de productos
+
+### Tests Completados ✅
+- `purchase-orders.test.ts` — 28 tests
+- `accounting-export.test.ts` — 27 tests
+- **Total:** 284 tests pasando (suma +55 respecto a sesión anterior)
+
+---
+
+## 2026-05-19 mañana — CI fix + Email migration Brevo→Resend + Auth redirect fix
 
 ### CI Pipeline — Completamente funcional ✅
 - Node 20 → Node 22 (requerido por `@prisma/streams-local`)

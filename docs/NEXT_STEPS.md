@@ -3,12 +3,21 @@
 Análisis al 2026-05-13. Basado en lectura directa del código y ejecución de herramientas.
 Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN.md`.
 
-**Últimas actualizaciones (2026-05-19):**
+**Últimas actualizaciones (2026-05-19 tarde):**
+- ✅ PostHog analytics: `components/PostHogProvider.tsx`, `components/PostHogPageview.tsx`, `/ingest` reverse proxy en `next.config.ts`
+- ✅ SyncButton: `components/dashboard/SyncButton.tsx` — botón de refresh en dashboard
+- ✅ Stock Movement History: `app/(dashboard)/inventory/components/StockHistoryModal.tsx` + `GET /api/products/stock-entry?productId=X`
+- ✅ Loyalty Points Adjustment: formulario inline en modal de detalle de cliente, `PATCH /api/customers/[id]` con `loyaltyPointsAdjustment`
+- ✅ Recharts charts: `components/dashboard/charts/SalesLineChart.tsx`, `components/dashboard/charts/CategoryBarChart.tsx` — en página de reportes
+- ✅ Tienda Online dashboard: `app/(dashboard)/tienda/page.tsx`, `app/(dashboard)/tienda/TiendaSettings.tsx`, `GET /api/tienda/settings`
+- ✅ Tests: 284 pasando (añadidos 55: `purchase-orders.test.ts` con 28 tests, `accounting-export.test.ts` con 27 tests)
+- 🔲 Feature pendiente: gestión de sesiones/dispositivos activos — en progreso
+
+**Últimas actualizaciones (2026-05-19 mañana):**
 - ✅ CI Pipeline: todos los jobs pasando (Lint, TypeCheck, UnitTests)
 - ✅ RLS habilitado en 17 tablas públicas de Supabase
 - ✅ Email auth: migrado Brevo → Resend, dominio `onia.com.bo` verificado
 - ✅ Auth redirect fix: login → `/dashboard` (no más loop con landing page)
-- 🔲 Feature pendiente: gestión de sesiones/dispositivos activos
 
 **Últimas actualizaciones (2026-05-13):**
 - ✅ Deploy de todos los cambios pendientes (67 archivos, 3808 inserciones)
@@ -139,8 +148,8 @@ Storefront público en `/{slug}/tienda`. La DB ya soporta productos con variante
 
 ## Infraestructura
 
-- [x] **Tests** — 229 tests passing. 13 test files: `rate-limit.test.ts`, `monitoring.test.ts`, `plans.test.ts`, `plans-addons.test.ts`, `permissions.test.ts`, `currency.test.ts`, `staff.test.ts`, `orders-logic.test.ts`, `products-customers.test.ts`, `audit.test.ts`, `tienda-security.test.ts`, `email.test.ts`, `billing-qr.test.ts`.
-- [ ] **Tests pendientes** — `purchase-orders.test.ts`, `accounting-export.test.ts`
+- [x] **Tests** — 284 tests passing. 15 test files: `rate-limit.test.ts`, `monitoring.test.ts`, `plans.test.ts`, `plans-addons.test.ts`, `permissions.test.ts`, `currency.test.ts`, `staff.test.ts`, `orders-logic.test.ts`, `products-customers.test.ts`, `audit.test.ts`, `tienda-security.test.ts`, `email.test.ts`, `billing-qr.test.ts`, `purchase-orders.test.ts` (28 tests), `accounting-export.test.ts` (27 tests).
+- [x] **Tests completados** — `purchase-orders.test.ts` (28 tests), `accounting-export.test.ts` (27 tests) — suma 55 nuevos tests
 - [x] **Cron jobs en Vercel** — confirmado en `vercel.json` (7 jobs).
 - [x] **Rate limiting** — aplicado en 7 endpoints: `/api/setup`, `/api/team`, `/api/payments`, `/api/products`, `/api/orders`, `/api/registro`, `/api/tienda/checkout`. Cleanup automático cada 60s.
 - [x] **Transacciones atómicas en órdenes** — `prisma.$transaction([create, ...decrements])`.

@@ -3,7 +3,7 @@ import { reportAsyncError } from "@/lib/monitoring";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
 const FROM_NAME = process.env.BREVO_SENDER_NAME ?? "GestiOS";
-const FROM_EMAIL = process.env.BREVO_SENDER_EMAIL ?? process.env.EMAIL_FROM_ADDRESS ?? "oninteligenciaartificial@gmail.com";
+const FROM_EMAIL = process.env.BREVO_SENDER_EMAIL ?? process.env.EMAIL_FROM_ADDRESS ?? "noreply@onia.com.bo";
 
 // Daily email counter to stay under Brevo free plan limit (300/day)
 const DAILY_EMAIL_LIMIT = 280; // Leave 20 as buffer

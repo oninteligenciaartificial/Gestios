@@ -111,7 +111,7 @@ describe("sendEmail core", () => {
     });
 
     const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(callBody.sender.email).toBe("oninteligenciaartificial@gmail.com");
+    expect(callBody.sender.email).toBe("noreply@onia.com.bo");
 
     vi.unstubAllGlobals();
   });
