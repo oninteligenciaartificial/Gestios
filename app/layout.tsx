@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Manrope } from "next/font/google";
+import { Suspense } from "react";
+import { PostHogProvider } from "@/components/PostHogProvider";
+import { PostHogPageview } from "@/components/PostHogPageview";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -30,7 +33,12 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${manrope.variable} dark`}
     >
       <body className="font-sans text-gray-200 antialiased bg-brand-background">
-        {children}
+        <PostHogProvider>
+          <Suspense>
+            <PostHogPageview />
+          </Suspense>
+          {children}
+        </PostHogProvider>
       </body>
     </html>
   );

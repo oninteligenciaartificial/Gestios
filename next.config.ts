@@ -5,6 +5,20 @@ const nextConfig: NextConfig = {
   // Remove X-Powered-By header to prevent stack fingerprinting
   poweredByHeader: false,
 
+  // PostHog reverse proxy — keeps analytics same-origin (CSP safe)
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
+
   // Security headers applied to all responses
   async headers() {
     return [
