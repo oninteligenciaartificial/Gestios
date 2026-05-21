@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import StaffTable from "./components/StaffTable";
 import StaffFormModal from "./components/StaffFormModal";
@@ -71,6 +72,7 @@ export default function StaffPage() {
         throw new Error(err.error || "Error al crear miembro");
       }
 
+      toast.success("Miembro agregado al equipo");
       setShowAddModal(false);
       fetchStaff(1);
     } catch (err) {
@@ -91,6 +93,7 @@ export default function StaffPage() {
         throw new Error(err.error || "Error al actualizar miembro");
       }
 
+      toast.success("Miembro actualizado");
       fetchStaff(1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -109,6 +112,7 @@ export default function StaffPage() {
         throw new Error(err.error || "Error al eliminar miembro");
       }
 
+      toast.success("Miembro eliminado");
       setShowDeleteModal(false);
       setSelectedStaff(null);
       fetchStaff(1);

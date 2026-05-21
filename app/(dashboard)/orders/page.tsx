@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { ShoppingCart, Plus, X, Search, ChevronDown, Printer, Eye, Clock, CheckCircle, Truck, ShoppingBag, Ban } from "lucide-react";
 
 type OrderStatus = "PENDIENTE" | "CONFIRMADO" | "ENVIADO" | "ENTREGADO" | "CANCELADO";
@@ -112,7 +113,7 @@ export default function OrdersPage() {
         items: form.items.map((i) => ({ productId: i.productId, quantity: Number(i.quantity), unitPrice: Number(i.unitPrice) })),
       }),
     });
-    if (res.ok) { setShowModal(false); fetchOrders(); }
+    if (res.ok) { toast.success("Pedido creado"); setShowModal(false); fetchOrders(); }
     else { const d = await res.json(); setError(d.error ?? "Error al crear pedido"); }
     setSaving(false);
   }
@@ -123,6 +124,7 @@ export default function OrdersPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    toast.success("Estado actualizado");
     fetchOrders();
     setActionsId(null);
     if (detailOrder?.id === id) setDetailOrder((prev) => prev ? { ...prev, status } : null);

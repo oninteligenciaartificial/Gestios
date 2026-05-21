@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Manrope } from "next/font/google";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { PostHogPageview } from "@/components/PostHogPageview";
 import "./globals.css";
@@ -38,6 +39,7 @@ export default function RootLayout({
             <PostHogPageview />
           </Suspense>
           {children}
+          <Toaster position="top-right" richColors theme="dark" />
         </PostHogProvider>
       </body>
     </html>

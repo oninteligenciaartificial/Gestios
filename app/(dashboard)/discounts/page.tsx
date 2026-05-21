@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { Tag, Plus, X, Trash2, ToggleLeft, ToggleRight, Calendar } from "lucide-react";
 
 interface Discount {
@@ -52,6 +53,7 @@ export default function DiscountsPage() {
       }),
     });
     if (res.ok) {
+      toast.success("Descuento creado");
       setShowModal(false);
       setForm(EMPTY);
       fetchDiscounts();
@@ -68,11 +70,13 @@ export default function DiscountsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ active: !d.active }),
     });
+    toast.success(d.active ? "Descuento desactivado" : "Descuento activado");
     fetchDiscounts();
   }
 
   async function handleDelete(id: string) {
     await fetch(`/api/discounts/${id}`, { method: "DELETE" });
+    toast.success("Descuento eliminado");
     setDeleteId(null);
     fetchDiscounts();
   }

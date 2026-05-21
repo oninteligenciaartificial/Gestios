@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import { Search, Plus, Upload, Download, Lock } from "lucide-react";
 import { getBusinessSchema, type BusinessType } from "@/lib/business-types";
 import { getBusinessUI } from "@/lib/business-ui";
@@ -161,8 +162,10 @@ export default function Inventory() {
         await fetchVariants(productId);
         setEditing(prev => prev ? { ...prev, hasVariants: true } : { ...saved, hasVariants: true });
         setShowVariants(true);
+        toast.success(editing ? "Producto actualizado" : "Producto creado");
         fetchData();
       } else {
+        toast.success(editing ? "Producto actualizado" : "Producto creado");
         setShowModal(false);
         fetchData();
       }
@@ -207,6 +210,7 @@ export default function Inventory() {
 
   async function handleDelete(id: string) {
     await fetch(`/api/products/${id}`, { method: "DELETE" });
+    toast.success("Producto eliminado");
     setDeleteId(null);
     fetchData();
   }
@@ -220,6 +224,7 @@ export default function Inventory() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ productId: stockEntry.id, quantity: Number(stockQty) }),
     });
+    toast.success(`Stock actualizado (+${stockQty})`);
     setStockEntry(null);
     setStockQty("1");
     setStockSaving(false);

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { Truck, Plus, X, Pencil, Trash2, Phone, Mail } from "lucide-react";
 
 interface Supplier {
@@ -62,6 +63,7 @@ export default function SuppliersPage() {
       body: JSON.stringify(form),
     });
     if (res.ok) {
+      toast.success(editing ? "Proveedor actualizado" : "Proveedor creado");
       setShowModal(false);
       fetchSuppliers();
     } else {
@@ -72,7 +74,8 @@ export default function SuppliersPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/suppliers/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" });
+    if (res.ok) toast.success("Proveedor eliminado");
     setDeleteId(null);
     fetchSuppliers();
   }

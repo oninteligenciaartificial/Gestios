@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, Upload, Download, Trash2 } from "lucide-react";
 
 interface Customer {
@@ -147,6 +148,7 @@ export default function CustomersPage() {
     });
 
     if (res.ok) {
+      toast.success(editing ? "Cliente actualizado" : "Cliente creado");
       setShowModal(false);
       fetchCustomers();
     } else {
@@ -162,6 +164,7 @@ export default function CustomersPage() {
     setDeleteError("");
     const res = await fetch(`/api/customers/${deleteId}`, { method: "DELETE" });
     if (res.ok) {
+      toast.success("Cliente eliminado");
       setDeleteId(null);
       fetchCustomers();
     } else {
