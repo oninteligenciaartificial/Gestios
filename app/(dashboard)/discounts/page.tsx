@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Tag, Plus, X, Trash2, ToggleLeft, ToggleRight, Calendar } from "lucide-react";
+import { Tag, Plus, X, Trash2, ToggleLeft, ToggleRight, Calendar, Pencil } from "lucide-react";
 
 interface Discount {
   id: string;
@@ -23,6 +23,7 @@ export default function DiscountsPage() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<Discount | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -37,29 +38,48 @@ export default function DiscountsPage() {
 
   useEffect(() => { fetchDiscounts(); }, [fetchDiscounts]);
 
-  async function handleCreate(e: React.FormEvent) {
+  function openCreate() {
+    setEditing(null);
+    setForm(EMPTY);
+    setError("");
+    setShowModal(true);
+  }
+
+  function openEdit(d: Discount) {
+    setEditing(d);
+    setForm({
+      code: d.code,
+      description: d.description ?? "",
+      type: d.type,
+      value: String(d.value),
+      expiresAt: d.expiresAt ? d.expiresAt.split("T")[0] : "",
+    });
+    setError("");
+    setShowModal(true);
+  }
+
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    const res = await fetch("/api/discounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code: form.code.trim().toUpperCase(),
-        description: form.description || undefined,
-        type: form.type,
-        value: parseFloat(form.value),
-        expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : null,
-      }),
-    });
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      description: form.description || undefined,
+      type: form.type,
+      value: parseFloat(form.value),
+      expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : null,
+    };
+    const res = editing
+      ? await fetch(`/api/discounts/${editing.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      : await fetch("/api/discounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     if (res.ok) {
-      toast.success("Descuento creado");
+      toast.success(editing ? "Descuento actualizado" : "Descuento creado");
       setShowModal(false);
       setForm(EMPTY);
       fetchDiscounts();
     } else {
       const d = await res.json();
-      setError(d.error ?? "Error al crear");
+      setError(d.error ?? (editing ? "Error al actualizar" : "Error al crear"));
     }
     setSaving(false);
   }
@@ -94,7 +114,7 @@ export default function DiscountsPage() {
           <p className="text-brand-muted mt-1">Codigos promocionales y ofertas</p>
         </div>
         <button
-          onClick={() => { setShowModal(true); setError(""); setForm(EMPTY); }}
+          onClick={openCreate}
           className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
         >
           <Plus size={18} /> Nuevo Descuento
@@ -154,9 +174,14 @@ export default function DiscountsPage() {
                       </button>
                     </td>
                     <td className="p-5">
-                      <button onClick={() => setDeleteId(d.id)} className="p-2 rounded-lg hover:bg-red-500/10 text-brand-muted hover:text-red-400 transition-colors">
-                        <Trash2 size={15} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => openEdit(d)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors">
+                          <Pencil size={15} />
+                        </button>
+                        <button onClick={() => setDeleteId(d.id)} className="p-2 rounded-lg hover:bg-red-500/10 text-brand-muted hover:text-red-400 transition-colors">
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -178,10 +203,10 @@ export default function DiscountsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="glass-panel w-full max-w-md rounded-3xl p-8 space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-display font-bold text-white">Nuevo Descuento</h2>
+              <h2 className="text-xl font-display font-bold text-white">{editing ? "Editar Descuento" : "Nuevo Descuento"}</h2>
               <button onClick={() => setShowModal(false)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
             </div>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Codigo *</label>
                 <input required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className={inp} placeholder="PROMO20" />
@@ -209,7 +234,7 @@ export default function DiscountsPage() {
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <button type="submit" disabled={saving} className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold disabled:opacity-50">
-                {saving ? "Creando..." : "Crear Descuento"}
+                {saving ? (editing ? "Guardando..." : "Creando...") : (editing ? "Guardar Cambios" : "Crear Descuento")}
               </button>
             </form>
           </div>

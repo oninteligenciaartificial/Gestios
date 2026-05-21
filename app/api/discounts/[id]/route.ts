@@ -5,7 +5,10 @@ import { z } from "zod";
 
 const schema = z.object({
   active: z.boolean().optional(),
+  code: z.string().min(1).max(50).optional(),
   description: z.string().optional(),
+  type: z.enum(["PORCENTAJE", "MONTO_FIJO"]).optional(),
+  value: z.number().positive().optional(),
   expiresAt: z.string().datetime().optional().nullable(),
 });
 
@@ -25,7 +28,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     where: { id },
     data: {
       ...(d.active !== undefined ? { active: d.active } : {}),
+      ...(d.code !== undefined ? { code: d.code.toUpperCase() } : {}),
       ...(d.description !== undefined ? { description: d.description } : {}),
+      ...(d.type !== undefined ? { type: d.type } : {}),
+      ...(d.value !== undefined ? { value: d.value } : {}),
       ...(d.expiresAt !== undefined ? { expiresAt: d.expiresAt ? new Date(d.expiresAt) : null } : {}),
     },
   });
