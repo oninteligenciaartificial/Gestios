@@ -85,6 +85,7 @@ export default async function DashboardLayout({
   const featureHrefMap: Record<string, string> = {
     reports: "/reports",
     suppliers: "/suppliers",
+    purchase_orders: "/purchase-orders",
     sucursales: "/branches",
     tienda_online: "/tienda",
   };
@@ -111,6 +112,7 @@ export default async function DashboardLayout({
     { href: "/caja", label: "Corte de Caja" },
     { href: "/tienda", label: "Tienda Online" },
     { href: "/suppliers", label: ui.sidebarLabels.suppliers },
+    { href: "/purchase-orders", label: "Ordenes de Compra" },
     { href: "/discounts", label: "Descuentos" },
     { href: "/categories", label: ui.sidebarLabels.categories },
     ...(showBranches ? [{ href: "/branches", label: "Sucursales" }] : []),

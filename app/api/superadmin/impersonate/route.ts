@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { getSuperAdmin } from "@/lib/superadmin";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
 
 export async function POST(request: Request) {
   const admin = await getSuperAdmin();
@@ -13,10 +14,18 @@ export async function POST(request: Request) {
 
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "JSON invalido" }, { status: 400 }); }
-  const { orgId } = body as { orgId: string };
-  if (!orgId) return NextResponse.json({ error: "orgId requerido" }, { status: 400 });
 
-  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  const schema = z.object({ orgId: z.string().min(1) });
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid orgId" }, { status: 400 });
+  const { orgId } = parsed.data;
+
+  let org;
+  try {
+    org = await prisma.organization.findUnique({ where: { id: orgId } });
+  } catch {
+    return NextResponse.json({ error: "Error al buscar organizacion" }, { status: 500 });
+  }
   if (!org) return NextResponse.json({ error: "Organizacion no encontrada" }, { status: 404 });
 
   const cookieStore = await cookies();

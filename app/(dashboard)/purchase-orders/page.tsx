@@ -365,6 +365,7 @@ function CreateModal({ suppliers, products, onClose, onSuccess }: { suppliers: S
 
 function DetailModal({ order, onClose, onUpdate }: { order: PurchaseOrder; onClose: () => void; onUpdate: () => void }) {
   const [updating, setUpdating] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const statusCfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.BORRADOR;
 
   async function updateStatus(newStatus: string) {
@@ -379,7 +380,6 @@ function DetailModal({ order, onClose, onUpdate }: { order: PurchaseOrder; onClo
   }
 
   async function deleteOrder() {
-    if (!confirm("¿Eliminar esta orden?")) return;
     setUpdating(true);
     const res = await fetch(`/api/purchase-orders?id=${order.id}`, { method: "DELETE" });
     if (res.ok) onUpdate();
@@ -458,9 +458,21 @@ function DetailModal({ order, onClose, onUpdate }: { order: PurchaseOrder; onClo
                 Marcar Recibido (actualiza stock)
               </button>
             )}
-            <button onClick={deleteOrder} disabled={updating} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 disabled:opacity-50">
-              Eliminar
-            </button>
+            {confirmDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-brand-muted text-xs">¿Confirmar eliminacion?</span>
+                <button onClick={deleteOrder} disabled={updating} className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 disabled:opacity-50 transition-colors">
+                  {updating ? "Eliminando..." : "Confirmar"}
+                </button>
+                <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 rounded-lg glass-panel text-brand-muted text-xs hover:text-white transition-colors">
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setConfirmDelete(true)} disabled={updating} className="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 disabled:opacity-50">
+                Eliminar
+              </button>
+            )}
           </div>
         )}
 

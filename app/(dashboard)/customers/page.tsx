@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, Upload, Download } from "lucide-react";
+import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, Upload, Download, Trash2 } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -62,6 +62,9 @@ export default function CustomersPage() {
   const [error, setError] = useState("");
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCustomers = useCallback(async () => {
@@ -151,6 +154,21 @@ export default function CustomersPage() {
       setError(data.error ?? "Error al guardar");
     }
     setSaving(false);
+  }
+
+  async function handleDelete() {
+    if (!deleteId) return;
+    setDeleting(true);
+    setDeleteError("");
+    const res = await fetch(`/api/customers/${deleteId}`, { method: "DELETE" });
+    if (res.ok) {
+      setDeleteId(null);
+      fetchCustomers();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setDeleteError(d.error ?? "No se pudo eliminar el cliente");
+    }
+    setDeleting(false);
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -254,6 +272,9 @@ export default function CustomersPage() {
                 </button>
                 <button onClick={() => openEdit(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors">
                   <Pencil size={16} />
+                </button>
+                <button onClick={() => { setDeleteId(c.id); setDeleteError(""); }} className="p-2 rounded-lg hover:bg-red-500/20 text-brand-muted hover:text-red-400 transition-colors" title="Eliminar cliente">
+                  <Trash2 size={16} />
                 </button>
               </div>
               <div className="flex items-center gap-4 mb-4">
@@ -399,6 +420,22 @@ export default function CustomersPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4">
+            <h2 className="text-lg font-display font-bold text-white">Eliminar cliente</h2>
+            <p className="text-brand-muted text-sm">Esta accion no se puede deshacer. ¿Confirmas que deseas eliminar este cliente?</p>
+            {deleteError && <p className="text-red-400 text-sm">{deleteError}</p>}
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setDeleteId(null)} className="px-4 py-2 rounded-xl text-brand-muted hover:text-white transition-colors text-sm">Cancelar</button>
+              <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold disabled:opacity-50 transition-colors">
+                {deleting ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
           </div>
         </div>
       )}

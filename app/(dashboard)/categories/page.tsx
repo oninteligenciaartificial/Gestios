@@ -90,8 +90,8 @@ export default function CategoriesPage() {
   async function handleDelete(id: string) {
     const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      const d = await res.json();
-      alert(d.error ?? "No se pudo eliminar");
+      const d = await res.json().catch(() => ({}));
+      setError(d.error ?? "No se pudo eliminar la categoria");
     }
     setDeleteId(null);
     fetchCategories();

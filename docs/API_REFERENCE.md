@@ -122,20 +122,45 @@ Soft-delete: `active: false`.
 
 ## /api/products/stock-entry
 
+### GET /api/products/stock-entry
+**Permiso:** cualquiera  
+Retorna historial de stock entries de un producto.
+
+**Query params:**
+- `productId` — ID del producto (required)
+
+**Response:**
+```json
+[
+  {
+    "id": "string",
+    "organizationId": "string",
+    "userId": "string",
+    "userName": "string",
+    "action": "stock_entry",
+    "entity": "product",
+    "entityId": "string",
+    "details": "{\"quantity\": 10, \"variantId\": null, \"notes\": null}",
+    "createdAt": "ISO date"
+  }
+]
+```
+
 ### POST /api/products/stock-entry
 **Permiso:** solo ADMIN.  
-Incrementa stock del producto base (no soporta variantes aún).
+Incrementa stock del producto o variante. Crea entry en activity log.
 
 **Body:**
 ```json
 {
   "productId": "string",
+  "variantId": "string?",
   "quantity": 1,
   "notes": "string?"
 }
 ```
 
-**Response:** producto actualizado.
+**Response:** producto/variante actualizado.
 
 ---
 
@@ -292,7 +317,10 @@ Plan EMPRESARIAL. CRUD: `{ name, address?, phone? }`
 ### GET /api/reports
 Plan CRECER+.
 
-**Query params:** `from` (ISO date), `to` (ISO date) — default mes actual.
+**Query params:**
+- `from` (ISO date) — default primer día del mes actual
+- `to` (ISO date) — default hoy
+- `branchId` (string?) — filtrar por sucursal
 
 **Response:**
 ```json
@@ -364,6 +392,172 @@ Crea org con slug único y trial de 7 días. **Solo funciona una vez por usuario
 
 ---
 
+## /api/purchase-orders
+
+Plan CRECER+. Órdenes de compra a proveedores.
+
+### GET /api/purchase-orders
+**Query params:**
+- `page` (default 1), `limit` (default 20)
+- `status` — filtro: BORRADOR, ENVIADO, PARCIAL, RECIBIDO, CANCELADO
+- `supplierId` — filtro por proveedor
+
+**Response:** paginada con items e info de proveedor.
+
+### POST /api/purchase-orders
+**Body:**
+```json
+{
+  "supplierId": "string",
+  "expectedDate": "ISO date?",
+  "notes": "string?",
+  "items": [
+    {
+      "productId": "string",
+      "quantity": 10,
+      "unitCost": 50.00
+    }
+  ]
+}
+```
+
+**Response:** orden creada (status 201).
+
+### PATCH /api/purchase-orders
+**Query params:** `id` (required)
+
+**Body:**
+```json
+{
+  "status": "BORRADOR|ENVIADO|PARCIAL|RECIBIDO|CANCELADO?",
+  "expectedDate": "ISO date?",
+  "notes": "string?"
+}
+```
+
+**Efectos secundarios:**
+- Si `status === RECIBIDO`, incrementa stock de todos los items.
+
+### DELETE /api/purchase-orders
+**Query params:** `id` (required)
+
+No permite eliminar órdenes RECIBIDO.
+
+---
+
+## /api/sessions
+
+Gestión de sesiones de usuario (dispositivos).
+
+### GET /api/sessions
+Retorna todas las sesiones activas del usuario.
+
+**Response:**
+```json
+[
+  {
+    "id": "string",
+    "createdAt": "ISO date",
+    "updatedAt": "ISO date",
+    "userAgent": "string | null",
+    "isCurrent": boolean
+  }
+]
+```
+
+### DELETE /api/sessions/[id]
+Cierra sesión de un dispositivo específico.
+
+**Response:** `{ ok: true }`
+
+---
+
+## /api/sample-data
+
+### POST /api/sample-data
+**Permiso:** solo ADMIN  
+Genera datos de ejemplo para la organización (productos, clientes, órdenes).
+
+**Response:**
+```json
+{
+  "productsCreated": 15,
+  "customersCreated": 10,
+  "ordersCreated": 5,
+  "message": "Datos de ejemplo creados exitosamente"
+}
+```
+
+---
+
+## /api/tienda/settings
+
+Configuración de tienda online (PRO+).
+
+### GET /api/tienda/settings
+Retorna configuración y estadísticas de la tienda.
+
+**Response:**
+```json
+{
+  "slug": "string",
+  "name": "string",
+  "currency": "BOB",
+  "activeProducts": 42,
+  "lastOrder": {
+    "id": "string",
+    "customerName": "string",
+    "total": 150.00,
+    "createdAt": "ISO date"
+  } | null
+}
+```
+
+---
+
+## /api/team
+
+Gestión de staff (usuarios adicionales). Plan BASICO 1 staff, CRECER 5, PRO/EMPRESARIAL ∞.
+
+### GET /api/team
+**Permiso:** ADMIN
+
+Retorna todos los miembros de la organización.
+
+**Response:**
+```json
+[
+  {
+    "id": "string",
+    "userId": "string",
+    "name": "string",
+    "role": "ADMIN|STAFF",
+    "organizationId": "string",
+    "branchId": "string | null"
+  }
+]
+```
+
+### POST /api/team
+**Permiso:** ADMIN  
+**Rate limit:** 5 invitaciones por minuto
+
+Crea nuevo usuario en Supabase Auth y Profile en la org.
+
+**Body:**
+```json
+{
+  "name": "string",
+  "email": "string",
+  "password": "string (min 6 chars)",
+  "role": "ADMIN|STAFF"
+}
+```
+
+**Response:** profile creado (status 201).
+
+---
+
 ## /api/cron/*
 
 Endpoints internos para Vercel Cron. No requieren sesión de usuario pero verifican header de autorización.
@@ -374,6 +568,9 @@ Endpoints internos para Vercel Cron. No requieren sesión de usuario pero verifi
 | `GET /api/cron/expiry` | Alertas de vencimiento (7 días) |
 | `GET /api/cron/inactive-customers` | Emails a clientes inactivos 30+ días |
 | `GET /api/cron/plan-expiry` | Alerta y suspensión de planes vencidos |
+| `GET /api/cron/low-stock` | Alertas de stock bajo |
+| `GET /api/cron/siat-cufd` | Renueva CUFD para facturación SIAT |
+| `GET /api/cron/expire-qr` | Expira QRs de pago vencidos |
 
 ---
 
@@ -402,6 +599,20 @@ Endpoints internos para Vercel Cron. No requieren sesión de usuario pero verifi
 ```
 
 Actualiza el `EmailLog` correspondiente con el nuevo status.
+
+---
+
+## Environment Variables
+
+| Variable | Propósito | Requerida en |
+|---|---|---|
+| `RESEND_API_KEY` | Transactional emails | Production |
+| `EMAIL_FROM_ADDRESS` | Sender email (default: noreply@onia.com.bo) | Production |
+| `EMAIL_FROM_NAME` | Sender name (default: GestiOS) | Production |
+| `SENTRY_AUTH_TOKEN` | Source map uploads en build | Production |
+| `BREVO_WEBHOOK_KEY` | Signing webhooks de email | Production |
+
+Ver `docs/ARCHITECTURE.md` para lista completa.
 
 ---
 

@@ -150,6 +150,94 @@ Add-ons activos por org. `unique([organizationId, addon])`.
 
 ---
 
+### PurchaseOrder (`purchase_orders`)
+Órdenes de compra a proveedores. Plan CRECER+.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | String | PK |
+| organizationId | String | FK → Organization (cascade) |
+| supplierId | String | FK → Supplier (restrict) |
+| status | PurchaseOrderStatus | BORRADOR, ENVIADO, PARCIAL, RECIBIDO, CANCELADO |
+| expectedDate | DateTime? | fecha esperada de entrega |
+| total | Decimal(10,2) | suma de items |
+| notes | String? | observaciones |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
+
+Índices: `(organizationId, createdAt)`, `(organizationId, status)`, `(supplierId)`
+
+---
+
+### PurchaseOrderItem (`purchase_order_items`)
+Items dentro de una orden de compra.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | String | PK |
+| purchaseOrderId | String | FK → PurchaseOrder (cascade) |
+| productId | String | FK → Product (restrict) |
+| quantity | Int | cantidad solicitada |
+| unitCost | Decimal(10,2) | costo unitario |
+| received | Int | cantidad recibida (para PARCIAL) |
+
+Índices: `(purchaseOrderId)`, `(productId)`
+
+---
+
+### Invoice (`invoices`)
+Facturas electrónicas SIAT (plan EMPRESARIAL con addon FACTURACION).
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | String | PK |
+| organizationId | String | FK → Organization (cascade) |
+| orderId | String | FK → Order (cascade, unique) |
+| nroFactura | Int | número secuencial de factura |
+| cufe | String? | Código Único de Factura Electrónica (del SIN) |
+| cuis | String | CUIS vigente al momento de emisión |
+| cufd | String | CUFD vigente al momento de emisión |
+| nitEmisor | String | NIT de la empresa (de Organization.nitEmisor) |
+| nitReceptor | String | NIT del cliente (default: "99999999" para consumidor final) |
+| razonReceptor | String | nombre del cliente |
+| status | InvoiceStatus | PENDIENTE, ENVIADO, OBSERVADO, ANULADO |
+| xmlData | Text? | XML firmado enviado al SIN |
+| sinResponse | Json? | respuesta cruda del SIN/intermediario |
+| total | Decimal(10,2) | |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
+
+Índices: `(organizationId, createdAt)`
+
+---
+
+### QrPayment (`qr_payments`)
+Pagos via QR boliviano. Multi-proveedor.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | String | PK |
+| organizationId | String | FK → Organization (cascade) |
+| orderId | String | FK → Order (cascade) |
+| provider | String | "AGGREGATOR", "QR_SWITCH", "TIGO", "BIPAGO" |
+| externalId | String | ID asignado por el PSP |
+| qrPayload | Text | string EMVCo para renderizar QR |
+| qrImageUrl | String? | URL imagen pre-renderizada (opcional) |
+| amount | Decimal(10,2) | |
+| currency | String | default "BOB" |
+| status | QrPaymentStatus | PENDIENTE, PAGADO, EXPIRADO, CANCELADO, FALLIDO |
+| expiresAt | DateTime | vencimiento del QR |
+| paidAt | DateTime? | fecha de pago |
+| payerInfo | Json? | info enmascarada del pagador |
+| providerResponse | Json? | respuesta cruda del PSP |
+| webhookReceivedAt | DateTime? | timestamp de webhook |
+| createdAt | DateTime | |
+| updatedAt | DateTime | |
+
+Índices: `unique([provider, externalId])`, `(organizationId, createdAt)`, `(orderId, status)`, `(status, expiresAt)`
+
+---
+
 ### ActivityLog (`activity_logs`)
 Feed de actividad. Disponible en todos los planes.
 
@@ -191,12 +279,16 @@ Organization
   ├── OrgAddon[]
   ├── Category[]
   ├── Supplier[]
+  │     └── PurchaseOrder[]
+  │           └── PurchaseOrderItem[] → Product
   ├── Discount[]
   ├── Product[]
   │     └── ProductVariant[]
   ├── Customer[]
   ├── Order[]
-  │     └── OrderItem[] → Product / ProductVariant
+  │     ├── OrderItem[] → Product / ProductVariant
+  │     ├── Invoice
+  │     └── QrPayment[]
   ├── ActivityLog[]
   ├── AuditLog[]
   ├── PaymentRequest[]
@@ -216,21 +308,28 @@ Agrega:
 - Tabla `product_variants` completa
 - `order_items.variantId`, `order_items.variantSnapshot`
 
-### `20260511181518_create_email_log`
-Agrega:
-- Tabla `email_logs` — tracking de emails enviados via Brevo
-- Índices para queries por org, status y tipo
-- **Aplicar manualmente a Supabase** (no via `migrate deploy`)
-
 ### `20260509120000_create_cash_registers`
 Agrega:
 - Tabla `cash_registers` — cierre diario de caja por organización/sucursal
 - Índices únicos parciales para garantizar un corte por día (con y sin `branchId`)
 - **Aplicado directamente a Supabase el 2026-05-09** (no via `migrate deploy`)
 
+### `20260511181518_create_email_log`
+Agrega:
+- Tabla `email_logs` — tracking de emails enviados via Brevo/Resend
+- Índices para queries por org, status y tipo
+- **Aplicar manualmente a Supabase** (no via `migrate deploy`)
+
+### `20260513120000_add_purchase_orders`
+Agrega:
+- Tabla `purchase_orders` — órdenes de compra a proveedores
+- Tabla `purchase_order_items` — items de cada orden
+- Modelo `PurchaseOrder` y `PurchaseOrderItem` en Prisma
+- Enum `PurchaseOrderStatus: BORRADOR | ENVIADO | PARCIAL | RECIBIDO | CANCELADO`
+
 ### EmailLog (`email_logs`)
 
-Log de emails enviados via Brevo. Cada envío se registra antes de llamar la API.
+Log de emails enviados via Resend/Brevo. Cada envío se registra antes de llamar la API.
 
 | Campo | Tipo | Notas |
 |---|---|---|
@@ -239,13 +338,13 @@ Log de emails enviados via Brevo. Cada envío se registra antes de llamar la API
 | type | String | tipo de email (welcome_email, order_confirmation, etc.) |
 | subject | String | asunto del email |
 | status | String | SENT, DELIVERED, BOUNCED, FAILED |
-| brevoMessageId | String? | ID de mensaje de Brevo para tracking |
+| brevoMessageId | String? | ID de mensaje del proveedor de email (Resend/Brevo) para tracking |
 | error | String? | mensaje de error si FAILED |
 | createdAt | DateTime | timestamp de envío |
 
 Índices: `(organizationId, createdAt)`, `(status, createdAt)`, `(type, createdAt)`
 
-**Webhook tracking:** `/api/webhooks/brevo` actualiza `status` a DELIVERED/BOUNCED según eventos de Brevo.
+**Webhook tracking:** `/api/webhooks/brevo` actualiza `status` a DELIVERED/BOUNCED según eventos de email.
 
 ---
 

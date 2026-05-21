@@ -61,7 +61,7 @@ export default function ConversationsPage() {
       fetchData();
     } else {
       const err = await res.json().catch(() => ({}));
-      alert(err.error ?? "Error al enviar");
+      setError(err.error ?? "Error al enviar");
     }
     setSending(false);
   }

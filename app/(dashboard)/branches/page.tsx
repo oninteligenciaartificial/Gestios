@@ -29,6 +29,7 @@ export default function BranchesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function fetchBranches() {
     setLoading(true);
@@ -83,9 +84,11 @@ export default function BranchesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("¿Desactivar esta sucursal?")) return;
     const res = await fetch(`/api/branches/${id}`, { method: "DELETE" });
-    if (res.ok) await fetchBranches();
+    if (res.ok) {
+      setConfirmDeleteId(null);
+      await fetchBranches();
+    }
   }
 
   return (
@@ -192,12 +195,29 @@ export default function BranchesPage() {
                   >
                     <Pencil size={15} />
                   </button>
-                  <button
-                    onClick={() => handleDelete(b.id)}
-                    className="p-2 rounded-lg hover:bg-red-500/10 text-brand-muted hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  {confirmDeleteId === b.id ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleDelete(b.id)}
+                        className="px-2 py-1 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="px-2 py-1 rounded-lg glass-panel text-brand-muted text-xs hover:text-white transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(b.id)}
+                      className="p-2 rounded-lg hover:bg-red-500/10 text-brand-muted hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="space-y-1.5">

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download, CreditCard, UserCheck, Clock, Tag } from "lucide-react";
+import { TrendingUp, ShoppingCart, Users, AlertTriangle, Package, DollarSign, Download, CreditCard, UserCheck, Clock, Tag, BarChart2 } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
 import { SalesLineChart } from "@/components/dashboard/charts/SalesLineChart";
 import { CategoryBarChart } from "@/components/dashboard/charts/CategoryBarChart";
@@ -196,6 +196,14 @@ export default function ReportsPage() {
         <div className="py-16 text-center text-brand-muted">Calculando reporte...</div>
       ) : !data ? (
         <div className="py-16 text-center text-brand-muted">Error al cargar datos.</div>
+      ) : data.totalOrders === 0 && data.totalRevenue === 0 ? (
+        <div className="glass-panel rounded-2xl py-20 flex flex-col items-center gap-4 text-center">
+          <div className="p-4 rounded-2xl bg-white/5 text-brand-muted">
+            <BarChart2 size={36} />
+          </div>
+          <p className="text-white font-display font-semibold text-lg">No hay datos para el período seleccionado</p>
+          <p className="text-brand-muted text-sm max-w-xs">Ajusta el rango de fechas o selecciona otro período para ver el análisis.</p>
+        </div>
       ) : (
         <>
           {/* KPIs principales */}

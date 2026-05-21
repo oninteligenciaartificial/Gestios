@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { canUseFeature } from "@/lib/plans";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  if (!canUseFeature(profile.plan, "reports")) {
+    return NextResponse.json({ error: "Reportes disponibles desde el plan Crecer" }, { status: 403 });
+  }
 
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from") ? new Date(searchParams.get("from")!) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);

@@ -12,6 +12,11 @@ app/
 │   ├── customers/        # CRM
 │   ├── settings/         # Configuración org
 │   ├── billing/          # Plan y add-ons
+│   ├── tienda/           # Tienda online (PRO+)
+│   ├── purchase-orders/  # Órdenes de compra a proveedores (CRECER+)
+│   ├── caja/             # Corte de caja diario
+│   ├── ventas/           # Dashboard de ventas
+│   ├── staff/            # Gestión de equipo
 │   ├── superadmin/       # Panel interno (solo SUPERADMIN)
 │   └── ...               # Resto de módulos
 ├── api/                  # Route handlers (Next.js API)
@@ -21,14 +26,19 @@ app/
 │   ├── customers/        # CRUD + export/import CSV
 │   ├── categories/       # CRUD
 │   ├── suppliers/        # CRUD (plan CRECER+)
+│   ├── purchase-orders/  # CRUD de órdenes de compra
 │   ├── discounts/        # CRUD
 │   ├── branches/         # CRUD (plan EMPRESARIAL)
 │   ├── reports/          # Agregados de ventas (plan CRECER+)
+│   ├── team/             # Gestión de staff (crear/listar usuarios)
+│   ├── sessions/         # Gestión de sesiones de usuario
 │   ├── addons/           # Estado de add-ons de la org
 │   ├── payments/         # Solicitudes de pago QR manual
 │   ├── activity-log/     # Feed de actividad
 │   ├── cron/             # Jobs automatizados
 │   ├── webhooks/whatsapp # Recepción de mensajes Meta
+│   ├── webhooks/brevo    # Eventos de email (delivery, bounce, spam)
+│   ├── sample-data/      # Generación de datos de ejemplo
 │   └── superadmin/       # Impersonación
 ├── login/, signup/       # Auth pages
 ├── setup/                # Onboarding (crea organización)
@@ -41,7 +51,7 @@ lib/
 ├── permissions.ts        # RBAC por rol
 ├── business-types.ts     # Schemas de variantes por tipo de negocio
 ├── business-ui.ts        # UI labels dinámicos por tipo de negocio
-├── email.ts              # Envío via Brevo con logging + rate limiting
+├── email.ts              # Envío via Resend SDK con logging + rate limiting
 ├── whatsapp.ts           # Envío via Meta Business API
 ├── currency.ts           # Formateo de moneda
 ├── audit.ts              # Registro de auditoría
@@ -51,6 +61,8 @@ lib/
 ├── superadmin.ts         # getSuperAdmin() helper
 ├── qr-bolivia.ts         # Generación y tracking de pagos QR
 ├── siat.ts               # Facturación electrónica SIAT
+├── sample-data.ts        # Generación de datos de ejemplo para onboarding
+├── accounting-export.ts   # Exportación de datos contables
 └── supabase/             # Clientes server/client/admin/middleware
 
 prisma/
@@ -109,21 +121,21 @@ PLAN_LIMITS[plan].maxProducts        // 150 / 500 / ∞ / ∞
 
 - Todos los handlers llaman `getTenantProfile()` primero
 - Validación de body con Zod antes de tocar la DB
-- Stock decrements son operaciones separadas post-insert (no transacción atómica)
+- Stock decrements usan `prisma.$transaction` para atomicidad
 - Emails se envían con `.catch(() => {})` — nunca bloquean la respuesta
 - Paginación: `?page=1&limit=50` (máx 200)
 
 ## Automatizaciones (Cron)
 
-| Job | Acción |
-|---|---|
-| `/api/cron/birthday` | Email con descuento a clientes con cumpleaños hoy |
-| `/api/cron/expiry` | Alerta de productos próximos a vencer (7 días) |
-| `/api/cron/inactive-customers` | Email a clientes sin compras en 30+ días |
-| `/api/cron/plan-expiry` | Alerta y suspensión de planes vencidos |
-| `/api/cron/low-stock` | Alerta de stock bajo a admins (CRECER+) |
-| `/api/cron/siat-cufd` | Renueva CUFD para facturación SIAT |
-| `/api/cron/expire-qr` | Expira QRs de pago pendientes vencidos |
+| Job | Acción | Schedule |
+|---|---|---|
+| `/api/cron/birthday` | Email con descuento a clientes con cumpleaños hoy | 0 9 * * * |
+| `/api/cron/expiry` | Alerta de productos próximos a vencer (7 días) | 0 8 * * * |
+| `/api/cron/inactive-customers` | Email a clientes sin compras en 30+ días | 0 10 * * * |
+| `/api/cron/plan-expiry` | Alerta y suspensión de planes vencidos | 0 7 * * * |
+| `/api/cron/low-stock` | Alerta de stock bajo a admins (CRECER+) | 0 30 8 * * * |
+| `/api/cron/siat-cufd` | Renueva CUFD para facturación SIAT | 0 6 * * * |
+| `/api/cron/expire-qr` | Expira QRs de pago pendientes vencidos | 0 0 * * * |
 
 ## Variables de entorno requeridas
 
@@ -132,14 +144,16 @@ DATABASE_URL
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
-BREVO_API_KEY
-BREVO_SENDER_EMAIL
-BREVO_SENDER_NAME
-BREVO_WEBHOOK_KEY
-EMAIL_FROM_ADDRESS
+RESEND_API_KEY              # Transactional emails via Resend
+EMAIL_FROM_ADDRESS          # default: noreply@onia.com.bo
+EMAIL_FROM_NAME             # default: GestiOS
+BREVO_SENDER_EMAIL          # opcional — fallback legacy
+BREVO_SENDER_NAME           # opcional — fallback legacy
+BREVO_WEBHOOK_KEY           # Webhook signing para eventos de email
 WA_PHONE_NUMBER_ID
 WA_ACCESS_TOKEN
 WA_APP_SECRET
+SENTRY_AUTH_TOKEN           # Source map uploads en build
 UPSTASH_REDIS_REST_URL      # opcional — rate limiting distribuido
 UPSTASH_REDIS_REST_TOKEN    # opcional — rate limiting distribuido
 ```
