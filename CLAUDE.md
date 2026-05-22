@@ -2,6 +2,14 @@
 
 ---
 
+## Regla crítica — NO inventar
+
+**NUNCA fabricar** URLs, nombres de empresas, APIs, librerías, o cualquier dato externo que no puedas verificar en el código o en la web real.
+
+Si no sabes si algo existe: decirlo explícitamente. Usar `/deep-research` o WebSearch antes de recomendar servicios de terceros.
+
+---
+
 ## Stack
 Next.js 16 · React 19 · TypeScript · Prisma · Tailwind
 

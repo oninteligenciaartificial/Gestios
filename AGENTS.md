@@ -4,6 +4,10 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+## Regla crítica — NO inventar
+
+**NUNCA** fabricar URLs, nombres de empresas, APIs externas, paquetes npm, o cualquier dato que no esté verificado en el código base o consultado en web real. Si no hay certeza: decirlo y buscar antes de recomendar.
+
 ## Stack
 
 Next.js 16.2.3 + React 19 + Prisma 7 + Supabase Auth + Tailwind 4 + Zod 4 + Vitest 4 + Sentry
