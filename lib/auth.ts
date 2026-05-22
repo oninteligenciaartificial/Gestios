@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import type { PlanType } from "@/lib/plans";
 import { setSentryUser } from "@/lib/monitoring";
 
@@ -66,6 +66,27 @@ export async function getTenantProfile() {
       organizationId: profile.organizationId,
       role: profile.role,
     }).catch(() => {});
+
+    // Fire-and-forget: record session (one entry per user per day)
+    const sessionId = `${user.id}_${new Date().toISOString().slice(0, 10)}`;
+    headers().then((h) => {
+      const userAgent = h.get("user-agent") ?? undefined;
+      const ipAddress = h.get("x-forwarded-for")?.split(",")[0]?.trim()
+        ?? h.get("x-real-ip")
+        ?? undefined;
+      prisma.userSession.upsert({
+        where: { id: sessionId },
+        update: { lastSeenAt: new Date(), userAgent: userAgent ?? null },
+        create: {
+          id: sessionId,
+          userId: user.id,
+          organizationId: profile.organizationId!,
+          userAgent: userAgent ?? null,
+          ipAddress: ipAddress ?? null,
+        },
+      }).catch(() => {});
+    }).catch(() => {});
+
     return result;
   }
 

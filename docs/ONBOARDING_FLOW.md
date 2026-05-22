@@ -12,29 +12,33 @@ Dos flujos distintos: **registro del negocio** (owner) y **registro de cliente**
 ### Paso 2 — Setup de organización
 El middleware detecta que el usuario tiene sesión pero no tiene `Profile`. Redirige a `/setup`.
 
-`/setup` → dos campos:
+`/setup` → tres campos:
 - **Nombre de la tienda** → se convierte en `slug` único: `nombre-en-minusculas-timestamp36`
 - **Tu nombre** → nombre del perfil ADMIN
+- **Tipo de negocio** → selector: GENERAL, ROPA, SUPLEMENTOS, ELECTRONICA, FARMACIA, FERRETERIA
 
 POST `/api/setup`:
-- Crea `Organization` con `plan: BASICO`, `trialEndsAt: ahora + 7 días`
+- Crea `Organization` con `plan: BASICO`, `trialEndsAt: ahora + 7 días`, `businessType` seleccionado
 - Crea `Profile` con `role: ADMIN`
 - Todo en una `prisma.$transaction`
 - Retorna `{ organizationId }`
 
-### Paso 3 — Dashboard
+### Paso 3 — Dashboard con WelcomeBanner
 Redirect a `/` → layout detecta perfil y org → redirige a `/dashboard`.
 
-**Primera vez en el dashboard:** el negocio tiene:
-- Plan BASICO activo (7 días de trial)
-- 0 productos, 0 clientes
-- businessType = "GENERAL"
-- Sin categorías, sin staff
+**Primera vez en el dashboard** (0 productos y 0 clientes): se muestra el `WelcomeBanner` con:
+- Mensaje de bienvenida con nombre de la org
+- Botón **"Cargar datos"** → llama `POST /api/sample-data` para cargar productos, clientes y ventas ficticias
+  - Idempotente: si ya hay productos devuelve `409 { alreadyLoaded: true }` (sin duplicar)
+  - Al cargar exitosamente: persiste dismissal en `localStorage` y recarga la página
+- Botón **X** para cerrar el banner sin cargar datos
+- Dismissal persiste en `localStorage` con clave `gestios_welcome_dismissed_{orgId}` — no reaparece en navegación
+- Cards de acceso rápido: inventario, POS, equipo
 
 ### Pasos opcionales de configuración
 En `/settings`:
 1. Cambiar nombre, teléfono, dirección, RFC
-2. Seleccionar **tipo de negocio** (ROPA, SUPLEMENTOS, etc.)
+2. Ajustar **tipo de negocio** (ya seleccionado en setup, se puede cambiar)
 3. Seleccionar moneda (default BOB)
 
 ---
@@ -89,9 +93,10 @@ En `/staff` (ADMIN o MANAGER):
 ```
 Nuevo owner
   → /signup (Supabase Auth)
-  → /setup (crea org + profile ADMIN)
-  → /dashboard
-      ├── /settings (configura tipo de negocio, moneda)
+  → /setup (crea org + profile ADMIN + selecciona businessType)
+  → /dashboard (WelcomeBanner si isEmpty)
+      ├── Cargar datos de ejemplo (POST /api/sample-data, idempotente — 409 si ya cargado)
+      ├── /settings (ajustar tipo de negocio, moneda)
       ├── /inventory (agrega productos)
       ├── /customers (agrega clientes)
       └── /pos (primera venta)

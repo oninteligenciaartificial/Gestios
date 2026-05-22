@@ -3,7 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, Receipt, Package, ChevronRight, Monitor, Smartphone, LogOut, Loader2 } from "lucide-react";
+import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, Receipt, Package, ChevronRight, Monitor, Smartphone, LogOut, Loader2, Shield } from "lucide-react";
+import NextLink from "next/link";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 import { BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BUSINESS_TYPE_SCHEMAS } from "@/lib/business-types";
 import { Shirt, Pill, ShoppingBag, Wrench, Zap, Store } from "lucide-react";
@@ -341,6 +342,23 @@ export default function SettingsPage() {
               <h2 className="font-display font-bold text-white">Seguridad</h2>
             </div>
             <p className="text-sm text-brand-muted">Para cambiar tu contrasena, usa el enlace de recuperacion desde la pantalla de login.</p>
+          </section>
+
+          <section className="glass-panel p-6 rounded-3xl animate-pop">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-white/5">
+                  <Shield size={18} className="text-brand-muted" />
+                </div>
+                <div>
+                  <h2 className="font-display font-bold text-white">Sesiones activas</h2>
+                  <p className="text-xs text-brand-muted mt-0.5">Gestiona los dispositivos con sesion iniciada</p>
+                </div>
+              </div>
+              <NextLink href="/settings/sessions" className="flex items-center gap-1 text-sm font-bold text-brand-kinetic-orange hover:underline">
+                Ver <ChevronRight size={14} />
+              </NextLink>
+            </div>
           </section>
 
           <SessionsSection />

@@ -11,7 +11,7 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
 - ✅ Recharts charts: `components/dashboard/charts/SalesLineChart.tsx`, `components/dashboard/charts/CategoryBarChart.tsx` — en página de reportes
 - ✅ Tienda Online dashboard: `app/(dashboard)/tienda/page.tsx`, `app/(dashboard)/tienda/TiendaSettings.tsx`, `GET /api/tienda/settings`
 - ✅ Tests: 284 pasando (añadidos 55: `purchase-orders.test.ts` con 28 tests, `accounting-export.test.ts` con 27 tests)
-- 🔲 Feature pendiente: gestión de sesiones/dispositivos activos — en progreso
+- 🔲 Feature pendiente: gestión de sesiones/dispositivos activos — implementación en curso (sesión paralela)
 
 **Últimas actualizaciones (2026-05-19 mañana):**
 - ✅ CI Pipeline: todos los jobs pasando (Lint, TypeCheck, UnitTests)

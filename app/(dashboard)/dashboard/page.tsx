@@ -79,7 +79,7 @@ export default async function Dashboard() {
       </header>
 
       {/* First-run welcome banner */}
-      {isEmpty && <WelcomeBanner orgName={orgName} />}
+      {isEmpty && <WelcomeBanner orgName={orgName} orgId={orgId} />}
 
       <section className="kpi-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {kpis.map((kpi) => (

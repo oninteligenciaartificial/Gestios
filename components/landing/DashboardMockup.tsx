@@ -23,9 +23,9 @@ const BAR_DATA = [
 ];
 
 const ORDERS = [
-  { id: "#1042", client: "María L.", total: "Bs. 340", status: "Pagado" },
-  { id: "#1041", client: "Carlos R.", total: "Bs. 120", status: "Pendiente" },
-  { id: "#1040", client: "Ana G.", total: "Bs. 580", status: "Pagado" },
+  { id: "#1042", client: "María L.", total: "Bs. 340", status: "Pagado", lowStock: false },
+  { id: "#1041", client: "Carlos R.", total: "Bs. 120", status: "Pendiente", lowStock: true },
+  { id: "#1040", client: "Ana G.", total: "Bs. 580", status: "Pagado", lowStock: false },
 ];
 
 export function DashboardMockup() {
@@ -40,6 +40,10 @@ export function DashboardMockup() {
           from { transform: scaleY(0); opacity: 0; }
           to { transform: scaleY(1); opacity: 1; }
         }
+        @keyframes revenue-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
         .mockup-float {
           animation: mockup-float 3s ease-in-out infinite;
           transform-origin: center;
@@ -48,6 +52,9 @@ export function DashboardMockup() {
           transform-origin: bottom;
           animation: bar-grow 0.6s ease-out forwards;
           opacity: 0;
+        }
+        .revenue-animate {
+          animation: revenue-pulse 2s ease-in-out infinite;
         }
       `}</style>
       <div className="hidden md:block relative w-full max-w-[520px] mx-auto">
@@ -108,7 +115,10 @@ export function DashboardMockup() {
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5">
                 <span className="text-[11px] font-bold text-white">Dashboard</span>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded-full bg-[#FF6B00]/20 flex items-center justify-center text-[8px] text-[#FF6B00]" aria-hidden="true">◎</div>
+                  <div className="relative w-5 h-5 rounded-full bg-[#FF6B00]/20 flex items-center justify-center text-[8px] text-[#FF6B00]" aria-hidden="true">
+                    ◎
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-red-500 animate-bounce" />
+                  </div>
                   <span className="text-[9px] text-white/40">Admin</span>
                 </div>
               </div>
@@ -116,10 +126,10 @@ export function DashboardMockup() {
               <div className="flex-1 overflow-hidden p-3 space-y-3">
                 {/* Stats row */}
                 <div className="grid grid-cols-3 gap-2">
-                  {STATS.map((stat) => (
+                  {STATS.map((stat, idx) => (
                     <div key={stat.label} className="bg-[#1a1c20] rounded-lg p-2.5 border border-white/8 ring-1 ring-white/10">
                       <div className="text-[8px] text-white/40 mb-1">{stat.label}</div>
-                      <div className={`text-[11px] font-bold ${stat.color}`}>{stat.value}</div>
+                      <div className={`text-[11px] font-bold ${stat.color} ${idx === 0 ? "revenue-animate" : ""}`}>{stat.value}</div>
                       <div className="text-[7px] text-white/30 mt-0.5">{stat.sub}</div>
                     </div>
                   ))}
@@ -158,6 +168,11 @@ export function DashboardMockup() {
                         <div key={order.id} className="flex items-center justify-between text-[8px]">
                           <span className="text-white/50 font-mono">{order.id}</span>
                           <span className="text-white/70 flex-1 px-2 truncate">{order.client}</span>
+                          {order.lowStock && (
+                            <span className="px-1 py-0.5 rounded text-[6px] font-medium bg-red-500/20 text-red-400 mr-1.5 shrink-0">
+                              stock bajo
+                            </span>
+                          )}
                           <span className="text-[#ffb693] font-medium mr-2">{order.total}</span>
                           <span
                             className={`px-1.5 py-0.5 rounded-full text-[7px] font-medium ${

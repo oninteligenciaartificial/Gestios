@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Package, ShoppingCart, Users, Sparkles, Database, Loader2, CheckCircle2 } from "lucide-react";
+import { Package, ShoppingCart, Users, Sparkles, Database, Loader2, CheckCircle2, X } from "lucide-react";
 
 interface ActionCard {
   icon: React.ComponentType<{ size?: number; className?: string }>;
@@ -37,17 +37,30 @@ const ACTION_CARDS: ActionCard[] = [
 
 interface WelcomeBannerProps {
   orgName: string;
+  orgId: string;
 }
 
-export function WelcomeBanner({ orgName }: WelcomeBannerProps) {
+export function WelcomeBanner({ orgName, orgId }: WelcomeBannerProps) {
+  const dismissKey = `gestios_welcome_dismissed_${orgId}`;
+
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(dismissKey) === "true";
+  });
   const [loadingData, setLoadingData] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  function handleDismiss() {
+    localStorage.setItem(dismissKey, "true");
+    setDismissed(true);
+  }
 
   async function handleLoadSampleData() {
     setLoadingData(true);
     try {
       const res = await fetch("/api/sample-data", { method: "POST" });
-      if (res.ok) {
+      if (res.ok || res.status === 409) {
+        localStorage.setItem(dismissKey, "true");
         setDataLoaded(true);
         setTimeout(() => window.location.reload(), 1200);
       }
@@ -55,6 +68,8 @@ export function WelcomeBanner({ orgName }: WelcomeBannerProps) {
       setLoadingData(false);
     }
   }
+
+  if (dismissed) return null;
 
   return (
     <section
@@ -66,7 +81,7 @@ export function WelcomeBanner({ orgName }: WelcomeBannerProps) {
         <div className="p-3 rounded-2xl bg-brand-kinetic-orange/15 flex-shrink-0">
           <Sparkles size={24} className="text-brand-kinetic-orange" />
         </div>
-        <div>
+        <div className="flex-1">
           <h2 className="text-xl sm:text-2xl font-display font-bold text-white leading-tight">
             Bienvenido a GestiOS,{" "}
             <span className="text-brand-kinetic-orange">{orgName}</span>!
@@ -75,6 +90,13 @@ export function WelcomeBanner({ orgName }: WelcomeBannerProps) {
             Tu prueba de 7 días está activa — explorá todo sin límites.
           </p>
         </div>
+        <button
+          onClick={handleDismiss}
+          aria-label="Cerrar bienvenida"
+          className="flex-shrink-0 p-1.5 rounded-lg text-brand-muted hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Sample data CTA */}

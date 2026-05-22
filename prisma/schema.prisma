@@ -590,6 +590,24 @@ model PurchaseOrder {
   @@map("purchase_orders")
 }
 
+// =============================================
+// USER SESSIONS (registro de dispositivos activos)
+// =============================================
+
+model UserSession {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  userAgent      String?
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([organizationId])
+  @@map("UserSession")
+}
+
 model PurchaseOrderItem {
   id              String  @id @default(cuid())
   purchaseOrderId String
