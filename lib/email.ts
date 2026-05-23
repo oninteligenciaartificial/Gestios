@@ -277,6 +277,9 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
       <span style="font-size:13px;color:#fff;font-weight:600;">${PAYMENT_LABELS[args.paymentMethod] ?? args.paymentMethod}</span>
     </div>
     <p style="margin:20px 0 0;font-size:13px;color:#666;">Folio de pedido: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+    <div style="text-align:center;margin-top:24px;">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/pedido/${args.orderId}" style="display:inline-block;padding:12px 28px;background:#ff6b00;color:#000;font-weight:700;border-radius:50px;text-decoration:none;font-size:14px;">Ver estado del pedido</a>
+    </div>
   `;
 
   await sendEmail(args.to, `Pedido recibido — ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName, "order_confirmation");
@@ -293,7 +296,10 @@ export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
       <div style="font-size:13px;color:#666;margin-bottom:8px;">Estado actual</div>
       <div style="font-size:24px;font-weight:800;color:${statusColor};">${statusLabel}</div>
     </div>
-    <p style="margin:0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+    <p style="margin:0 0 20px;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+    <div style="text-align:center;">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/pedido/${args.orderId}" style="display:inline-block;padding:12px 28px;background:#ff6b00;color:#000;font-weight:700;border-radius:50px;text-decoration:none;font-size:14px;">Ver estado del pedido</a>
+    </div>
   `;
 
   await sendEmail(args.to, `Tu pedido esta ${statusLabel} — ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName, "order_status_update");
