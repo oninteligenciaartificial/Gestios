@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Building2, Pencil, Trash2, LogIn } from "lucide-react";
+import { Plus, X, Building2, Pencil, Trash2, LogIn, MessageSquare } from "lucide-react";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 
 interface Org {
@@ -16,8 +16,11 @@ interface Org {
   planExpiresAt: string | null;
   trialEndsAt: string | null;
   createdAt: string;
+  whatsappAddon: boolean;
   _count: { profiles: number; products: number; orders: number };
 }
+
+const EMPTY_WA = { phoneNumberId: "", accessToken: "", templateName: "appointment_reminder" };
 
 function TrialBadge({ trialEndsAt, plan, planExpiresAt }: { trialEndsAt: string | null; plan: PlanType; planExpiresAt: string | null }) {
   if (!trialEndsAt) return null;
@@ -73,6 +76,13 @@ export default function OrganizationsPage() {
   const [extendingTrial, setExtendingTrial] = useState<string | null>(null);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // WhatsApp addon state
+  const [waOrg, setWaOrg] = useState<Org | null>(null);
+  const [waForm, setWaForm] = useState(EMPTY_WA);
+  const [waSaving, setWaSaving] = useState(false);
+  const [waError, setWaError] = useState("");
+  const [waSuccess, setWaSuccess] = useState("");
 
   const fetchOrgs = useCallback(async () => {
     setLoading(true);
@@ -163,6 +173,33 @@ export default function OrganizationsPage() {
     fetchOrgs();
   }
 
+  async function handleWaAddon(e: React.FormEvent) {
+    e.preventDefault();
+    if (!waOrg) return;
+    setWaSaving(true);
+    setWaError("");
+    setWaSuccess("");
+    const res = await fetch(`/api/superadmin/organizations/${waOrg.id}/whatsapp-addon`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(waForm),
+    });
+    if (res.ok) {
+      const d = await res.json() as { chatwootInboxId?: number };
+      setWaSuccess(`Add-on activado${d.chatwootInboxId ? ` · Chatwoot inbox #${d.chatwootInboxId}` : ""}. El onboarding WF-08 fue disparado.`);
+      fetchOrgs();
+    } else {
+      const d = await res.json() as { error?: string };
+      setWaError(d.error ?? "Error al activar");
+    }
+    setWaSaving(false);
+  }
+
+  async function deactivateWaAddon(orgId: string) {
+    await fetch(`/api/superadmin/organizations/${orgId}/whatsapp-addon`, { method: "DELETE" });
+    fetchOrgs();
+  }
+
   async function extendTrial(orgId: string, days: number) {
     setExtendingTrial(orgId);
     await fetch(`/api/superadmin/organizations/${orgId}`, {
@@ -246,6 +283,13 @@ export default function OrganizationsPage() {
                         className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20 transition-colors text-xs font-medium disabled:opacity-50"
                       >
                         {extendingTrial === org.id ? "..." : "+7d trial"}
+                      </button>
+                      <button
+                        onClick={() => { setWaOrg(org); setWaForm(EMPTY_WA); setWaError(""); setWaSuccess(""); }}
+                        title={org.whatsappAddon ? "WhatsApp activo" : "Activar WhatsApp"}
+                        className={`p-2 rounded-lg transition-colors ${org.whatsappAddon ? "text-green-400 bg-green-400/10 hover:bg-green-400/20" : "text-brand-muted hover:bg-white/10 hover:text-white"}`}
+                      >
+                        <MessageSquare size={15} />
                       </button>
                       <button onClick={() => openEdit(org)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors">
                         <Pencil size={15} />
@@ -495,6 +539,88 @@ export default function OrganizationsPage() {
               <button onClick={() => setDeleteId(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-colors">Cancelar</button>
               <button onClick={() => handleDelete(deleteId)} className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors">Eliminar</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Add-on modal */}
+      {waOrg && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4">
+          <div className="glass-panel w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                  <MessageSquare size={20} className="text-green-400" /> WhatsApp Add-on
+                </h2>
+                <p className="text-sm text-brand-muted mt-0.5">{waOrg.name}</p>
+              </div>
+              <button onClick={() => setWaOrg(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
+            </div>
+
+            {waOrg.whatsappAddon && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-green-400/10 border border-green-400/20">
+                <span className="text-sm text-green-400 font-medium">Add-on activo</span>
+                <button
+                  onClick={async () => { await deactivateWaAddon(waOrg.id); setWaOrg(null); }}
+                  className="text-xs text-red-400 hover:underline"
+                >
+                  Desactivar
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleWaAddon} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Phone Number ID <span className="text-red-400">*</span></label>
+                <input
+                  required
+                  value={waForm.phoneNumberId}
+                  onChange={(e) => setWaForm({ ...waForm, phoneNumberId: e.target.value })}
+                  className={input}
+                  placeholder="123456789012345"
+                />
+                <p className="text-xs text-brand-muted">Meta Business Manager → Cuenta de WhatsApp → Phone Number ID</p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">System User Access Token <span className="text-red-400">*</span></label>
+                <input
+                  required
+                  value={waForm.accessToken}
+                  onChange={(e) => setWaForm({ ...waForm, accessToken: e.target.value })}
+                  className={input}
+                  placeholder="EAAxxxxxx... (token permanente, no el temporal)"
+                  type="password"
+                />
+                <p className="text-xs text-brand-muted">Business Manager → Usuarios → System Users → token que no expira</p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Template por defecto</label>
+                <input
+                  value={waForm.templateName}
+                  onChange={(e) => setWaForm({ ...waForm, templateName: e.target.value })}
+                  className={input}
+                  placeholder="appointment_reminder"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-brand-muted space-y-1">
+                <p className="font-medium text-white">El cliente debe registrar el webhook en Meta:</p>
+                <p>URL: <span className="font-mono text-brand-kinetic-orange">/api/webhooks/whatsapp</span></p>
+                <p>Verify Token: <span className="font-mono">WHATSAPP_WEBHOOK_VERIFY_TOKEN</span> (var en Vercel)</p>
+                <p>Suscribirse a: <span className="font-mono">messages</span></p>
+              </div>
+
+              {waError && <p className="text-red-400 text-sm">{waError}</p>}
+              {waSuccess && <p className="text-green-400 text-sm">{waSuccess}</p>}
+
+              <button
+                type="submit"
+                disabled={waSaving}
+                className="w-full py-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white font-bold disabled:opacity-50"
+              >
+                {waSaving ? "Activando..." : (waOrg.whatsappAddon ? "Actualizar credenciales" : "Activar Add-on + Crear Inbox Chatwoot")}
+              </button>
+            </form>
           </div>
         </div>
       )}
