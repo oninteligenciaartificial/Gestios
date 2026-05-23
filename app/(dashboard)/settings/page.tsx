@@ -348,6 +348,23 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-white/5">
+                  <Package size={18} className="text-brand-muted" />
+                </div>
+                <div>
+                  <h2 className="font-display font-bold text-white">Importar datos</h2>
+                  <p className="text-xs text-brand-muted mt-0.5">Importa productos o clientes desde CSV — plan CRECER+</p>
+                </div>
+              </div>
+              <NextLink href="/settings/import" className="flex items-center gap-1 text-sm font-bold text-brand-kinetic-orange hover:underline">
+                Abrir <ChevronRight size={14} />
+              </NextLink>
+            </div>
+          </section>
+
+          <section className="glass-panel p-6 rounded-3xl animate-pop">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-white/5">
                   <Shield size={18} className="text-brand-muted" />
                 </div>
                 <div>
