@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, ExternalLink } from "lucide-react";
+import { Menu, X, ExternalLink, Search } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarUser } from "./SidebarUser";
 import { PLAN_META, type PlanType } from "@/lib/plans";
@@ -86,6 +86,16 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
             <X size={20} />
           </button>
         </div>
+
+        {/* Search shortcut */}
+        <button
+          onClick={() => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true })); }}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-brand-muted hover:text-white hover:bg-white/10 transition-colors text-sm mb-2"
+        >
+          <Search size={14} />
+          <span className="flex-1 text-left">Buscar...</span>
+          <kbd className="text-xs bg-white/5 px-1.5 py-0.5 rounded border border-white/10">Ctrl K</kbd>
+        </button>
 
         <SidebarNav links={internalLinks} lockedHrefs={lockedHrefs} onNavigate={() => setOpen(false)} lockedPlanMap={lockedPlanMap} />
 
