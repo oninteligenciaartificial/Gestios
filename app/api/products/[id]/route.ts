@@ -17,6 +17,26 @@ const updateSchema = z.object({
   active: z.boolean().optional(),
 });
 
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const profile = await getTenantProfile();
+  if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const { id } = await params;
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      category: { select: { name: true } },
+      variants: { orderBy: { createdAt: "asc" } },
+    },
+  });
+
+  if (!product || product.organizationId !== profile.organizationId) {
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+  }
+
+  return NextResponse.json(product);
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });

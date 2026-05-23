@@ -54,7 +54,7 @@ export function ProductTable({ products, loading, search, ui, onEdit, onDelete, 
                 <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="p-5">
                     <div className="font-bold text-white flex items-center gap-2">
-                      {item.name}
+                      <a href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</a>
                       {item.hasVariants && <Layers size={13} className="text-blue-400 flex-shrink-0" />}
                     </div>
                     {item.sku && <div className="text-xs text-brand-muted mt-0.5">SKU: {item.sku}</div>}
@@ -99,7 +99,7 @@ export function ProductTable({ products, loading, search, ui, onEdit, onDelete, 
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-white truncate flex items-center gap-2">
-                    {item.name}
+                    <a href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</a>
                     {item.hasVariants && <Layers size={12} className="text-blue-400 flex-shrink-0" />}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
