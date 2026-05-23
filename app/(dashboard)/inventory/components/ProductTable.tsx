@@ -9,13 +9,16 @@ interface Props {
   loading: boolean;
   search: string;
   ui: BusinessUIConfig;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: (ids: string[]) => void;
   onEdit: (p: Product) => void;
   onDelete: (id: string) => void;
   onStockEntry: (p: Product) => void;
   onViewHistory: (p: Product) => void;
 }
 
-export function ProductTable({ products, loading, search, ui, onEdit, onDelete, onStockEntry, onViewHistory }: Props) {
+export function ProductTable({ products, loading, search, ui, selected, onToggle, onToggleAll, onEdit, onDelete, onStockEntry, onViewHistory }: Props) {
   if (loading) {
     return <div className="py-16 text-center text-brand-muted">Cargando productos...</div>;
   }
@@ -36,6 +39,14 @@ export function ProductTable({ products, loading, search, ui, onEdit, onDelete, 
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-white/10 bg-white/5">
+              <th className="p-5 w-10">
+                <input
+                  type="checkbox"
+                  className="rounded border-white/20 bg-white/5 accent-brand-kinetic-orange cursor-pointer"
+                  checked={products.length > 0 && products.every((p) => selected.has(p.id))}
+                  onChange={() => onToggleAll(products.map((p) => p.id))}
+                />
+              </th>
               <th className="p-5 font-medium text-brand-muted">{ui.productSingular}</th>
               <th className="p-5 font-medium text-brand-muted">{ui.categoryLabel}</th>
               <th className="p-5 font-medium text-brand-muted">Precio</th>
@@ -51,7 +62,15 @@ export function ProductTable({ products, loading, search, ui, onEdit, onDelete, 
                 ? (item.variants ?? []).reduce((s, v) => s + v.stock, 0)
                 : item.stock;
               return (
-                <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={item.id} className={`hover:bg-white/[0.02] transition-colors ${selected.has(item.id) ? "bg-brand-kinetic-orange/5" : ""}`}>
+                  <td className="p-5 w-10">
+                    <input
+                      type="checkbox"
+                      className="rounded border-white/20 bg-white/5 accent-brand-kinetic-orange cursor-pointer"
+                      checked={selected.has(item.id)}
+                      onChange={() => onToggle(item.id)}
+                    />
+                  </td>
                   <td className="p-5">
                     <div className="font-bold text-white flex items-center gap-2">
                       <a href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</a>

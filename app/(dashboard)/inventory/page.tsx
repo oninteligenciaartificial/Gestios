@@ -48,6 +48,11 @@ export default function Inventory() {
   const [importMsg, setImportMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"price" | "stock" | "deactivate" | "activate" | "">("");
+  const [bulkValue, setBulkValue] = useState("");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [prodRes, catRes, meRes] = await Promise.all([
@@ -248,6 +253,57 @@ export default function Inventory() {
     setUploadingImage(false);
   }
 
+  function handleToggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function handleToggleAll(ids: string[]) {
+    setSelected((prev) => {
+      const allSelected = ids.every((id) => prev.has(id));
+      if (allSelected) {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      } else {
+        const next = new Set(prev);
+        ids.forEach((id) => next.add(id));
+        return next;
+      }
+    });
+  }
+
+  async function applyBulk() {
+    if (!bulkAction) return;
+    if ((bulkAction === "price" || bulkAction === "stock") && !bulkValue) return;
+    setBulkLoading(true);
+    const res = await fetch("/api/products/batch", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ids: [...selected],
+        action: bulkAction,
+        value: bulkValue ? parseFloat(bulkValue) : undefined,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json() as { updated: number };
+      toast.success(`${data.updated} producto(s) actualizados`);
+      setSelected(new Set());
+      setBulkAction("");
+      setBulkValue("");
+      fetchData();
+    } else {
+      const data = await res.json() as { error: string };
+      toast.error(data.error ?? "Error al aplicar acción");
+    }
+    setBulkLoading(false);
+  }
+
   const attrSchema = getBusinessSchema(businessType);
   const attrKeys = Object.keys(attrSchema);
   const ui = getBusinessUI(businessType);
@@ -307,11 +363,53 @@ export default function Inventory() {
         />
       </div>
 
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-xl bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 animate-pop">
+          <span className="text-sm font-medium text-brand-kinetic-orange">{selected.size} seleccionado(s)</span>
+          <select
+            value={bulkAction}
+            onChange={(e) => setBulkAction(e.target.value as typeof bulkAction)}
+            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-sm text-white"
+          >
+            <option value="">Acción...</option>
+            <option value="price">Actualizar precio</option>
+            <option value="stock">Ajustar stock</option>
+            <option value="deactivate">Desactivar</option>
+            <option value="activate">Activar</option>
+          </select>
+          {(bulkAction === "price" || bulkAction === "stock") && (
+            <input
+              type="number"
+              value={bulkValue}
+              onChange={(e) => setBulkValue(e.target.value)}
+              placeholder={bulkAction === "price" ? "Nuevo precio" : "Cantidad (+/-)"}
+              className="w-32 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-sm text-white"
+            />
+          )}
+          <button
+            onClick={applyBulk}
+            disabled={!bulkAction || bulkLoading}
+            className="px-3 py-1 rounded-lg bg-brand-kinetic-orange text-black text-sm font-bold disabled:opacity-40"
+          >
+            {bulkLoading ? "..." : "Aplicar"}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="text-brand-muted hover:text-white text-sm"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
+
       <ProductTable
         products={filtered}
         loading={loading}
         search={search}
         ui={ui}
+        selected={selected}
+        onToggle={handleToggle}
+        onToggleAll={handleToggleAll}
         onEdit={openEdit}
         onDelete={setDeleteId}
         onStockEntry={(p) => { setStockEntry(p); setStockQty("1"); }}
