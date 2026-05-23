@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ShoppingCart, Plus, Search, Clock, CheckCircle, Truck,
   ShoppingBag, Ban, Banknote, CreditCard, Landmark, Eye,
-  Printer, Filter, ChevronDown, Loader2,
+  Printer, Filter, ChevronDown, Loader2, Download,
 } from "lucide-react";
 
 type OrderStatus = "PENDIENTE" | "CONFIRMADO" | "ENVIADO" | "ENTREGADO" | "CANCELADO";
@@ -114,9 +114,15 @@ export default function VentasPage() {
           </h1>
           <p className="text-sm text-brand-muted mt-0.5">Historial de ventas y pedidos</p>
         </div>
+        <a
+          href="/api/export/orders"
+          className="sm:ml-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-brand-muted hover:text-white hover:bg-white/10 transition-colors text-sm"
+        >
+          <Download size={14} /> Exportar CSV
+        </a>
         <button
           onClick={() => router.push("/ventas/nueva")}
-          className="sm:ml-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-sm hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-sm hover:opacity-90 transition-opacity"
         >
           <Plus size={15} /> Nueva Venta
         </button>

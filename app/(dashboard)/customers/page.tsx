@@ -234,6 +234,12 @@ export default function CustomersPage() {
             <Upload size={15} />
             {importing ? "Importando..." : "Importar CSV"}
           </button>
+          <a
+            href="/api/export/customers"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-brand-muted hover:text-white hover:bg-white/10 transition-colors text-sm"
+          >
+            <Download size={14} /> Exportar CSV
+          </a>
           <button
             onClick={openCreate}
             className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"

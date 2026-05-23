@@ -281,6 +281,12 @@ export default function Inventory() {
             {importing ? "Importando..." : <><span className="hidden sm:inline">Importar Excel</span><span className="sm:hidden">Importar</span></>}
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
           </label>
+          <a
+            href="/api/export/products"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-brand-muted hover:text-white hover:bg-white/10 transition-colors text-sm"
+          >
+            <Download size={14} /> Exportar CSV
+          </a>
         </div>
       </header>
 
