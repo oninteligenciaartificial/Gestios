@@ -6,6 +6,7 @@ import { Menu, X, ExternalLink, Search } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarUser } from "./SidebarUser";
 import { PLAN_META, type PlanType } from "@/lib/plans";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 
 interface NavLink { href: string; label: string; external?: boolean }
 
@@ -79,12 +80,15 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
               {orgName}
             </div>
           </div>
-          <button
-            className="lg:hidden text-brand-muted hover:text-white transition-colors mt-1"
-            onClick={() => setOpen(false)}
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <button
+              className="lg:hidden text-brand-muted hover:text-white transition-colors mt-0.5"
+              onClick={() => setOpen(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Search shortcut */}

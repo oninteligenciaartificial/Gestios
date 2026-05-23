@@ -97,6 +97,7 @@ model Organization {
   qrPayments      QrPayment[]
   cashRegisters   CashRegister[]
   purchaseOrders  PurchaseOrder[]
+  notifications   Notification[]
 
   @@map("organizations")
 }
@@ -622,4 +623,25 @@ model PurchaseOrderItem {
   @@index([purchaseOrderId])
   @@index([productId])
   @@map("purchase_order_items")
+}
+
+// =============================================
+// NOTIFICACIONES IN-APP
+// =============================================
+
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  type           String   // stock_bajo | pedido_actualizado | plan_vence | custom
+  title          String
+  body           String
+  read           Boolean  @default(false)
+  link           String?
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, read, createdAt(sort: Desc)])
+  @@map("notifications")
 }
