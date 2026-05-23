@@ -8,6 +8,16 @@ import { StockAlertButton } from "../StockAlertButton";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { SyncButton } from "@/components/dashboard/SyncButton";
 
+function Delta({ pct }: { pct: number | null }) {
+  if (pct === null) return null;
+  const up = pct >= 0;
+  return (
+    <span className={`text-xs font-medium flex items-center gap-0.5 ${up ? "text-brand-growth-neon" : "text-red-400"}`}>
+      {up ? "↑" : "↓"} {Math.abs(pct).toFixed(1)}%
+    </span>
+  );
+}
+
 export default async function Dashboard() {
   const profile = await getTenantProfile();
   if (!profile) {
@@ -33,6 +43,8 @@ export default async function Dashboard() {
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
   type StockItem = { id: string; name: string; stock: number; minStock: number };
   type OrderTotal = { total: { toString(): string } };
@@ -61,13 +73,38 @@ export default async function Dashboard() {
   });
   const lowStockAlerts = allProducts.filter((p: StockItem) => p.stock <= p.minStock).slice(0, 5);
 
+  // Previous period (days 31-60) for delta comparison
+  type RevAgg = { _sum: { total: unknown }; _count: { id: number } };
+  const [prevRevAgg, prevWeeklyOrders, prevNewCustomers] = await Promise.all([
+    prisma.order.aggregate({
+      where: { organizationId: orgId, status: { not: "CANCELADO" }, createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+      _sum: { total: true },
+      _count: { id: true },
+    }) as Promise<RevAgg>,
+    prisma.order.count({ where: { organizationId: orgId, createdAt: { gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), lt: weekAgo } } }),
+    prisma.customer.count({ where: { organizationId: orgId, createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } } }),
+  ]);
+
+  const prevRevenue = Number(prevRevAgg._sum.total ?? 0);
+  const currentRevenue30 = monthlyOrders.reduce((sum: number, o: OrderTotal) => sum + Number(o.total), 0);
+
+  function calcDelta(current: number, previous: number): number | null {
+    if (previous === 0) return null;
+    return ((current - previous) / previous) * 100;
+  }
+
+  const deltaRevenue = calcDelta(currentRevenue30, prevRevenue);
+  const deltaOrders = calcDelta(weeklyOrders, prevWeeklyOrders);
+  const currentNewCustomers = await prisma.customer.count({ where: { organizationId: orgId, createdAt: { gte: thirtyDaysAgo } } });
+  const deltaNewCustomers = calcDelta(currentNewCustomers, prevNewCustomers);
+
   const isEmpty = totalProducts === 0 && totalCustomers === 0;
 
   const kpis = [
-    { title: "Inventario Total",  value: String(totalProducts),                  label: "SKUs Activos",    icon: Package,       color: "text-brand-kinetic-orange" },
-    { title: "Pedidos Semana",    value: String(weeklyOrders),                    label: "Ultimos 7 dias",  icon: ShoppingCart,  color: "text-white"                },
-    { title: "Alertas Stock",     value: String(lowStockAlerts.length),           label: "Reabastecer Ya",  icon: AlertTriangle, color: "text-red-400"              },
-    { title: "Ingresos",          value: `Bs. ${monthlyRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, label: "Mensual", icon: DollarSign, color: "text-brand-growth-neon" },
+    { title: "Inventario Total",  value: String(totalProducts),                  label: "SKUs Activos",    icon: Package,       color: "text-brand-kinetic-orange", delta: null as number | null },
+    { title: "Pedidos Semana",    value: String(weeklyOrders),                    label: "Ultimos 7 dias",  icon: ShoppingCart,  color: "text-white",                delta: deltaOrders },
+    { title: "Alertas Stock",     value: String(lowStockAlerts.length),           label: "Reabastecer Ya",  icon: AlertTriangle, color: "text-red-400",              delta: null as number | null },
+    { title: "Ingresos",          value: `Bs. ${monthlyRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, label: "Mensual", icon: DollarSign, color: "text-brand-growth-neon", delta: deltaRevenue },
   ];
 
   return (
@@ -99,7 +136,15 @@ export default async function Dashboard() {
               </div>
             </div>
             <div className="text-2xl sm:text-4xl font-display font-bold text-white mb-1">{kpi.value}</div>
-            <div className="text-xs sm:text-sm text-brand-muted/70">{kpi.label}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs sm:text-sm text-brand-muted/70">{kpi.label}</span>
+              {kpi.delta !== null && (
+                <div className="flex items-center gap-1">
+                  <Delta pct={kpi.delta} />
+                  <span className="text-xs text-brand-muted/50">vs mes ant.</span>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </section>
