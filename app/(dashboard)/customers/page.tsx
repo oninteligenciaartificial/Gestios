@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Users, Search, Plus, X, Pencil, Phone, Mail, MapPin, ShoppingCart, Upload, Download, Trash2 } from "lucide-react";
 
@@ -285,7 +286,7 @@ export default function CustomersPage() {
                   {initials(c.name)}
                 </div>
                 <div>
-                  <h3 className="font-bold text-white">{c.name}</h3>
+                  <Link href={`/customers/${c.id}`} className="font-bold text-white hover:text-brand-kinetic-orange transition-colors">{c.name}</Link>
                   <p className="text-xs text-brand-muted">{new Date(c.createdAt).toLocaleDateString("es-MX")}</p>
                 </div>
               </div>

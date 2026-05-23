@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getBusinessUI } from "@/lib/business-ui";
 import type { BusinessType } from "@/lib/business-types";
-import { Search, Plus, Minus, Trash2, ShoppingCart, CheckCircle, X, Tag, ChevronUp, Layers, Star, Barcode, QrCode, Banknote, CreditCard, Landmark } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, CheckCircle, X, Tag, ChevronUp, Layers, Star, Barcode, QrCode, Banknote, CreditCard, Landmark, Printer } from "lucide-react";
 import { QrPaymentModal } from "./QrPaymentModal";
 import { ManualQrModal } from "./ManualQrModal";
 import { canUseFeature, canUseAddon } from "@/lib/plans";
@@ -77,6 +77,7 @@ export default function POSPage() {
   const [discountError, setDiscountError] = useState("");
   const [selling, setSelling] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [variantTarget, setVariantTarget] = useState<Product | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
@@ -247,8 +248,9 @@ export default function POSPage() {
 
   const total = Math.max(0, subtotal - discountAmount - pointsDiscount);
 
-  function finalizeSale() {
+  function finalizeSale(orderId?: string) {
     setSuccess(true);
+    if (orderId) setLastOrderId(orderId);
     setCart([]);
     setCustomerName("");
     setAppliedDiscount(null);
@@ -323,7 +325,10 @@ export default function POSPage() {
       }),
     });
     setSelling(false);
-    if (res.ok) finalizeSale();
+    if (res.ok) {
+      const data = await res.json() as { id: string };
+      finalizeSale(data.id);
+    }
   }
 
   // Returns qty in cart for a simple product (no variant)
@@ -507,8 +512,18 @@ export default function POSPage() {
         </div>
 
         {success ? (
-          <div className="flex items-center justify-center gap-2 py-4 rounded-xl bg-brand-growth-neon/15 text-brand-growth-neon font-bold">
-            <CheckCircle size={20} /> Venta registrada
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-2 py-4 rounded-xl bg-brand-growth-neon/15 text-brand-growth-neon font-bold">
+              <CheckCircle size={20} /> Venta registrada
+            </div>
+            {lastOrderId && (
+              <button
+                onClick={() => window.open(`/print/recibo/${lastOrderId}`, "_blank")}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 text-brand-muted hover:text-white hover:border-white/30 text-sm font-medium transition-colors"
+              >
+                <Printer size={15} /> Imprimir recibo
+              </button>
+            )}
           </div>
         ) : (
           <button
@@ -530,7 +545,7 @@ export default function POSPage() {
         <QrPaymentModal
           orderId={qrOrderId}
           amount={total}
-          onPaid={finalizeSale}
+          onPaid={() => finalizeSale(qrOrderId)}
           onCancel={() => { setQrOrderId(null); setPaymentMethod("EFECTIVO"); }}
         />
       )}
@@ -540,7 +555,7 @@ export default function POSPage() {
         <ManualQrModal
           qrImageUrl={manualQrUrl}
           amount={total}
-          onPaid={finalizeSale}
+          onPaid={() => finalizeSale(qrOrderId ?? undefined)}
           onCancel={() => { setManualQrOpen(false); setQrOrderId(null); setPaymentMethod("EFECTIVO"); }}
         />
       )}

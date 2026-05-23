@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, PackageSearch } from "lucide-react";
+import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, PackageSearch, Clock } from "lucide-react";
 import { StockAlertButton } from "../StockAlertButton";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { SyncButton } from "@/components/dashboard/SyncButton";
@@ -51,6 +51,14 @@ export default async function Dashboard() {
   });
 
   const monthlyRevenue = monthlyOrders.reduce((sum: number, o: OrderTotal) => sum + Number(o.total), 0);
+
+  type RecentOrder = { id: string; customerName: string; status: string; total: { toString(): string }; createdAt: Date };
+  const recentOrders: RecentOrder[] = await prisma.order.findMany({
+    where: { organizationId: orgId },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: { id: true, customerName: true, status: true, total: true, createdAt: true },
+  });
   const lowStockAlerts = allProducts.filter((p: StockItem) => p.stock <= p.minStock).slice(0, 5);
 
   const isEmpty = totalProducts === 0 && totalCustomers === 0;
@@ -166,6 +174,40 @@ export default async function Dashboard() {
           </div>
         </section>
       </div>
+
+      {/* Recent orders */}
+      {recentOrders.length > 0 && (
+        <section className="space-y-4 animate-pop">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+              <Clock size={20} className="text-brand-kinetic-orange" /> Pedidos Recientes
+            </h2>
+            <a href="/ventas" className="text-brand-kinetic-orange text-sm font-bold hover:underline">Ver todos →</a>
+          </div>
+          <div className="glass-panel rounded-3xl overflow-hidden">
+            <div className="divide-y divide-white/5">
+              {recentOrders.map((o) => {
+                const statusColor = o.status === "ENTREGADO" ? "text-brand-growth-neon" : o.status === "CANCELADO" ? "text-red-400" : o.status === "ENVIADO" ? "text-blue-400" : "text-brand-kinetic-orange";
+                const statusLabel = o.status === "PENDIENTE" ? "Pendiente" : o.status === "CONFIRMADO" ? "Confirmado" : o.status === "ENVIADO" ? "Enviado" : o.status === "ENTREGADO" ? "Entregado" : "Cancelado";
+                return (
+                  <div key={o.id} className="py-4 px-6 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
+                    <div>
+                      <div className="font-bold text-white">{o.customerName}</div>
+                      <div className="text-xs text-brand-muted mt-0.5">
+                        {new Date(o.createdAt).toLocaleDateString("es-BO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-white">Bs. {Number(o.total.toString()).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                      <div className={`text-xs font-medium ${statusColor}`}>{statusLabel}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
     </div>
   );

@@ -20,6 +20,31 @@ const patchSchema = z.object({
   reason: z.string().min(1),
 });
 
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const profile = await getTenantProfile();
+  if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const { id } = await params;
+
+  const customer = await prisma.customer.findFirst({
+    where: { id, organizationId: profile.organizationId },
+    include: {
+      orders: {
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          id: true, customerName: true, status: true, total: true,
+          paymentMethod: true, createdAt: true,
+          items: { select: { quantity: true, product: { select: { name: true } } } },
+        },
+      },
+    },
+  });
+
+  if (!customer) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  return NextResponse.json(customer);
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
