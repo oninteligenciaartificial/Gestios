@@ -3,6 +3,17 @@
 Análisis al 2026-05-13. Basado en lectura directa del código y ejecución de herramientas.
 Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN.md`.
 
+**Últimas actualizaciones (2026-05-23):**
+- ✅ Tracking público de pedidos: `GET /api/pedido/[id]` (público, sin auth) + `app/pedido/[id]/page.tsx` — timeline de estados, SEO
+- ✅ Email CTA "Ver estado del pedido": botón naranja en `sendOrderConfirmation` y `sendOrderStatusUpdate` en `lib/email.ts`
+- ✅ POS: botón "Imprimir recibo" post-venta en `app/(dashboard)/pos/page.tsx`
+- ✅ Dashboard: widget "Pedidos Recientes" (últimos 5) en `app/(dashboard)/dashboard/page.tsx`
+- ✅ Customer detail page: `app/(dashboard)/customers/[id]/page.tsx` + `GET /api/customers/[id]` — stats, historial de pedidos
+- ✅ Product detail page: `app/(dashboard)/inventory/[id]/page.tsx` + `GET /api/products/[id]` — precio/costo/margen, variantes, historial stock
+- ✅ Command palette Ctrl+K: `components/dashboard/CommandPalette.tsx` + `GET /api/search?q=` — busca productos, clientes, pedidos
+- ✅ Sidebar "Buscar..." button: dispara Ctrl+K
+- ✅ Tests: 313 pasando en 20 archivos (añadidos: search.test.ts, public-order.test.ts, customer-detail.test.ts, product-detail.test.ts)
+
 **Últimas actualizaciones (2026-05-19 tarde):**
 - ✅ PostHog analytics: `components/PostHogProvider.tsx`, `components/PostHogPageview.tsx`, `/ingest` reverse proxy en `next.config.ts`
 - ✅ SyncButton: `components/dashboard/SyncButton.tsx` — botón de refresh en dashboard
