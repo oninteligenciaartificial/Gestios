@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft, Printer, Clock, CheckCircle, Truck, ShoppingBag, Ban,
   Banknote, CreditCard, Landmark, User, FileText, Package,
-  ChevronDown, Loader2, AlertTriangle,
+  ChevronDown, Loader2, AlertTriangle, Link2, Check,
 } from "lucide-react";
 
 type OrderStatus = "PENDIENTE" | "CONFIRMADO" | "ENVIADO" | "ENTREGADO" | "CANCELADO";
@@ -87,6 +87,15 @@ export default function VentaDetailPage() {
   const [error, setError] = useState("");
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [newStatus, setNewStatus] = useState<OrderStatus | "">("");
+  const [copied, setCopied] = useState(false);
+
+  function copyTrackingLink() {
+    const id = params.id as string;
+    navigator.clipboard.writeText(`${window.location.origin}/pedido/${id}`).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
