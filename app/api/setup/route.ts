@@ -65,5 +65,22 @@ export async function POST(request: Request) {
     orgName: organizationName.trim(),
   }).catch(() => {});
 
+  // Trigger n8n WF-GS-05 new tenant alert (fire-and-forget)
+  // Configure N8N_WEBHOOK_NEW_TENANT in Vercel environment variables
+  const n8nNewTenantUrl = process.env.N8N_WEBHOOK_NEW_TENANT;
+  if (n8nNewTenantUrl) {
+    fetch(n8nNewTenantUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        organizationId: org.id,
+        orgName: org.name,
+        plan: org.plan,
+        businessType: org.businessType,
+        slug: org.slug,
+      }),
+    }).catch(() => {});
+  }
+
   return NextResponse.json({ organizationId: org.id }, { status: 201 });
 }
