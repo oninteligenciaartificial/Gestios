@@ -42,7 +42,7 @@ export async function POST(
   // Fetch org to verify it exists + get name
   const org = await prisma.organization.findUnique({
     where: { id: orgId },
-    select: { id: true, name: true, profiles: { select: { email: true }, take: 1 } },
+    select: { id: true, name: true, profiles: { select: { userId: true }, take: 1 } },
   });
   if (!org) return NextResponse.json({ error: "Organización no encontrada" }, { status: 404 });
 
@@ -111,7 +111,7 @@ export async function POST(
         orgName: org.name,
         phoneNumberId,
         chatwootInboxId,
-        adminEmail: org.profiles[0]?.email,
+        adminUserId: org.profiles[0]?.userId,
       }),
     }).catch(() => {});
   }
