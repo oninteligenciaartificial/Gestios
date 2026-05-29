@@ -465,7 +465,7 @@ function SessionsSection() {
 
   async function revoke(id: string) {
     setRevoking(id);
-    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    await fetch(`/api/sessions?sessionId=${id}`, { method: "DELETE" });
     setSessions((prev) => prev.filter((s) => s.id !== id));
     setRevoking(null);
   }

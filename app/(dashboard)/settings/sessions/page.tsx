@@ -61,7 +61,7 @@ export default function SessionsPage() {
   async function revoke(id: string) {
     setRevoking(id);
     try {
-      const r = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+      const r = await fetch(`/api/sessions?sessionId=${id}`, { method: "DELETE" });
       if (r.ok) {
         setSessions((prev) => prev.filter((s) => s.id !== id));
         toast.success("Sesion cerrada correctamente");
