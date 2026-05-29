@@ -5,9 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { PLAN_PRICES_BOB, type PlanType } from "@/lib/plans";
 
 const BANK_INFO = {
-  bank: "Banco Unión",
-  account: "REEMPLAZAR_CON_CUENTA_REAL",
-  owner: "REEMPLAZAR_CON_TITULAR_REAL",
+  bank: "BCP Bolivia",
+  account: "701-51726678-3-55",
+  owner: "Urcullo Mercado Sergio",
 } as const;
 
 const bodySchema = z.object({

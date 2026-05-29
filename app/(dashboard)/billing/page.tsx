@@ -9,9 +9,9 @@ const ALL_ADDONS = ["WHATSAPP", "FACTURACION", "QR_BOLIVIA", "ECOMMERCE", "CONTA
 type AddonType = typeof ALL_ADDONS[number];
 const WA_NUMBER = "59175470140";
 const BANK_DATA = {
-  account: "1311455296",
-  bank: "Banco Ganadero S.A.",
-  owner: "Urcullo Montenegro Ruddy",
+  account: "701-51726678-3-55",
+  bank: "BCP Bolivia",
+  owner: "Urcullo Mercado Sergio",
 } as const;
 
 type Feat = { label: string; plans: PlanType[] };
@@ -495,7 +495,7 @@ export default function BillingPage() {
           <div className="bg-white flex items-center justify-center px-6 py-2 overflow-hidden">
             <div className="relative w-56 overflow-hidden" style={{ height: "224px" }}>
               <img
-                src="/QR GANADERO GESTIOS.jpeg"
+                src="/QR-BCP-GESTIOS.png"
                 alt="QR de pago"
                 className="absolute w-full"
                 style={{ top: "-18%", transform: "scale(1.05)" }}
