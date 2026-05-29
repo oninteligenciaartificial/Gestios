@@ -6,6 +6,7 @@ import { SidebarWrapper } from "./SidebarWrapper";
 import { ImpersonationBanner } from "./ImpersonationBanner";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
+import { OnboardingTour } from "@/components/dashboard/OnboardingTour";
 import { canUseFeature, isPlanAtLeast, FEATURE_PLAN, type PlanType } from "@/lib/plans";
 import { getBusinessUI, type BusinessUIConfig } from "@/lib/business-ui";
 import type { BusinessType } from "@/lib/business-types";
@@ -167,6 +168,7 @@ export default async function DashboardLayout({
           <ImpersonationBanner orgName={impersonateOrgName} />
         )}
         <CommandPalette />
+        {!isSuperAdmin && <OnboardingTour />}
         <div className="pt-16 lg:pt-0">
           {children}
         </div>
