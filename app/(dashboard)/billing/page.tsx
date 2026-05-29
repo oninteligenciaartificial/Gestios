@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PLAN_META, PLAN_PRICES_BOB, PLAN_FEATURES, ADDON_META, type PlanType } from "@/lib/plans";
-import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2, Zap, X } from "lucide-react";
+import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2, Zap, X, Building2 } from "lucide-react";
 
 const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
 const ALL_ADDONS = ["WHATSAPP", "FACTURACION", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"] as const;
@@ -90,6 +90,17 @@ export default function BillingPage() {
   const [qrImagePreview, setQrImagePreview] = useState<string | null>(null);
   const [qrImageUploading, setQrImageUploading] = useState(false);
   const [qrImageUploaded, setQrImageUploaded] = useState(false);
+
+  // Bank transfer state
+  const [transferModal, setTransferModal] = useState(false);
+  const [transferData, setTransferData] = useState<{
+    reference: string;
+    amount: number;
+    instructions: { bank: string; account: string; owner: string };
+  } | null>(null);
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [transferSent, setTransferSent] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const pricePerMonth = PLAN_PRICES_BOB[selectedPlan];
   const discount = MONTH_DISCOUNT[months] ?? 0;
@@ -226,6 +237,53 @@ export default function BillingPage() {
     } finally {
       setQrImageUploading(false);
     }
+  }
+
+  async function startBankTransfer() {
+    if (pending) {
+      setTransferData(null);
+      setTransferSent(false);
+      setTransferModal(true);
+      return;
+    }
+    setTransferLoading(true);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan, months }),
+      });
+      const data = await res.json() as {
+        success?: boolean;
+        reference?: string;
+        amount?: number;
+        instructions?: { bank: string; account: string; owner: string };
+        error?: string;
+      };
+      if (!res.ok || !data.success) {
+        alert(data.error ?? "Error al generar referencia");
+        return;
+      }
+      setTransferData({
+        reference: data.reference!,
+        amount: data.amount!,
+        instructions: data.instructions!,
+      });
+      setTransferSent(false);
+      setTransferModal(true);
+      const updated = await fetch("/api/payments").then(r => r.json()) as PaymentRequest[];
+      setRequests(Array.isArray(updated) ? updated : []);
+    } catch {
+      alert("Error de conexión. Intenta nuevamente.");
+    } finally {
+      setTransferLoading(false);
+    }
+  }
+
+  function copyField(value: string, key: string) {
+    navigator.clipboard.writeText(value).catch(() => {});
+    setCopiedField(key);
+    setTimeout(() => setCopiedField(null), 2000);
   }
 
   const pending = requests.find(r => r.status === "PENDIENTE");
@@ -378,6 +436,24 @@ export default function BillingPage() {
             >
               <QrCode size={18} /> {generatingQr ? "Generando QR..." : `Pagar Bs. ${total.toLocaleString("es-BO")} con QR`}
             </button>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-xs text-brand-muted">o transferencia bancaria</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+
+            <button
+              onClick={startBankTransfer}
+              disabled={transferLoading}
+              className="w-full py-3 rounded-xl border border-white/15 hover:border-white/30 text-white font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              <Building2 size={18} />
+              {transferLoading ? "Generando referencia..." : `Pagar Bs. ${total.toLocaleString("es-BO")} por transferencia`}
+            </button>
+            <p className="text-xs text-brand-muted text-center">
+              Transferencia interbancaria · activación en 24-48h
+            </p>
           </div>
 
           {/* QR Payment Status */}
@@ -705,6 +781,103 @@ export default function BillingPage() {
           })}
         </div>
       </section>
+
+      {/* Bank Transfer Modal */}
+      {transferModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md glass-panel rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">Datos de transferencia</h2>
+              <button
+                onClick={() => setTransferModal(false)}
+                className="text-brand-muted hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {!transferSent ? (
+              <>
+                <div className="text-center py-2">
+                  <span className="text-4xl font-display font-bold text-brand-kinetic-orange">
+                    Bs. {(transferData?.amount ?? total).toLocaleString("es-BO")}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    { label: "Banco", key: "bank", value: transferData?.instructions.bank ?? "—" },
+                    { label: "Nro. de cuenta", key: "account", value: transferData?.instructions.account ?? "—" },
+                    { label: "Titular", key: "owner", value: transferData?.instructions.owner ?? "—" },
+                  ].map(({ label, key, value }) => (
+                    <div key={key} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">
+                      <div>
+                        <p className="text-xs text-brand-muted">{label}</p>
+                        <p className="text-white font-medium text-sm">{value}</p>
+                      </div>
+                      <button
+                        onClick={() => copyField(value, key)}
+                        className="ml-3 text-brand-muted hover:text-white transition-colors flex-shrink-0"
+                        title="Copiar"
+                      >
+                        {copiedField === key
+                          ? <Check size={16} className="text-green-400" />
+                          : <Copy size={16} />
+                        }
+                      </button>
+                    </div>
+                  ))}
+
+                  <div className="border border-yellow-500/30 bg-yellow-500/10 rounded-xl px-4 py-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-yellow-400/70 font-medium uppercase tracking-wider">Referencia (obligatoria)</p>
+                        <p className="text-yellow-300 font-mono font-bold text-sm mt-0.5">{transferData?.reference ?? "—"}</p>
+                      </div>
+                      <button
+                        onClick={() => copyField(transferData?.reference ?? "", "reference")}
+                        className="ml-3 text-yellow-400/70 hover:text-yellow-300 transition-colors flex-shrink-0"
+                        title="Copiar referencia"
+                      >
+                        {copiedField === "reference"
+                          ? <Check size={16} className="text-green-400" />
+                          : <Copy size={16} />
+                        }
+                      </button>
+                    </div>
+                    <p className="text-xs text-yellow-400/60 mt-2">
+                      Incluye esta referencia exacta en el detalle de tu transferencia.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setTransferSent(true)}
+                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold transition-all"
+                >
+                  Ya realicé el pago
+                </button>
+              </>
+            ) : (
+              <div className="text-center py-4 space-y-3">
+                <div className="w-14 h-14 rounded-full bg-green-500/15 flex items-center justify-center mx-auto">
+                  <Check size={28} className="text-green-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">¡Gracias!</h3>
+                <p className="text-sm text-brand-muted">
+                  Tu pago está siendo verificado. Te notificaremos en 24-48h cuando tu plan sea activado.
+                </p>
+                <button
+                  onClick={() => setTransferModal(false)}
+                  className="text-brand-kinetic-orange text-sm font-bold"
+                >
+                  Cerrar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
