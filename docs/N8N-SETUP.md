@@ -174,6 +174,22 @@ n8n VPS (self-hosted) no soporta `$vars` (feature de n8n Cloud). Las credenciale
 
 ---
 
+### WF-GS-05 — BCP Auto Payment Confirmation
+| Campo | Valor |
+|---|---|
+| ID | `jtLIb0i6jxAZOvwa` |
+| Trigger | Gmail OAuth2 polling cada 1 minuto |
+| Gmail | `sergio.urcullo.m@gmail.com` |
+| Remitente BCP | `BolBancaMov@bcp.com.bo` |
+| Función | Detecta pago BCP → activa plan workspace automáticamente |
+| Credencial Gmail | `Gmail sergio.urcullo` (OAuth2) |
+| Credencial Supabase | `Supabase GestiOS` (supabaseApi) |
+| Estado | 🟡 Configurado — activar tras asignar credenciales |
+| Setup detallado | Ver `docs/N8N-WF-GS-05-SETUP.md` |
+| Flujo completo | Ver `docs/BILLING-FLOW.md` |
+
+---
+
 ## Environment Variables in GestiOS (Vercel)
 
 Add the following to your Vercel project environment variables:

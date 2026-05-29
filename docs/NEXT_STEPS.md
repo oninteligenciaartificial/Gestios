@@ -3,6 +3,21 @@
 Análisis al 2026-05-13. Basado en lectura directa del código y ejecución de herramientas.
 Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN.md`.
 
+**Últimas actualizaciones (2026-05-29):**
+- ✅ Sistema de pagos manual BCP Bolivia completo
+  - `POST /api/billing/checkout` — genera PaymentRequest + instrucciones bancarias
+  - `POST /api/billing/confirm` — confirma pago (superadmin)
+  - UI `/billing` reescrita: QR estático BCP, modal transferencia, tabla comparativa planes
+  - QR: `/public/QR-BCP-GESTIOS.png` (BCP, cuenta 701-51726678-3-55)
+- ✅ n8n WF-GS-05 BCP Auto Payment: detecta email BCP → activa plan automáticamente
+  - Gmail OAuth2 polling `sergio.urcullo.m@gmail.com` cada 1 min
+  - Regex extrae referencia → Supabase lookup → PATCH payment + org
+  - ID: `jtLIb0i6jxAZOvwa` — pendiente activar (asignar credenciales Gmail + Supabase)
+- ✅ Sessions API: DELETE /api/sessions revoca sesión por sessionId
+- ✅ Notifications API hardening: try/catch, Promise.all, param ?unread=true
+- ✅ Autodeploy Vercel configurado: rama `main` → deploy automático
+- 📝 Docs: `docs/BILLING-FLOW.md`, `docs/N8N-WF-GS-05-SETUP.md` creados
+
 **Últimas actualizaciones (2026-05-25):**
 - ✅ Fix build Vercel: `Profile.email` → `Profile.userId` en `whatsapp-addon/route.ts`
 - ✅ Migraciones Supabase aplicadas: `notifications` table + `UserSession` table
@@ -86,6 +101,8 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
 | n8n WF-GS-02 Plan Expiry WA | ✅ Activo (2026-05-25) |
 | n8n WF-GS-03 Birthday WA | ✅ Activo (2026-05-25) |
 | n8n WF-GS-04 Weekly Admin Digest | ✅ Activo (2026-05-25) |
+| Sistema de pagos BCP Bolivia (checkout + confirm) | ✅ Completo (2026-05-29) |
+| n8n WF-GS-05 BCP Auto Payment Confirmation | 🟡 Creado — pendiente activar |
 | `lib/audit.ts` + UI `/audit` + `logAudit()` en orders | ✅ Implementado |
 | Rate limiting en `/api/registro` | ✅ Implementado |
 | Error monitoring (`reportAsyncError`) | ✅ Fase 1 |
