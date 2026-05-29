@@ -3,6 +3,16 @@
 Análisis al 2026-05-13. Basado en lectura directa del código y ejecución de herramientas.
 Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN.md`.
 
+**Últimas actualizaciones (2026-05-29 v2):**
+- ✅ Fix login redirect: `window.location.href = "/"` → `"/dashboard"` en `app/login/page.tsx`
+- ✅ Onboarding tour interactivo: `components/dashboard/OnboardingTour.tsx`
+  - localStorage-based (`gestios_onboarding_v1`), no DB migration needed
+  - Welcome card + 4 pasos (POS, Inventario, Clientes, Reportes)
+  - Botón "Saltar tour" + "Ir a feature" en cada paso
+  - Activado en dashboard layout solo para non-superadmins
+- ✅ Confirmados ya implementados: NotificationBell (sidebar), sessions page (/settings/sessions)
+- ✅ Deploy: pushed to main → Vercel autodeploy activo
+
 **Últimas actualizaciones (2026-05-29):**
 - ✅ Sistema de pagos manual BCP Bolivia completo
   - `POST /api/billing/checkout` — genera PaymentRequest + instrucciones bancarias
