@@ -27,7 +27,7 @@ export default function LoginPage() {
   // request (router.push/refresh can race the cookie propagation).
   useEffect(() => {
     if (state?.ok) {
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     }
   }, [state]);
 
