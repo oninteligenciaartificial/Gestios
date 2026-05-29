@@ -3,6 +3,14 @@
 Análisis al 2026-05-13. Basado en lectura directa del código y ejecución de herramientas.
 Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN.md`.
 
+**Últimas actualizaciones (2026-05-25):**
+- ✅ Fix build Vercel: `Profile.email` → `Profile.userId` en `whatsapp-addon/route.ts`
+- ✅ Migraciones Supabase aplicadas: `notifications` table + `UserSession` table
+- ✅ n8n WF-GS-02 Plan Expiry WA activo — diario 12pm, Meta Graph API v20.0 por tenant
+- ✅ n8n WF-GS-03 Birthday WA activo — diario 1pm, filtra cumpleaños hoy por mes+día
+- ✅ n8n WF-GS-04 Weekly Admin Digest activo — lunes 9am → `business@onia.com.bo`
+- ✅ Trigger n8n WF-GS-05 en `app/api/setup/route.ts` (fire-and-forget al crear org)
+
 **Últimas actualizaciones (2026-05-23):**
 - ✅ Tracking público de pedidos: `GET /api/pedido/[id]` (público, sin auth) + `app/pedido/[id]/page.tsx` — timeline de estados, SEO
 - ✅ Email CTA "Ver estado del pedido": botón naranja en `sendOrderConfirmation` y `sendOrderStatusUpdate` en `lib/email.ts`
@@ -75,6 +83,9 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
 | Página pública `/registro/[slug]` (plan PRO+) | ✅ Completo |
 | Panel superadmin (orgs, usuarios, pagos, impersonación) | ✅ Completo |
 | WhatsApp — backend + webhook multi-tenant | ✅ Backend listo |
+| n8n WF-GS-02 Plan Expiry WA | ✅ Activo (2026-05-25) |
+| n8n WF-GS-03 Birthday WA | ✅ Activo (2026-05-25) |
+| n8n WF-GS-04 Weekly Admin Digest | ✅ Activo (2026-05-25) |
 | `lib/audit.ts` + UI `/audit` + `logAudit()` en orders | ✅ Implementado |
 | Rate limiting en `/api/registro` | ✅ Implementado |
 | Error monitoring (`reportAsyncError`) | ✅ Fase 1 |

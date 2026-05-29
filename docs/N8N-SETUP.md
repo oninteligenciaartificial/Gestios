@@ -131,6 +131,49 @@ Toggle the **Active** switch to **ON**. The first run will occur at the next 6-h
 
 ---
 
+---
+
+## GestiOS Automation Workflows (WF-GS-02, WF-GS-03, WF-GS-04)
+
+Estos 3 workflows son específicos de GestiOS y ya están creados y activos en n8n. No requieren importar JSON — se crearon via n8n MCP con credenciales hardcodeadas.
+
+### Instancia n8n
+`https://n8n-sergio-n8n.hqdqgh.easypanel.host`
+
+### WF-GS-02 — Plan Expiry WA
+| Campo | Valor |
+|---|---|
+| ID | `xx4wzzzqZBGfu836` |
+| Trigger | Cron `0 12 * * *` (diario 12pm) |
+| Función | Orgs con plan venciendo en ≤7 días → WA reminder |
+| Sender WA | Credenciales del tenant (desde `org_addons`) |
+| Estado | 🟢 Activo |
+
+### WF-GS-03 — Birthday WA
+| Campo | Valor |
+|---|---|
+| ID | `qOVpQwPZplQKYkMc` |
+| Trigger | Cron `0 13 * * *` (diario 1pm) |
+| Función | Clientes con cumpleaños hoy → WA saludo |
+| Filtro | Code node filtra por mes+día (Supabase REST no soporta EXTRACT) |
+| Sender WA | Credenciales del tenant (desde `org_addons`) |
+| Estado | 🟢 Activo |
+
+### WF-GS-04 — Weekly Admin Digest
+| Campo | Valor |
+|---|---|
+| ID | `6oowIHo8G9baBOYc` |
+| Trigger | Cron `0 9 * * 1` (lunes 9am) |
+| Función | Stats cross-tenant → email digest a admin |
+| Destinatario | `business@onia.com.bo` |
+| Remitente | `noreply@onia.com.bo` via Resend |
+| Estado | 🟢 Activo |
+
+### Nota sobre credenciales
+n8n VPS (self-hosted) no soporta `$vars` (feature de n8n Cloud). Las credenciales están hardcodeadas directamente en los nodos HTTP Request. Si rota la `SUPABASE_SERVICE_ROLE_KEY` o `RESEND_API_KEY`, actualizar los 3 workflows via n8n MCP o UI.
+
+---
+
 ## Environment Variables in GestiOS (Vercel)
 
 Add the following to your Vercel project environment variables:

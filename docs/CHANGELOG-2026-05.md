@@ -163,6 +163,47 @@
 
 ---
 
+---
+
+## 2026-05-25 — n8n Workflows GestiOS + Migraciones Supabase + Fix Build
+
+### Migraciones Supabase aplicadas ✅
+- `prisma/migrations/20260523150000_add_notifications/migration.sql` — tabla `notifications` con índice compuesto
+- `prisma/migrations/add_user_sessions` — tabla `UserSession` para gestión de dispositivos activos
+
+### Fix build Vercel ✅
+- **Bug:** `Profile.email does not exist in type 'ProfileSelect<DefaultArgs>'`
+- **Causa:** `Profile` no tiene campo `email` (removido per AGENTS.md)
+- **Fix:** `app/api/superadmin/organizations/[id]/whatsapp-addon/route.ts` — `select: { email: true }` → `select: { userId: true }`, `adminEmail` → `adminUserId`
+- **Trigger n8n WF-GS-05:** `app/api/setup/route.ts` — fire-and-forget al crear nueva org (org ID, nombre, plan, businessType, slug)
+
+### n8n Workflows GestiOS creados y activados ✅
+
+#### WF-GS-02 — Plan Expiry WA (`xx4wzzzqZBGfu836`)
+- **Trigger:** Cron diario 12pm
+- **Función:** Busca orgs con `planExpiresAt` en ≤7 días + phone no nulo → manda WA usando credenciales del tenant en `org_addons`
+- **Flujo:** `Calc Dates` → `Fetch Expiring Orgs` (Supabase REST) → `For Each Org` (batch=5) → `Fetch WA Addon` → `Send WA Expiry` (Meta Graph API v20.0)
+- **Estado:** 🟢 Activo
+
+#### WF-GS-03 — Birthday WA (`qOVpQwPZplQKYkMc`)
+- **Trigger:** Cron diario 1pm
+- **Función:** Busca todos los clientes con birthday + phone → filtra por mes/día == hoy (Code node) → manda WA usando credenciales del tenant
+- **Flujo:** `Fetch Customers` (limit 1000) → `Filter Birthdays Today` (Code node, month+day match) → `Split In Batches` (batch=10) → `Fetch WA Addon` → `Send Birthday WA`
+- **Estado:** 🟢 Activo
+
+#### WF-GS-04 — Weekly Admin Digest (`6oowIHo8G9baBOYc`)
+- **Trigger:** Cron lunes 9am
+- **Función:** Fetch cross-tenant stats (orgs activas, nuevas, ventas ENTREGADO) → arma digest → email a `business@onia.com.bo`
+- **Flujo:** 3 ramas paralelas (`fetchOrgStats`, `fetchNewOrgs`, `fetchRevenueStats`) → `buildDigest` (Code node) → `sendAdminEmail` (Resend API)
+- **Credenciales hardcodeadas:** Supabase service role key + Resend API key (n8n VPS — sin soporte de variables)
+- **Email:** `noreply@onia.com.bo` → `business@onia.com.bo`
+- **Estado:** 🟢 Activo
+
+### Documentación n8n actualizada
+- `docs/N8N-SETUP.md` — Sección GestiOS Workflows agregada
+
+---
+
 ## Pendiente para próximo deploy
 
 ### Requiere acción externa
