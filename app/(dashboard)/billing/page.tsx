@@ -1,43 +1,41 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PLAN_META, PLAN_PRICES_BOB, PLAN_FEATURES, ADDON_META, type PlanType } from "@/lib/plans";
+import { PLAN_META, PLAN_PRICES_BOB, ADDON_META, type PlanType } from "@/lib/plans";
 import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2, Zap, X, Building2 } from "lucide-react";
 
 const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
 const ALL_ADDONS = ["WHATSAPP", "FACTURACION", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"] as const;
 type AddonType = typeof ALL_ADDONS[number];
 const WA_NUMBER = "59175470140";
+const BANK_DATA = {
+  account: "1311455296",
+  bank: "Banco Ganadero S.A.",
+  owner: "Urcullo Montenegro Ruddy",
+} as const;
 
-const ALL_FEATURES: { label: string; plans: PlanType[] }[] = [
-  { label: "Dashboard", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Punto de Venta", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Inventario", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Variantes de productos", plans: ["CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Pedidos", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Clientes", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Corte de Caja", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Descuentos ilimitados", plans: ["CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Categorias", plans: ["BASICO", "CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Reportes avanzados", plans: ["CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Proveedores", plans: ["CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Import/Export CSV", plans: ["CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Vencimientos", plans: ["CRECER", "PRO", "EMPRESARIAL"] },
-  { label: "Tienda Online", plans: ["PRO", "EMPRESARIAL"] },
-  { label: "Registro Público", plans: ["PRO", "EMPRESARIAL"] },
-  { label: "Pagos QR Bolivia", plans: ["PRO", "EMPRESARIAL"] },
-  { label: "Email marketing", plans: ["PRO", "EMPRESARIAL"] },
-  { label: "Garantías", plans: ["PRO", "EMPRESARIAL"] },
-  { label: "Sucursales multiples", plans: ["EMPRESARIAL"] },
-  { label: "Auditoría (Audit Log)", plans: ["EMPRESARIAL"] },
-  { label: "Facturación SIAT", plans: ["EMPRESARIAL"] },
-  { label: "Roles avanzados", plans: ["EMPRESARIAL"] },
+type Feat = { label: string; plans: PlanType[] };
+const A: PlanType[] = ["BASICO","CRECER","PRO","EMPRESARIAL"];
+const B: PlanType[] = ["CRECER","PRO","EMPRESARIAL"];
+const C: PlanType[] = ["PRO","EMPRESARIAL"];
+const D: PlanType[] = ["EMPRESARIAL"];
+const ALL_FEATURES: Feat[] = [
+  { label: "Dashboard", plans: A }, { label: "Punto de Venta", plans: A },
+  { label: "Inventario", plans: A }, { label: "Pedidos", plans: A },
+  { label: "Clientes", plans: A }, { label: "Corte de Caja", plans: A }, { label: "Categorias", plans: A },
+  { label: "Variantes de productos", plans: B }, { label: "Descuentos ilimitados", plans: B },
+  { label: "Reportes avanzados", plans: B }, { label: "Proveedores", plans: B },
+  { label: "Import/Export CSV", plans: B }, { label: "Vencimientos", plans: B },
+  { label: "Tienda Online", plans: C }, { label: "Registro Público", plans: C },
+  { label: "Pagos QR Bolivia", plans: C }, { label: "Email marketing", plans: C }, { label: "Garantías", plans: C },
+  { label: "Sucursales multiples", plans: D }, { label: "Auditoría (Audit Log)", plans: D },
+  { label: "Facturación SIAT", plans: D }, { label: "Roles avanzados", plans: D },
 ];
 
 const ADDON_WA_MSG: Record<AddonType, string> = {
   WHATSAPP:    "Hola! Me interesa activar el add-on *WhatsApp Business* ($40/mes) en GestiOS. ¿Cómo procedo?",
   FACTURACION: "Hola! Me interesa el add-on de *Facturación SIAT* para Bolivia en GestiOS. ¿Cuándo estará disponible?",
-  QR_BOLIVIA: "Hola! Quiero activar el add-on de *Pagos QR Bolivia* ($15/mes) en GestiOS. ¿Cómo procedo?",
+  QR_BOLIVIA:  "Hola! Quiero activar el add-on de *Pagos QR Bolivia* ($15/mes) en GestiOS. ¿Cómo procedo?",
   ECOMMERCE:   "Hola! Me interesa el add-on de *E-commerce* ($20/mes) en GestiOS. ¿Cómo procedo?",
   CONTABILIDAD:"Hola! Quiero activar la *Exportación Contable* ($18/mes) en GestiOS. ¿Cómo procedo?",
 };
@@ -49,22 +47,14 @@ function calcTotal(pricePerMonth: number, months: number): number {
   return Math.round(pricePerMonth * months * (1 - discount / 100));
 }
 
-const PLAN_WA_MSG: Record<PlanType, (org: string, months: number, total: number) => string> = {
-  BASICO:      (org, m, t) => `Hola! Quiero contratar el *Plan Básico* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: Básico ($39/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`,
-  CRECER:      (org, m, t) => `Hola! Quiero contratar el *Plan Crecer* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: Crecer ($59/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`,
-  PRO:         (org, m, t) => `Hola! Quiero contratar el *Plan Pro* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: Pro ($89/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`,
-  EMPRESARIAL: (org, m, t) => `Hola! Quiero contratar el *Plan Empresarial* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: Empresarial ($139/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`,
-};
+const PLAN_PRICE_LABEL: Record<PlanType, string> = { BASICO: "$39", CRECER: "$59", PRO: "$89", EMPRESARIAL: "$139" };
+function planWaMsg(plan: PlanType, org: string, m: number, t: number) {
+  return `Hola! Quiero contratar el *Plan ${PLAN_META[plan].label}* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: ${PLAN_META[plan].label} (${PLAN_PRICE_LABEL[plan]}/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`;
+}
 
-type PaymentRequest = {
-  id: string;
-  plan: PlanType;
-  months: number;
-  amountBOB: number;
-  reference: string | null;
-  status: "PENDIENTE" | "CONFIRMADO" | "RECHAZADO";
-  createdAt: string;
-};
+type PaymentRequest = { id: string; plan: PlanType; months: number; amountBOB: number; reference: string | null; status: "PENDIENTE" | "CONFIRMADO" | "RECHAZADO"; createdAt: string };
+type QrData = { qrPayload: string; qrImageUrl?: string; expiresAt: string; qrPaymentId: string; amountBOB: number };
+type TransferData = { reference: string; amount: number; instructions: { bank: string; account: string; owner: string } };
 
 export default function BillingPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("BASICO");
@@ -72,17 +62,9 @@ export default function BillingPage() {
   const [orgName, setOrgName] = useState("mi tienda");
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [addons, setAddons] = useState<{ addon: AddonType; active: boolean }[]>([]);
-  const [copied, setCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
   const [cancelling, setCancelling] = useState<string | null>(null);
-  const [qrData, setQrData] = useState<{
-    qrPayload: string;
-    qrImageUrl?: string;
-    expiresAt: string;
-    qrPaymentId: string;
-    amountBOB: number;
-  } | null>(null);
+  const [qrData, setQrData] = useState<QrData | null>(null);
   const [qrStatus, setQrStatus] = useState<"pending" | "paid" | "expired" | "error">("pending");
   const [generatingQr, setGeneratingQr] = useState(false);
   const [qrAddonMode, setQrAddonMode] = useState<"nit" | "no-nit" | null>(null);
@@ -90,14 +72,8 @@ export default function BillingPage() {
   const [qrImagePreview, setQrImagePreview] = useState<string | null>(null);
   const [qrImageUploading, setQrImageUploading] = useState(false);
   const [qrImageUploaded, setQrImageUploaded] = useState(false);
-
-  // Bank transfer state
   const [transferModal, setTransferModal] = useState(false);
-  const [transferData, setTransferData] = useState<{
-    reference: string;
-    amount: number;
-    instructions: { bank: string; account: string; owner: string };
-  } | null>(null);
+  const [transferData, setTransferData] = useState<TransferData | null>(null);
   const [transferLoading, setTransferLoading] = useState(false);
   const [transferSent, setTransferSent] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -109,27 +85,55 @@ export default function BillingPage() {
   useEffect(() => {
     fetch("/api/payments")
       .then(r => r.json())
-      .then(data => setRequests(Array.isArray(data) ? data : []));
+      .then((data: unknown) => setRequests(Array.isArray(data) ? (data as PaymentRequest[]) : []));
     fetch("/api/me")
       .then(r => r.json())
-      .then(data => { if (data.organization?.name) setOrgName(data.organization.name); });
+      .then((data: unknown) => {
+        if (data && typeof data === "object" && "organization" in data) {
+          const org = (data as { organization?: { name?: string } }).organization;
+          if (org?.name) setOrgName(org.name);
+        }
+      });
     fetch("/api/addons")
       .then(r => r.ok ? r.json() : [])
-      .then(data => setAddons(Array.isArray(data) ? data : []))
+      .then((data: unknown) => setAddons(Array.isArray(data) ? (data as { addon: AddonType; active: boolean }[]) : []))
       .catch(() => {});
   }, []);
 
   function openWhatsApp() {
-    const msg = PLAN_WA_MSG[selectedPlan](orgName, months, total);
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(planWaMsg(selectedPlan, orgName, months, total))}`, "_blank");
   }
 
   async function cancelRequest(id: string) {
     setCancelling(id);
     await fetch(`/api/payments?id=${id}`, { method: "DELETE" });
-    const data = await fetch("/api/payments").then(r => r.json());
-    setRequests(Array.isArray(data) ? data : []);
+    const data = await fetch("/api/payments").then(r => r.json()) as unknown;
+    setRequests(Array.isArray(data) ? (data as PaymentRequest[]) : []);
     setCancelling(null);
+  }
+
+  async function pollQrStatus(qrPaymentId: string) {
+    const maxAttempts = 30;
+    let attempts = 0;
+    const poll = async () => {
+      if (attempts >= maxAttempts) { setQrStatus("expired"); return; }
+      attempts++;
+      try {
+        const res = await fetch(`/api/billing/qr?qrPaymentId=${qrPaymentId}`);
+        const data = await res.json() as { status?: string };
+        if (data.status === "PAGADO") {
+          setQrStatus("paid");
+          setTimeout(() => window.location.reload(), 2000);
+          return;
+        }
+        if (data.status === "EXPIRADO" || data.status === "CANCELADO") {
+          setQrStatus("expired");
+          return;
+        }
+      } catch { /* continue polling */ }
+      setTimeout(poll, 5000);
+    };
+    poll();
   }
 
   async function generateQrPayment() {
@@ -141,17 +145,23 @@ export default function BillingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: selectedPlan, months }),
       });
-      const data = await res.json();
+      const data = await res.json() as {
+        qrAvailable?: boolean;
+        qrPayload?: string;
+        qrImageUrl?: string;
+        expiresAt?: string;
+        qrPaymentId?: string;
+        amountBOB?: number;
+      };
       if (res.ok && data.qrAvailable) {
         setQrData({
-          qrPayload: data.qrPayload,
+          qrPayload: data.qrPayload!,
           qrImageUrl: data.qrImageUrl,
-          expiresAt: data.expiresAt,
-          qrPaymentId: data.qrPaymentId,
-          amountBOB: data.amountBOB,
+          expiresAt: data.expiresAt!,
+          qrPaymentId: data.qrPaymentId!,
+          amountBOB: data.amountBOB!,
         });
-        // Start polling for payment status
-        pollQrStatus(data.qrPaymentId);
+        pollQrStatus(data.qrPaymentId!);
       } else {
         setQrStatus("error");
       }
@@ -162,52 +172,9 @@ export default function BillingPage() {
     }
   }
 
-  async function pollQrStatus(qrPaymentId: string) {
-    const maxAttempts = 30; // 2.5 minutes max
-    let attempts = 0;
-
-    const poll = async () => {
-      if (attempts >= maxAttempts) {
-        setQrStatus("expired");
-        return;
-      }
-      attempts++;
-
-      try {
-        const res = await fetch(`/api/billing/qr?qrPaymentId=${qrPaymentId}`);
-        const data = await res.json();
-        if (data.status === "PAGADO") {
-          setQrStatus("paid");
-          // Refresh page after short delay
-          setTimeout(() => window.location.reload(), 2000);
-          return;
-        }
-        if (data.status === "EXPIRADO" || data.status === "CANCELADO") {
-          setQrStatus("expired");
-          return;
-        }
-      } catch {
-        // Continue polling
-      }
-
-      setTimeout(poll, 5000); // Poll every 5 seconds
-    };
-
-    poll();
-  }
-
-  function copyNumber() {
-    navigator.clipboard.writeText("1311455296");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   function handleQrImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) return; // 5MB max
-
+    if (!file || !file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return;
     setQrImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setQrImagePreview(reader.result as string);
@@ -217,27 +184,18 @@ export default function BillingPage() {
   async function uploadQrImage() {
     if (!qrImageFile) return;
     setQrImageUploading(true);
-
     const formData = new FormData();
     formData.append("file", qrImageFile);
     formData.append("type", "qr-bolivia");
-
     try {
-      const res = await fetch("/api/addons/qr-bolivia/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (res.ok) {
-        setQrImageUploaded(true);
-        setQrAddonMode(null);
-      }
-    } catch {
-      // Error handled silently
-    } finally {
+      const res = await fetch("/api/addons/qr-bolivia/upload", { method: "POST", body: formData });
+      if (res.ok) { setQrImageUploaded(true); setQrAddonMode(null); }
+    } catch { /* silent */ } finally {
       setQrImageUploading(false);
     }
   }
+
+  const pending = requests.find(r => r.status === "PENDIENTE");
 
   async function startBankTransfer() {
     if (pending) {
@@ -264,15 +222,11 @@ export default function BillingPage() {
         alert(data.error ?? "Error al generar referencia");
         return;
       }
-      setTransferData({
-        reference: data.reference!,
-        amount: data.amount!,
-        instructions: data.instructions!,
-      });
+      setTransferData({ reference: data.reference!, amount: data.amount!, instructions: data.instructions! });
       setTransferSent(false);
       setTransferModal(true);
-      const updated = await fetch("/api/payments").then(r => r.json()) as PaymentRequest[];
-      setRequests(Array.isArray(updated) ? updated : []);
+      const updated = await fetch("/api/payments").then(r => r.json()) as unknown;
+      setRequests(Array.isArray(updated) ? (updated as PaymentRequest[]) : []);
     } catch {
       alert("Error de conexión. Intenta nuevamente.");
     } finally {
@@ -286,70 +240,28 @@ export default function BillingPage() {
     setTimeout(() => setCopiedField(null), 2000);
   }
 
-  const pending = requests.find(r => r.status === "PENDIENTE");
-
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Facturación y Plan</h1>
-        <p className="text-brand-muted mt-1 text-sm">Elige tu plan y coordina el pago por WhatsApp</p>
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+      <header className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Facturación y Plan</h1>
+          <p className="text-brand-muted mt-1 text-sm">Elige tu plan y coordina el pago por WhatsApp</p>
+        </div>
       </header>
 
-      {/* Solicitudes — colapsable */}
-      {requests.length > 0 && (
-        <section className="glass-panel rounded-2xl overflow-hidden">
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-brand-muted uppercase tracking-wider">Solicitudes recientes</span>
-              {pending && (
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">
-                  1 pendiente
-                </span>
-              )}
-            </div>
-            {showHistory ? <ChevronUp size={16} className="text-brand-muted" /> : <ChevronDown size={16} className="text-brand-muted" />}
-          </button>
-
-          {showHistory && (
-            <div className="px-5 pb-5 space-y-2 border-t border-white/5">
-              {requests.map(r => (
-                <div key={r.id} className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0">
-                  <div>
-                    <span className="text-white font-medium text-sm">{PLAN_META[r.plan].label} · {r.months} mes{r.months > 1 ? "es" : ""}</span>
-                    <span className="text-brand-muted text-xs ml-2">Bs. {Number(r.amountBOB).toLocaleString("es-BO")}</span>
-                    <div className="text-brand-muted text-xs">{new Date(r.createdAt).toLocaleDateString("es-BO")}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                      r.status === "CONFIRMADO" ? "bg-green-500/15 text-green-400" :
-                      r.status === "RECHAZADO"  ? "bg-red-500/15 text-red-400" :
-                      "bg-yellow-500/15 text-yellow-400"
-                    }`}>
-                      {r.status === "CONFIRMADO" ? "Confirmado" : r.status === "RECHAZADO" ? "Rechazado" : "Pendiente"}
-                    </span>
-                    {r.status === "PENDIENTE" && (
-                      <button
-                        onClick={() => cancelRequest(r.id)}
-                        disabled={cancelling === r.id}
-                        className="text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
-                        title="Cancelar solicitud"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+      {/* Pending payment alert */}
+      {pending && (
+        <div className="glass-panel rounded-2xl px-5 py-3 flex items-center gap-3 border border-yellow-500/20 bg-yellow-500/5">
+          <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />
+          <span className="text-sm text-yellow-300">
+            Tienes una solicitud de pago pendiente de verificación.
+          </span>
+        </div>
       )}
 
+      {/* Row 1: Plan selector + comparison table */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Selector de plan */}
+        {/* Left: plan selector + months + total + payment buttons */}
         <div className="space-y-5">
           <div className="glass-panel rounded-2xl p-5 space-y-3">
             <h2 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Elige tu plan</h2>
@@ -419,11 +331,8 @@ export default function BillingPage() {
             >
               <MessageCircle size={18} /> Solicitar Plan {PLAN_META[selectedPlan].label} por WhatsApp
             </button>
-            <p className="text-xs text-brand-muted text-center">
-              Se abrirá WhatsApp con un mensaje listo para enviar
-            </p>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-white/10" />
               <span className="text-xs text-brand-muted">o paga con QR</span>
               <div className="flex-1 h-px bg-white/10" />
@@ -467,9 +376,7 @@ export default function BillingPage() {
                   <QrCode size={48} className="text-brand-muted" />
                 </div>
               )}
-              <p className="text-xs text-brand-muted">
-                Escanea con tu app bancaria. El plan se activará automáticamente al confirmar el pago.
-              </p>
+              <p className="text-xs text-brand-muted">Escanea con tu app bancaria. El plan se activará automáticamente.</p>
               <div className="flex items-center justify-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
                 <span className="text-xs text-yellow-400">Esperando pago...</span>
@@ -479,149 +386,184 @@ export default function BillingPage() {
 
           {qrStatus === "paid" && (
             <div className="glass-panel rounded-2xl p-5 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-green-500/15 flex items-center justify-center mx-auto">
-                <Check size={24} className="text-green-400" />
-              </div>
+              <div className="w-12 h-12 rounded-full bg-green-500/15 flex items-center justify-center mx-auto"><Check size={24} className="text-green-400" /></div>
               <h3 className="text-lg font-bold text-white">Pago confirmado!</h3>
               <p className="text-sm text-brand-muted">Tu plan {PLAN_META[selectedPlan].label} fue activado. Recargando...</p>
             </div>
           )}
-
           {qrStatus === "expired" && (
             <div className="glass-panel rounded-2xl p-5 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center mx-auto">
-                <X size={24} className="text-red-400" />
-              </div>
+              <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center mx-auto"><X size={24} className="text-red-400" /></div>
               <h3 className="text-lg font-bold text-white">QR expirado</h3>
               <p className="text-sm text-brand-muted">El tiempo de pago venció. Intenta nuevamente.</p>
-              <button onClick={() => { setQrData(null); setQrStatus("pending"); }} className="text-brand-kinetic-orange text-sm font-bold">
-                Generar nuevo QR
-              </button>
+              <button onClick={() => { setQrData(null); setQrStatus("pending"); }} className="text-brand-kinetic-orange text-sm font-bold">Generar nuevo QR</button>
             </div>
           )}
-
           {qrStatus === "error" && (
             <div className="glass-panel rounded-2xl p-5 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center mx-auto">
-                <X size={24} className="text-red-400" />
-              </div>
+              <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center mx-auto"><X size={24} className="text-red-400" /></div>
               <h3 className="text-lg font-bold text-white">Error al generar QR</h3>
               <p className="text-sm text-brand-muted">No se pudo generar el QR. Usa WhatsApp para coordinar el pago.</p>
-              <button onClick={() => setQrStatus("pending")} className="text-brand-kinetic-orange text-sm font-bold">
-                Intentar nuevamente
-              </button>
+              <button onClick={() => setQrStatus("pending")} className="text-brand-kinetic-orange text-sm font-bold">Intentar nuevamente</button>
             </div>
           )}
         </div>
 
-        {/* Tabla comparativa de planes */}
+        {/* Right: Feature comparison table (always visible) */}
         <div className="glass-panel rounded-2xl overflow-hidden">
-          <button
-            onClick={() => setShowComparison(!showComparison)}
-            className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-brand-muted uppercase tracking-wider">Comparar planes</span>
-            </div>
-            {showComparison ? <ChevronUp size={16} className="text-brand-muted" /> : <ChevronDown size={16} className="text-brand-muted" />}
-          </button>
-
-          {showComparison && (
-            <div className="px-5 pb-5 border-t border-white/5">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-white/5">
-                      <th className="text-left py-3 px-2 text-brand-muted font-medium">Feature</th>
+          <div className="p-5 border-b border-white/5">
+            <span className="text-sm font-bold text-brand-muted uppercase tracking-wider">Comparar planes</span>
+          </div>
+          <div className="px-5 pb-5">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    <th className="text-left py-3 px-2 text-brand-muted font-medium">Feature</th>
+                    {PLANS.map(p => (
+                      <th key={p} className={`text-center py-3 px-2 font-bold text-xs ${PLAN_META[p].color}`}>
+                        {PLAN_META[p].label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ALL_FEATURES.map((feat, i) => (
+                    <tr key={i} className="border-b border-white/5 last:border-0">
+                      <td className="py-2.5 px-2 text-white">{feat.label}</td>
                       {PLANS.map(p => (
-                        <th key={p} className={`text-center py-3 px-2 font-bold text-xs ${PLAN_META[p].color}`}>
-                          {PLAN_META[p].label}
-                        </th>
+                        <td key={p} className="text-center py-2.5 px-2">
+                          {feat.plans.includes(p) ? (
+                            <Check size={14} className="text-brand-growth-neon mx-auto" />
+                          ) : (
+                            <X size={14} className="text-white/20 mx-auto" />
+                          )}
+                        </td>
                       ))}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {ALL_FEATURES.map((feat, i) => (
-                      <tr key={i} className="border-b border-white/5 last:border-0">
-                        <td className="py-2.5 px-2 text-white">{feat.label}</td>
-                        {PLANS.map(p => (
-                          <td key={p} className="text-center py-2.5 px-2">
-                            {feat.plans.includes(p) ? (
-                              <Check size={14} className="text-brand-growth-neon mx-auto" />
-                            ) : (
-                              <X size={14} className="text-white/20 mx-auto" />
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Instrucciones + QR */}
-        <div className="space-y-5">
-          <div className="glass-panel rounded-2xl p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <QrCode size={18} className="text-brand-kinetic-orange" />
-              <h2 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Cómo pagar</h2>
-            </div>
-            <ol className="space-y-3 text-sm text-white/80">
-              <li className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                <span>Haz clic en &quot;Solicitar por WhatsApp&quot; — el mensaje ya viene listo con tu plan y monto.</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                <span>Escanea el QR o transfiere a la cuenta de abajo exactamente <strong className="text-brand-kinetic-orange">Bs. {total.toLocaleString("es-BO")}</strong>.</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                <span>Mándanos el comprobante por WhatsApp. Activamos tu plan en menos de 24 horas.</span>
-              </li>
-            </ol>
-
-            <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between">
-              <div>
-                <div className="text-xs text-brand-muted mb-0.5">N° de cuenta · Banco Ganadero</div>
-                <div className="text-white font-mono font-bold">1311455296</div>
-                <div className="text-xs text-brand-muted">Urcullo Montenegro Ruddy</div>
-              </div>
-              <button onClick={copyNumber} className="text-brand-kinetic-orange text-xs flex items-center gap-1 hover:underline">
-                <Copy size={12} /> {copied ? "¡Copiado!" : "Copiar"}
-              </button>
-            </div>
-          </div>
-
-          {/* Card QR OnIA */}
-          <div className="rounded-2xl overflow-hidden border border-white/10 bg-white">
-            <div className="bg-white px-5 py-4 flex items-center justify-between border-b border-gray-100">
-              <img src="/LOGO ONIA.jpeg" alt="OnIA" className="h-8 object-contain" />
-              <span className="text-xs text-gray-400 font-medium">Banco Ganadero S.A.</span>
-            </div>
-            <div className="bg-white flex items-center justify-center px-6 py-2 overflow-hidden">
-              <div className="relative w-56 overflow-hidden" style={{ height: "224px" }}>
-                <img
-                  src="/QR GANADERO GESTIOS.jpeg"
-                  alt="QR de pago"
-                  className="absolute w-full"
-                  style={{ top: "-18%", transform: "scale(1.05)" }}
-                />
-              </div>
-            </div>
-            <div className="bg-white px-5 py-4 border-t border-gray-100 space-y-1 text-center">
-              <p className="text-gray-800 font-bold text-sm">Urcullo Montenegro Ruddy</p>
-              <p className="text-gray-500 text-xs">Cuenta <span className="font-mono font-bold text-gray-700">1311455296</span></p>
-              <p className="text-gray-400 text-xs">GestiOS Suscripción · QR Interbancario Bolivia</p>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Add-ons */}
+      {/* Row 2: Payment info — steps + static QR card */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass-panel rounded-2xl p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <QrCode size={18} className="text-brand-kinetic-orange" />
+            <h2 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Cómo pagar</h2>
+          </div>
+          <ol className="space-y-3 text-sm text-white/80">
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+              <span>Haz clic en &quot;Solicitar por WhatsApp&quot; — el mensaje ya viene listo con tu plan y monto.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+              <span>Escanea el QR o transfiere a la cuenta de abajo exactamente <strong className="text-brand-kinetic-orange">Bs. {total.toLocaleString("es-BO")}</strong>.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+              <span>Mándanos el comprobante por WhatsApp. Activamos tu plan en menos de 24 horas.</span>
+            </li>
+          </ol>
+
+          <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <div className="text-xs text-brand-muted mb-0.5">N° de cuenta · {BANK_DATA.bank}</div>
+              <div className="text-white font-mono font-bold">{BANK_DATA.account}</div>
+              <div className="text-xs text-brand-muted">{BANK_DATA.owner}</div>
+            </div>
+            <button
+              onClick={() => copyField(BANK_DATA.account, "bank-account")}
+              className="text-brand-kinetic-orange text-xs flex items-center gap-1 hover:underline"
+            >
+              <Copy size={12} /> {copiedField === "bank-account" ? "¡Copiado!" : "Copiar"}
+            </button>
+          </div>
+        </div>
+
+        {/* Static QR card */}
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-white">
+          <div className="bg-white px-5 py-4 flex items-center justify-between border-b border-gray-100">
+            <img src="/LOGO ONIA.jpeg" alt="OnIA" className="h-8 object-contain" />
+            <span className="text-xs text-gray-400 font-medium">{BANK_DATA.bank}</span>
+          </div>
+          <div className="bg-white flex items-center justify-center px-6 py-2 overflow-hidden">
+            <div className="relative w-56 overflow-hidden" style={{ height: "224px" }}>
+              <img
+                src="/QR GANADERO GESTIOS.jpeg"
+                alt="QR de pago"
+                className="absolute w-full"
+                style={{ top: "-18%", transform: "scale(1.05)" }}
+              />
+            </div>
+          </div>
+          <div className="bg-white px-5 py-4 border-t border-gray-100 space-y-1 text-center">
+            <p className="text-gray-800 font-bold text-sm">{BANK_DATA.owner}</p>
+            <p className="text-gray-500 text-xs">Cuenta <span className="font-mono font-bold text-gray-700">{BANK_DATA.account}</span></p>
+            <p className="text-gray-400 text-xs">GestiOS Suscripción · QR Interbancario Bolivia</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Payment history */}
+      {requests.length > 0 && (
+        <section className="glass-panel rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold text-brand-muted uppercase tracking-wider">Solicitudes recientes</span>
+              {pending && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400">
+                  1 pendiente
+                </span>
+              )}
+            </div>
+            {showHistory ? <ChevronUp size={16} className="text-brand-muted" /> : <ChevronDown size={16} className="text-brand-muted" />}
+          </button>
+
+          {showHistory && (
+            <div className="px-5 pb-5 space-y-2 border-t border-white/5">
+              {requests.map(r => (
+                <div key={r.id} className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0">
+                  <div>
+                    <span className="text-white font-medium text-sm">{PLAN_META[r.plan].label} · {r.months} mes{r.months > 1 ? "es" : ""}</span>
+                    <span className="text-brand-muted text-xs ml-2">Bs. {Number(r.amountBOB).toLocaleString("es-BO")}</span>
+                    <div className="text-brand-muted text-xs">{new Date(r.createdAt).toLocaleDateString("es-BO")}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      r.status === "CONFIRMADO" ? "bg-green-500/15 text-green-400" :
+                      r.status === "RECHAZADO"  ? "bg-red-500/15 text-red-400" :
+                      "bg-yellow-500/15 text-yellow-400"
+                    }`}>
+                      {r.status === "CONFIRMADO" ? "Confirmado" : r.status === "RECHAZADO" ? "Rechazado" : "Pendiente"}
+                    </span>
+                    {r.status === "PENDIENTE" && (
+                      <button
+                        onClick={() => cancelRequest(r.id)}
+                        disabled={cancelling === r.id}
+                        className="text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-40"
+                        title="Cancelar solicitud"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Row 4: Add-ons */}
       <section className="glass-panel rounded-2xl p-5 space-y-4">
         <div className="flex items-center gap-2">
           <Zap size={16} className="text-brand-kinetic-orange" />
@@ -731,12 +673,7 @@ export default function BillingPage() {
                         {!qrImageUploaded && (
                           <>
                             <label className="block w-full border-2 border-dashed border-white/10 rounded-xl p-6 text-center cursor-pointer hover:border-brand-kinetic-orange/30 transition-colors">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleQrImageSelect}
-                                className="hidden"
-                              />
+                              <input type="file" accept="image/*" onChange={handleQrImageSelect} className="hidden" />
                               {qrImagePreview ? (
                                 <div className="space-y-2">
                                   <img src={qrImagePreview} alt="QR preview" className="w-32 h-32 mx-auto rounded-lg object-contain bg-white p-2" />
@@ -769,7 +706,10 @@ export default function BillingPage() {
                           </div>
                         )}
 
-                        <button onClick={() => { setQrAddonMode(null); setQrImageFile(null); setQrImagePreview(null); }} className="text-xs text-brand-muted hover:text-white transition-colors">
+                        <button
+                          onClick={() => { setQrAddonMode(null); setQrImageFile(null); setQrImagePreview(null); }}
+                          className="text-xs text-brand-muted hover:text-white transition-colors"
+                        >
                           ← Volver
                         </button>
                       </div>
@@ -788,10 +728,7 @@ export default function BillingPage() {
           <div className="w-full max-w-md glass-panel rounded-2xl p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-white">Datos de transferencia</h2>
-              <button
-                onClick={() => setTransferModal(false)}
-                className="text-brand-muted hover:text-white transition-colors"
-              >
+              <button onClick={() => setTransferModal(false)} className="text-brand-muted hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -805,25 +742,11 @@ export default function BillingPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {[
-                    { label: "Banco", key: "bank", value: transferData?.instructions.bank ?? "—" },
-                    { label: "Nro. de cuenta", key: "account", value: transferData?.instructions.account ?? "—" },
-                    { label: "Titular", key: "owner", value: transferData?.instructions.owner ?? "—" },
-                  ].map(({ label, key, value }) => (
+                  {([["Banco","bank",transferData?.instructions.bank],["Nro. de cuenta","account",transferData?.instructions.account],["Titular","owner",transferData?.instructions.owner]] as [string,string,string|undefined][]).map(([label,key,value]) => (
                     <div key={key} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">
-                      <div>
-                        <p className="text-xs text-brand-muted">{label}</p>
-                        <p className="text-white font-medium text-sm">{value}</p>
-                      </div>
-                      <button
-                        onClick={() => copyField(value, key)}
-                        className="ml-3 text-brand-muted hover:text-white transition-colors flex-shrink-0"
-                        title="Copiar"
-                      >
-                        {copiedField === key
-                          ? <Check size={16} className="text-green-400" />
-                          : <Copy size={16} />
-                        }
+                      <div><p className="text-xs text-brand-muted">{label}</p><p className="text-white font-medium text-sm">{value ?? "—"}</p></div>
+                      <button onClick={() => copyField(value ?? "", key)} className="ml-3 text-brand-muted hover:text-white transition-colors flex-shrink-0" title="Copiar">
+                        {copiedField === key ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
                       </button>
                     </div>
                   ))}
@@ -839,10 +762,7 @@ export default function BillingPage() {
                         className="ml-3 text-yellow-400/70 hover:text-yellow-300 transition-colors flex-shrink-0"
                         title="Copiar referencia"
                       >
-                        {copiedField === "reference"
-                          ? <Check size={16} className="text-green-400" />
-                          : <Copy size={16} />
-                        }
+                        {copiedField === "reference" ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
                       </button>
                     </div>
                     <p className="text-xs text-yellow-400/60 mt-2">
@@ -867,10 +787,7 @@ export default function BillingPage() {
                 <p className="text-sm text-brand-muted">
                   Tu pago está siendo verificado. Te notificaremos en 24-48h cuando tu plan sea activado.
                 </p>
-                <button
-                  onClick={() => setTransferModal(false)}
-                  className="text-brand-kinetic-orange text-sm font-bold"
-                >
+                <button onClick={() => setTransferModal(false)} className="text-brand-kinetic-orange text-sm font-bold">
                   Cerrar
                 </button>
               </div>
