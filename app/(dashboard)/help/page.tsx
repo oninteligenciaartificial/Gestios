@@ -21,7 +21,7 @@ const steps = [
   {
     num: 1,
     title: "Crear tu cuenta",
-    desc: "Registrate con tu email y crea tu organizacion. Elige el tipo de negocio que mejor describe tu tienda (ropa, farmacia, electronica, etc.).",
+    desc: "Regístrate con tu email y crea tu organización. Elige el tipo de negocio que mejor describe tu tienda (ropa, farmacia, electrónica, etc.).",
     icon: Sparkles,
     color: "text-brand-kinetic-orange",
     bg: "bg-brand-kinetic-orange/10",
@@ -29,7 +29,7 @@ const steps = [
   {
     num: 2,
     title: "Configurar tu negocio",
-    desc: "Ve a Configuracion y completa los datos de tu tienda: nombre, NIT, telefono, direccion y logo. Esto aparecera en tus comprobantes.",
+    desc: "Ve a Configuración y completa los datos de tu tienda: nombre, NIT, teléfono, dirección y logo. Esto aparecerá en tus comprobantes.",
     icon: Settings,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
@@ -37,7 +37,7 @@ const steps = [
   {
     num: 3,
     title: "Cargar tus productos",
-    desc: "Agrega tu catalogo en Inventario. Puedes importar desde CSV (plan CRECER+) o cargar uno por uno. Define precio, stock minimo y categorias.",
+    desc: "Agrega tu catálogo en Inventario. Puedes importar desde CSV (plan CRECER+) o cargar uno por uno. Define precio, stock mínimo y categorías.",
     icon: Package,
     color: "text-brand-growth-neon",
     bg: "bg-brand-growth-neon/10",
@@ -45,7 +45,7 @@ const steps = [
   {
     num: 4,
     title: "Empezar a vender",
-    desc: "Abre el Punto de Venta (POS), busca productos, agrega al carrito y cobra. El inventario se descuenta automaticamente en cada venta.",
+    desc: "Abre el Punto de Venta (POS), busca productos, agrega al carrito y cobra. El inventario se descuenta automáticamente en cada venta.",
     icon: Store,
     color: "text-purple-400",
     bg: "bg-purple-400/10",
@@ -59,7 +59,7 @@ const modules = [
     icon: ShoppingCart,
     color: "text-brand-kinetic-orange",
     bg: "bg-brand-kinetic-orange/10",
-    desc: "Cobra rapido con busqueda de productos, descuentos y multiples metodos de pago. Genera comprobantes de venta en el momento.",
+    desc: "Cobra rápido con búsqueda de productos, descuentos y múltiples métodos de pago. Genera comprobantes de venta en el momento.",
   },
   {
     title: "Inventario",
@@ -67,7 +67,7 @@ const modules = [
     icon: Package,
     color: "text-brand-growth-neon",
     bg: "bg-brand-growth-neon/10",
-    desc: "Gestiona tu catalogo de productos, precios, stock y alertas de reabastecimiento. Soporta variantes (talla, color, sabor) segun tu tipo de negocio.",
+    desc: "Gestiona tu catálogo de productos, precios, stock y alertas de reabastecimiento. Soporta variantes (talla, color, sabor) según tu tipo de negocio.",
   },
   {
     title: "Clientes",
@@ -75,7 +75,7 @@ const modules = [
     icon: Users,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
-    desc: "Registra clientes, ve su historial de compras y envia notificaciones de cumpleanos. Comparte el link de registro publico para que se registren solos.",
+    desc: "Registra clientes, ve su historial de compras y envía notificaciones de cumpleaños. Comparte el link de registro público para que se registren solos.",
   },
   {
     title: "Ventas",
@@ -91,7 +91,7 @@ const modules = [
     icon: BarChart2,
     color: "text-yellow-400",
     bg: "bg-yellow-400/10",
-    desc: "Analiza ventas por periodo, productos mas vendidos, ingresos por dia y exporta datos contables. Disponible en plan CRECER o superior.",
+    desc: "Analiza ventas por período, productos más vendidos, ingresos por día y exporta datos contables. Disponible en plan CRECER o superior.",
   },
   {
     title: "Personal",
@@ -99,47 +99,47 @@ const modules = [
     icon: UserCheck,
     color: "text-pink-400",
     bg: "bg-pink-400/10",
-    desc: "Agrega empleados con diferentes roles (Admin, Manager, Staff). Cada rol tiene permisos distintos para proteger informacion sensible.",
+    desc: "Agrega empleados con diferentes roles (Admin, Manager, Staff). Cada rol tiene permisos distintos para proteger información sensible.",
   },
 ];
 
 const plans = [
-  { name: "Basico", color: "text-brand-muted", features: ["150 productos", "50 clientes", "1 staff", "POS + inventario"] },
-  { name: "Crecer", color: "text-blue-400", features: ["Productos ilimitados", "Reportes", "Importacion CSV", "Descuentos"] },
+  { name: "Básico", color: "text-brand-muted", features: ["150 productos", "50 clientes", "1 staff", "POS + inventario"] },
+  { name: "Crecer", color: "text-blue-400", features: ["Productos ilimitados", "Reportes", "Importación CSV", "Descuentos"] },
   { name: "Pro", color: "text-brand-growth-neon", features: ["Tienda online", "Pagos QR", "WhatsApp", "Sucursales"] },
-  { name: "Empresarial", color: "text-brand-kinetic-orange", features: ["Facturacion SIAT", "Audit log", "Roles avanzados", "Soporte prioritario"] },
+  { name: "Empresarial", color: "text-brand-kinetic-orange", features: ["Facturación SIAT", "Audit log", "Roles avanzados", "Soporte prioritario"] },
 ];
 
 const addons = [
-  { name: "WhatsApp Business", desc: "Atencion al cliente y notificaciones por WhatsApp. Requiere Meta Business Account.", icon: MessageCircle, color: "text-green-400" },
-  { name: "Facturacion SIAT", desc: "Emision de facturas electronicas para el SIN Bolivia. Requiere NIT y credenciales SIAT.", icon: CreditCard, color: "text-brand-kinetic-orange" },
-  { name: "QR Bolivia", desc: "Pagos via QR bancario, Tigo Money y BiPago. Integracion con bancos bolivianos.", icon: Store, color: "text-blue-400" },
+  { name: "WhatsApp Business", desc: "Atención al cliente y notificaciones por WhatsApp. Requiere Meta Business Account.", icon: MessageCircle, color: "text-green-400" },
+  { name: "Facturación SIAT", desc: "Emisión de facturas electrónicas para el SIN Bolivia. Requiere NIT y credenciales SIAT.", icon: CreditCard, color: "text-brand-kinetic-orange" },
+  { name: "QR Bolivia", desc: "Pagos vía QR bancario, Tigo Money y BiPago. Integración con bancos bolivianos.", icon: Store, color: "text-blue-400" },
 ];
 
 const faqs = [
   {
-    q: "Como cambio de plan?",
-    a: "Ve a Configuracion > Facturacion y haz clic en 'Gestionar'. Ahi podras ver los planes disponibles y solicitar el cambio. El cambio se aplica de forma inmediata y el costo se prorratea.",
+    q: "¿Cómo cambio de plan?",
+    a: "Ve a Configuración > Facturación y haz clic en 'Gestionar'. Ahí podrás ver los planes disponibles y solicitar el cambio. El cambio se aplica de forma inmediata y el costo se prorratea.",
   },
   {
-    q: "Como agrego personal a mi tienda?",
-    a: "Ve al modulo 'Equipo' en el menu lateral. Haz clic en 'Agregar miembro', ingresa su email y asigna un rol. La persona recibira un email con sus credenciales de acceso.",
+    q: "¿Cómo agrego personal a mi tienda?",
+    a: "Ve al módulo 'Equipo' en el menú lateral. Haz clic en 'Agregar miembro', ingresa su email y asigna un rol. La persona recibirá un email con sus credenciales de acceso.",
   },
   {
-    q: "Puedo exportar mis datos?",
-    a: "Si, en plan CRECER o superior puedes exportar ventas, inventario y clientes en formato CSV desde el modulo de Reportes. Para exportaciones contables usa el boton 'Exportar contable'.",
+    q: "¿Puedo exportar mis datos?",
+    a: "Sí, en plan CRECER o superior puedes exportar ventas, inventario y clientes en formato CSV desde el módulo de Reportes. Para exportaciones contables usa el botón 'Exportar contable'.",
   },
   {
-    q: "Como conecto WhatsApp a mi cuenta?",
-    a: "Necesitas activar el add-on de WhatsApp Business. Ve a Configuracion > Facturacion > Add-ons. Requieres una cuenta Meta Business y un numero de telefono dedicado para WhatsApp.",
+    q: "¿Cómo conecto WhatsApp a mi cuenta?",
+    a: "Necesitas activar el add-on de WhatsApp Business. Ve a Configuración > Facturación > Add-ons. Requieres una cuenta Meta Business y un número de teléfono dedicado para WhatsApp.",
   },
   {
-    q: "Donde puedo obtener soporte tecnico?",
-    a: "Puedes contactarnos por email a soporte@gestios.bo. Los clientes con plan EMPRESARIAL tienen soporte prioritario con tiempo de respuesta de 4 horas habiles.",
+    q: "¿Dónde puedo obtener soporte técnico?",
+    a: "Puedes contactarnos por email a soporte@gestios.bo. Los clientes con plan EMPRESARIAL tienen soporte prioritario con tiempo de respuesta de 4 horas hábiles.",
   },
   {
-    q: "Es segura mi informacion?",
-    a: "Si. Todos los datos se almacenan en Supabase con cifrado en reposo y en transito. Cada organizacion esta completamente aislada de las demas. El acceso requiere autenticacion con Supabase Auth.",
+    q: "¿Es segura mi información?",
+    a: "Sí. Todos los datos se almacenan en Supabase con cifrado en reposo y en tránsito. Cada organización está completamente aislada de las demás. El acceso requiere autenticación con Supabase Auth.",
   },
 ];
 
@@ -155,7 +155,7 @@ export default function HelpPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">Centro de Ayuda</h1>
         </div>
-        <p className="text-brand-muted mt-1 ml-14">Todo lo que necesitas para sacarle el maximo partido a GestiOS.</p>
+        <p className="text-brand-muted mt-1 ml-14">Todo lo que necesitas para sacarle el máximo partido a GestiOS.</p>
       </header>
 
       {/* Primeros Pasos */}
@@ -189,7 +189,7 @@ export default function HelpPage() {
       <section className="animate-pop space-y-5">
         <div className="flex items-center gap-3">
           <span className="w-1 h-6 rounded-full bg-brand-growth-neon" />
-          <h2 className="text-2xl font-display font-bold text-white">Modulos Principales</h2>
+          <h2 className="text-2xl font-display font-bold text-white">Módulos Principales</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

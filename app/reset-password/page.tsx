@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
       setError(err.message);
       setLoading(false);
     } else {
-      router.push("/inventory");
+      router.push("/dashboard");
     }
   }
 

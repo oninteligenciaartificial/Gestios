@@ -24,9 +24,9 @@ export default async function TiendaPage() {
           <div className="mx-auto w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center">
             <Lock className="w-6 h-6 text-blue-400" />
           </div>
-          <h2 className="text-lg font-semibold text-brand-text">Funcion exclusiva del plan Pro</h2>
+          <h2 className="text-lg font-semibold text-brand-text">Función exclusiva del plan Pro</h2>
           <p className="text-sm text-brand-muted max-w-md mx-auto">
-            Crea tu tienda online y recibe pedidos directamente desde internet. Sincroniza tu inventario automaticamente.
+            Crea tu tienda online y recibe pedidos directamente desde internet. Sincroniza tu inventario automáticamente.
           </p>
           <div className="inline-block rounded-lg bg-blue-500/10 border border-blue-500/20 px-4 py-2">
             <span className={`text-sm font-medium ${proMeta.color}`}>
