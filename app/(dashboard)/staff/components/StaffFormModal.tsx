@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Shield, User } from "lucide-react";
 
 interface StaffMember {
   id: string;
@@ -13,10 +13,13 @@ interface StaffMember {
 interface Props {
   staff: StaffMember | null;
   onSave: (data: { email: string; name: string; role: string; branchId?: string }) => Promise<void>;
+  onUpdate: (id: string, data: { role?: string }) => Promise<void>;
   onClose: () => void;
 }
 
-export default function StaffFormModal({ staff, onSave, onClose }: Props) {
+const inp = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm";
+
+export default function StaffFormModal({ staff, onSave, onUpdate, onClose }: Props) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState("STAFF");
@@ -27,6 +30,11 @@ export default function StaffFormModal({ staff, onSave, onClose }: Props) {
     if (staff) {
       setName(staff.name);
       setRole(staff.role);
+      setEmail("");
+    } else {
+      setName("");
+      setRole("STAFF");
+      setEmail("");
     }
   }, [staff]);
 
@@ -34,88 +42,110 @@ export default function StaffFormModal({ staff, onSave, onClose }: Props) {
     e.preventDefault();
     setError(null);
     setSaving(true);
-
     try {
-      await onSave({ email, name, role });
+      if (staff) {
+        // Edit mode — only update role
+        await onUpdate(staff.id, { role });
+      } else {
+        // Create mode
+        await onSave({ email, name, role });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(err instanceof Error ? err.message : "Error al guardar");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <h2 className="text-xl font-bold mb-4">
-          {staff ? "Editar miembro" : "Agregar miembro"}
-        </h2>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="glass-panel w-full max-w-md rounded-3xl p-6 space-y-5">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-display font-bold text-white">
+            {staff ? "Editar miembro" : "Agregar miembro"}
+          </h2>
+          <button onClick={onClose} className="text-brand-muted hover:text-white transition-colors">
+            <X size={20} />
+          </button>
+        </div>
 
         {error && (
-          <div className="rounded bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded text-sm"
-              required
-              disabled={!!staff}
-            />
+          {!staff && (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Email *</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inp}
+                  placeholder="correo@ejemplo.com"
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm text-brand-muted">Nombre *</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={inp}
+                  placeholder="Nombre completo"
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          {staff && (
+            <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+              <p className="text-xs text-brand-muted mb-0.5">Miembro</p>
+              <p className="text-sm font-medium text-white">{staff.name}</p>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-sm text-brand-muted">Rol</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(["STAFF", "ADMIN"] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
+                    role === r
+                      ? "bg-brand-kinetic-orange/15 border-brand-kinetic-orange/50 text-brand-kinetic-orange"
+                      : "bg-white/5 border-white/10 text-brand-muted hover:text-white"
+                  }`}
+                >
+                  {r === "ADMIN" ? <Shield size={14} /> : <User size={14} />}
+                  {r === "ADMIN" ? "Administrador" : "Personal"}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border rounded text-sm"
-              required
-              disabled={!!staff}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Rol</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border rounded text-sm"
-            >
-              <option value="STAFF">Personal</option>
-              <option value="ADMIN">Administrador</option>
-            </select>
-          </div>
-
-          <div className="flex gap-2 justify-end pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium border rounded hover:bg-slate-50 disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl border border-white/10 text-brand-muted hover:text-white transition-colors text-sm disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-sm disabled:opacity-50"
             >
-              {saving ? "Guardando..." : "Guardar"}
+              {saving ? "Guardando..." : staff ? "Guardar cambios" : "Agregar"}
             </button>
           </div>
         </form>

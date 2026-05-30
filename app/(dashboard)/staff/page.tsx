@@ -122,15 +122,15 @@ export default function StaffPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 lg:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Equipo</h1>
-          <p className="text-sm text-muted-foreground mt-1">{total} miembros</p>
+          <h1 className="text-2xl font-display font-bold text-white">Equipo</h1>
+          <p className="text-sm text-brand-muted mt-0.5">{total} miembro{total !== 1 ? "s" : ""}</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
-          className="glass-panel px-3 py-2 rounded-full flex items-center gap-1.5 text-xs text-brand-muted hover:text-white transition-colors"
+          onClick={() => { setSelectedStaff(null); setShowAddModal(true); }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-sm hover:opacity-90 transition-opacity"
         >
           <Plus className="w-4 h-4" />
           Agregar miembro
@@ -138,7 +138,7 @@ export default function StaffPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
           {error}
         </div>
       )}
@@ -160,22 +160,20 @@ export default function StaffPage() {
       />
 
       {total > limit && (
-        <div className="flex items-center justify-between text-sm">
-          <div>
-            Página {page} de {Math.ceil(total / limit)}
-          </div>
-          <div className="space-x-2">
+        <div className="flex items-center justify-between text-sm text-brand-muted">
+          <span>Página {page} de {Math.ceil(total / limit)}</span>
+          <div className="flex gap-2">
             <button
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
-              className="px-3 py-1 text-sm border rounded hover:bg-slate-50 disabled:opacity-50"
+              className="px-3 py-1.5 rounded-lg bg-white/5 text-white text-xs disabled:opacity-30 hover:bg-white/10 transition-colors"
             >
               Anterior
             </button>
             <button
               disabled={page >= Math.ceil(total / limit)}
               onClick={() => setPage(page + 1)}
-              className="px-3 py-1 text-sm border rounded hover:bg-slate-50 disabled:opacity-50"
+              className="px-3 py-1.5 rounded-lg bg-white/5 text-white text-xs disabled:opacity-30 hover:bg-white/10 transition-colors"
             >
               Siguiente
             </button>
@@ -187,6 +185,7 @@ export default function StaffPage() {
         <StaffFormModal
           staff={selectedStaff}
           onSave={handleAddStaff}
+          onUpdate={async (id, data) => { await handleUpdateStaff(id, data); setShowAddModal(false); setSelectedStaff(null); }}
           onClose={() => {
             setShowAddModal(false);
             setSelectedStaff(null);
