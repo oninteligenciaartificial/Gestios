@@ -90,7 +90,7 @@ export default async function HomePage() {
           {/* Left: text */}
           <div className="flex-1 space-y-8 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-medium">
-              7 dias gratis · Sin tarjeta de credito
+              7 días gratis · Sin tarjeta de crédito
             </div>
 
             <h1
@@ -154,7 +154,7 @@ export default async function HomePage() {
       {/* How it works */}
       <section className="max-w-4xl mx-auto px-6 pb-20 pt-20">
         <div className="text-center mb-12">
-          <h2 className="text-2xl font-display font-bold mb-2">Empezar es facil</h2>
+          <h2 className="text-2xl font-display font-bold mb-2">Empezar es fácil</h2>
           <p className="text-brand-muted text-sm">De registro a tu primera venta en menos de 5 minutos</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -174,7 +174,7 @@ export default async function HomePage() {
       <section className="max-w-4xl mx-auto px-6 pb-16">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-display font-bold mb-2">Un sistema, muchos negocios</h2>
-          <p className="text-brand-muted text-sm">La interfaz cambia segun tu tipo de negocio</p>
+          <p className="text-brand-muted text-sm">La interfaz cambia según tu tipo de negocio</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {BUSINESS_TYPES.map((bt) => (
@@ -193,7 +193,7 @@ export default async function HomePage() {
       {/* Features */}
       <section className="max-w-4xl mx-auto px-6 pb-20">
         <div className="glass-panel rounded-3xl p-8 sm:p-12">
-          <h2 className="text-2xl font-display font-bold text-center mb-8">Todo incluido desde el primer dia</h2>
+          <h2 className="text-2xl font-display font-bold text-center mb-8">Todo incluido desde el primer día</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.map((f) => (
               <div key={f.label} className="space-y-2">
@@ -256,7 +256,7 @@ export default async function HomePage() {
       {/* Final CTA */}
       <section className="max-w-4xl mx-auto px-6 pb-20 text-center space-y-6">
         <h2 className="text-3xl font-display font-bold">Empezá hoy</h2>
-        <p className="text-brand-muted text-lg">7 dias gratis, sin tarjeta de credito. Tu negocio merece un sistema que lo entienda.</p>
+        <p className="text-brand-muted text-lg">7 días gratis, sin tarjeta de crédito. Tu negocio merece un sistema que lo entienda.</p>
         <Link
           href="/signup"
           className="inline-flex items-center justify-center min-h-[44px] px-8 py-3 rounded-full bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-base shadow-[0_0_30px_rgba(255,107,0,0.4)] hover:shadow-[0_0_50px_rgba(255,107,0,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"

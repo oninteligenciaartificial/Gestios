@@ -62,7 +62,7 @@ export default async function PlanVencidoPage() {
 
           <div className="space-y-3 pt-2">
             <a
-              href="https://wa.me/59170000000?text=Hola,%20necesito%20renovar%20mi%20plan%20de%20GestiOS"
+              href="https://wa.me/59175470140?text=Hola,%20necesito%20renovar%20mi%20plan%20de%20GestiOS"
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-sm"
@@ -70,7 +70,7 @@ export default async function PlanVencidoPage() {
               Renovar por WhatsApp
             </a>
             <a
-              href="mailto:soporte@gestios.app?subject=Renovacion%20de%20plan%20GestiOS"
+              href="mailto:soporte@gestios.bo?subject=Renovacion%20de%20plan%20GestiOS"
               className="block w-full py-3 rounded-xl border border-white/10 text-brand-muted hover:text-white hover:border-white/30 transition-colors text-sm"
             >
               Escribir por email

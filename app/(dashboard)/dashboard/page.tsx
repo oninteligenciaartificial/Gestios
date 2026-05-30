@@ -205,7 +205,7 @@ export default async function Dashboard() {
                 Confirmacion automatica al crear pedido
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h.5 rounded-full bg-brand-growth-neon flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-growth-neon flex-shrink-0" />
                 Actualizacion de estado al cliente
               </div>
               <div className="flex items-center gap-2">

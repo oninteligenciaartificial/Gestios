@@ -595,7 +595,7 @@ function PlanSection({ plan, planExpiresAt, trialEndsAt }: { plan: PlanType; pla
           ) : daysLeft < 0 ? (
             <div className="font-bold text-red-400 text-sm">Vencido</div>
           ) : (
-            <div className={`font-bold text-sm ${statusColor}`}>{daysLeft} dias restantes</div>
+            <div className={`font-bold text-sm ${statusColor}`}>{daysLeft} días restantes</div>
           )}
         </div>
       </div>

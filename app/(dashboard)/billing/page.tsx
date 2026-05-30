@@ -33,11 +33,11 @@ const ALL_FEATURES: Feat[] = [
 ];
 
 const ADDON_WA_MSG: Record<AddonType, string> = {
-  WHATSAPP:    "Hola! Me interesa activar el add-on *WhatsApp Business* ($40/mes) en GestiOS. ¿Cómo procedo?",
+  WHATSAPP:    `Hola! Me interesa activar el add-on *WhatsApp Business* (${ADDON_META.WHATSAPP.price}) en GestiOS. ¿Cómo procedo?`,
   FACTURACION: "Hola! Me interesa el add-on de *Facturación SIAT* para Bolivia en GestiOS. ¿Cuándo estará disponible?",
-  QR_BOLIVIA:  "Hola! Quiero activar el add-on de *Pagos QR Bolivia* ($15/mes) en GestiOS. ¿Cómo procedo?",
-  ECOMMERCE:   "Hola! Me interesa el add-on de *E-commerce* ($20/mes) en GestiOS. ¿Cómo procedo?",
-  CONTABILIDAD:"Hola! Quiero activar la *Exportación Contable* ($18/mes) en GestiOS. ¿Cómo procedo?",
+  QR_BOLIVIA:  `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
+  ECOMMERCE:   `Hola! Me interesa el add-on de *E-commerce* (${ADDON_META.ECOMMERCE.price}) en GestiOS. ¿Cómo procedo?`,
+  CONTABILIDAD:`Hola! Quiero activar la *Exportación Contable* (${ADDON_META.CONTABILIDAD.price}) en GestiOS. ¿Cómo procedo?`,
 };
 
 const MONTH_DISCOUNT: Record<number, number> = { 1: 0, 3: 5, 6: 10, 12: 15 };
@@ -47,9 +47,8 @@ function calcTotal(pricePerMonth: number, months: number): number {
   return Math.round(pricePerMonth * months * (1 - discount / 100));
 }
 
-const PLAN_PRICE_LABEL: Record<PlanType, string> = { BASICO: "$39", CRECER: "$59", PRO: "$89", EMPRESARIAL: "$139" };
 function planWaMsg(plan: PlanType, org: string, m: number, t: number) {
-  return `Hola! Quiero contratar el *Plan ${PLAN_META[plan].label}* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: ${PLAN_META[plan].label} (${PLAN_PRICE_LABEL[plan]}/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`;
+  return `Hola! Quiero contratar el *Plan ${PLAN_META[plan].label}* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: ${PLAN_META[plan].label} (Bs. ${PLAN_PRICES_BOB[plan]}/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`;
 }
 
 type PaymentRequest = { id: string; plan: PlanType; months: number; amountBOB: number; reference: string | null; status: "PENDIENTE" | "CONFIRMADO" | "RECHAZADO"; createdAt: string };

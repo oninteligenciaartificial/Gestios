@@ -38,7 +38,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-display font-bold text-brand-kinetic-orange tracking-widest">
             GestiOS.
           </h1>
-          <p className="text-brand-muted mt-2">Inicia sesion para continuar</p>
+          <p className="text-brand-muted mt-2">Inicia sesión para continuar</p>
         </div>
 
         <form action={formAction} className="space-y-4">
@@ -60,7 +60,7 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-brand-muted">
-                Contrasena
+                Contraseña
               </label>
               <Link href="/forgot-password" className="text-xs text-brand-kinetic-orange hover:underline">
                 Olvidé mi contraseña
@@ -89,7 +89,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-brand-muted">
-          No tienes cuenta?{" "}
+          ¿No tienes cuenta?{" "}
           <Link href="/signup" className="text-brand-kinetic-orange hover:underline">
             Crear cuenta gratis
           </Link>

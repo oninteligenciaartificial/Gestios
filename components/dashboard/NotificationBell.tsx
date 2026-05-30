@@ -174,7 +174,7 @@ export function NotificationBell() {
           {data.notifications.length > 0 && (
             <div className="px-4 py-2 border-t border-white/8">
               <button
-                onClick={() => { setOpen(false); router.push("/notifications"); }}
+                onClick={() => { setOpen(false); router.push("/settings"); }}
                 className="text-xs text-brand-kinetic-orange hover:underline"
               >
                 Ver todas

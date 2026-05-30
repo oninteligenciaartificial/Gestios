@@ -77,7 +77,7 @@ function SignupForm() {
           <h1 className="text-3xl font-display font-bold text-brand-kinetic-orange tracking-widest">
             GestiOS.
           </h1>
-          <p className="text-brand-muted mt-2 text-sm">Crea tu cuenta — 7 dias gratis, sin tarjeta</p>
+          <p className="text-brand-muted mt-2 text-sm">Crea tu cuenta — 7 días gratis, sin tarjeta</p>
           {selectedPlan && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-medium">
               Plan {selectedPlan} seleccionado · 7 días gratis
@@ -87,7 +87,7 @@ function SignupForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-brand-muted">Correo electronico</label>
+            <label className="text-sm text-brand-muted">Correo electrónico</label>
             <input
               type="email"
               required
@@ -98,7 +98,7 @@ function SignupForm() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm text-brand-muted">Contrasena</label>
+            <label className="text-sm text-brand-muted">Contraseña</label>
             <input
               type="password"
               required
@@ -122,7 +122,7 @@ function SignupForm() {
         </form>
 
         <p className="text-center text-sm text-brand-muted">
-          Ya tienes cuenta?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link href="/login" className="text-brand-kinetic-orange hover:underline">
             Iniciar sesion
           </Link>
