@@ -101,7 +101,7 @@ export default function OrdersPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (form.items.some((i) => !i.productId)) { setError("Selecciona un producto en cada linea"); return; }
+    if (form.items.some((i) => !i.productId)) { setError("Selecciona un producto en cada línea"); return; }
     setSaving(true); setError("");
     const res = await fetch("/api/orders", {
       method: "POST",
@@ -145,7 +145,7 @@ export default function OrdersPage() {
       <p>Cliente: <strong>${order.customerName}</strong></p>
       <table><thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">Subtotal</th></tr></thead>
       <tbody>${lines}</tbody>
-      <tfoot><tr><td colspan="2">TOTAL</td><td style="text-align:right">Bs. {fmt(Number(order.total))}</td></tr></tfoot>
+      <tfoot><tr><td colspan="2">TOTAL</td><td style="text-align:right">Bs. ${fmt(Number(order.total))}</td></tr></tfoot>
       </table>
       ${order.notes ? `<p style="margin-top:12px;font-style:italic">${order.notes}</p>` : ""}
       <div class="footer">Gracias por su compra</div>
@@ -364,7 +364,7 @@ export default function OrdersPage() {
                     <div className="flex gap-2 items-center">
                       <select value={item.productId} onChange={(e) => setItem(i, "productId", e.target.value)} className={`${inp} flex-1 text-sm`} disabled={loadingModal}>
                         <option value="">{loadingModal ? "Cargando..." : products.length === 0 ? "Sin productos" : "-- Producto --"}</option>
-                        {products.map((p) => <option key={p.id} value={p.id}>{p.name} (${Number(p.price).toLocaleString("es-MX")})</option>)}
+                        {products.map((p) => <option key={p.id} value={p.id}>{p.name} (Bs. {Number(p.price).toLocaleString("es-BO")})</option>)}
                       </select>
                       {form.items.length > 1 && (
                         <button type="button" onClick={() => removeItem(i)} className="p-2 rounded-xl bg-white/5 text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"><X size={15} /></button>

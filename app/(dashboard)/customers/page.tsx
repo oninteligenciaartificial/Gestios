@@ -80,7 +80,7 @@ export default function CustomersPage() {
     e.preventDefault();
     if (!viewCustomer) return;
     const adj = parseInt(pointsAdjustment);
-    if (isNaN(adj)) { setPointsError("Ingresa un numero valido"); return; }
+    if (isNaN(adj)) { setPointsError("Ingresa un número válido"); return; }
     setSavingPoints(true);
     setPointsError("");
     const res = await fetch(`/api/customers/${viewCustomer.id}`, {
@@ -438,7 +438,7 @@ export default function CustomersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4">
             <h2 className="text-lg font-display font-bold text-white">Eliminar cliente</h2>
-            <p className="text-brand-muted text-sm">Esta accion no se puede deshacer. ¿Confirmas que deseas eliminar este cliente?</p>
+            <p className="text-brand-muted text-sm">Esta acción no se puede deshacer. ¿Confirmas que deseas eliminar este cliente?</p>
             {deleteError && <p className="text-red-400 text-sm">{deleteError}</p>}
             <div className="flex gap-3 justify-end">
               <button onClick={() => setDeleteId(null)} className="px-4 py-2 rounded-xl text-brand-muted hover:text-white transition-colors text-sm">Cancelar</button>
@@ -467,7 +467,7 @@ export default function CustomersPage() {
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Nombre completo" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Telefono</label>
+                <label className="text-sm text-brand-muted">Teléfono</label>
                 <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inp} placeholder="55 1234 5678" />
               </div>
               <div className="space-y-1.5">
@@ -475,8 +475,8 @@ export default function CustomersPage() {
                 <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="correo@ejemplo.com" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Direccion</label>
-                <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={inp} placeholder="Calle, numero, ciudad" />
+                <label className="text-sm text-brand-muted">Dirección</label>
+                <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={inp} placeholder="Calle, número, ciudad" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -484,7 +484,7 @@ export default function CustomersPage() {
                   <input value={form.rfc} onChange={(e) => setForm({ ...form, rfc: e.target.value })} className={inp} placeholder="XAXX010101000" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm text-brand-muted">Cumpleanos</label>
+                  <label className="text-sm text-brand-muted">Cumpleaños</label>
                   <input type="date" value={form.birthday} onChange={(e) => setForm({ ...form, birthday: e.target.value })} className={inp} />
                 </div>
               </div>

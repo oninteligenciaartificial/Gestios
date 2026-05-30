@@ -27,8 +27,8 @@ interface ReportData {
 const PRESETS = [
   { label: "Este mes", from: () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0]; }, to: () => new Date().toISOString().split("T")[0] },
   { label: "Mes pasado", from: () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() - 1, 1).toISOString().split("T")[0]; }, to: () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 0).toISOString().split("T")[0]; } },
-  { label: "Ultimos 90 dias", from: () => new Date(Date.now() - 90 * 864e5).toISOString().split("T")[0], to: () => new Date().toISOString().split("T")[0] },
-  { label: "Este ano", from: () => `${new Date().getFullYear()}-01-01`, to: () => new Date().toISOString().split("T")[0] },
+  { label: "Últimos 90 días", from: () => new Date(Date.now() - 90 * 864e5).toISOString().split("T")[0], to: () => new Date().toISOString().split("T")[0] },
+  { label: "Este año", from: () => `${new Date().getFullYear()}-01-01`, to: () => new Date().toISOString().split("T")[0] },
 ];
 
 function today() { return new Date().toISOString().split("T")[0]; }
@@ -64,7 +64,7 @@ export default function ReportsPage() {
 
   function handleApply() { fetchReport(from, to, branchId || undefined); }
 
-  const cur = data?.currency ?? "MXN";
+  const cur = data?.currency ?? "BOB";
   const fmt = (n: number) => formatMoney(n, cur);
 
   function exportExcel() {
@@ -230,7 +230,7 @@ export default function ReportsPage() {
           <section className="space-y-4 animate-pop">
             <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
               <TrendingUp size={20} className="text-brand-kinetic-orange" />
-              Ventas por Dia
+              Ventas por Día
             </h2>
             <div className="glass-panel rounded-2xl p-5">
               <Suspense fallback={<div className="h-64 animate-pulse bg-white/5 rounded-xl" />}>
@@ -414,7 +414,7 @@ export default function ReportsPage() {
             <section className="space-y-4 animate-pop">
               <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
                 <Clock size={20} className="text-yellow-400" />
-                Sin Movimiento (30 dias)
+                Sin Movimiento (30 días)
               </h2>
               <div className="glass-panel rounded-2xl overflow-hidden">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 divide-y md:divide-y-0 divide-white/5">

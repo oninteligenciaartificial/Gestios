@@ -143,7 +143,7 @@ export default function POSPage() {
     setPointsToRedeem(0);
   }
 
-  const categories = Array.from(new Set(products.map((p) => p.category?.name ?? "Sin categoria"))).sort();
+  const categories = Array.from(new Set(products.map((p) => p.category?.name ?? "Sin categoría"))).sort();
 
   const filtered = products.filter((p) => {
     const q = search.toLowerCase();
@@ -229,8 +229,8 @@ export default function POSPage() {
     setDiscountError("");
     const code = discountCode.trim().toUpperCase();
     const d = discounts.find((d) => d.code === code && d.active);
-    if (!d) { setDiscountError("Codigo no valido o inactivo"); return; }
-    if (d.expiresAt && new Date(d.expiresAt) < new Date()) { setDiscountError("Este codigo ha vencido"); return; }
+    if (!d) { setDiscountError("Código no válido o inactivo"); return; }
+    if (d.expiresAt && new Date(d.expiresAt) < new Date()) { setDiscountError("Este código ha vencido"); return; }
     setAppliedDiscount(d);
   }
 
@@ -474,7 +474,7 @@ export default function POSPage() {
             <input
               value={discountCode}
               onChange={(e) => { setDiscountCode(e.target.value.toUpperCase()); setDiscountError(""); }}
-              placeholder="Codigo de descuento"
+              placeholder="Código de descuento"
               className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm"
             />
             <button onClick={applyDiscount} disabled={!discountCode.trim()} className="px-3 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/15 transition-colors disabled:opacity-40">
