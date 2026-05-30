@@ -91,7 +91,7 @@ export default function CategoriesPage() {
     const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
-      setError(d.error ?? "No se pudo eliminar la categoria");
+      setError(d.error ?? "No se pudo eliminar la categoría");
     }
     setDeleteId(null);
     fetchCategories();
@@ -101,14 +101,14 @@ export default function CategoriesPage() {
     <div className="p-8 max-w-3xl mx-auto space-y-8">
       <header className="flex justify-between items-end animate-pop">
         <div>
-          <h1 className="text-4xl font-display font-bold text-white tracking-tight">Categorias</h1>
-          <p className="text-brand-muted mt-1">Organiza tus productos por categoria</p>
+          <h1 className="text-4xl font-display font-bold text-white tracking-tight">Categorías</h1>
+          <p className="text-brand-muted mt-1">Organiza tus productos por categoría</p>
         </div>
         <button
           onClick={openCreate}
           className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all"
         >
-          <Plus size={18} /> Nueva Categoria
+          <Plus size={18} /> Nueva Categoría
         </button>
       </header>
 
@@ -126,7 +126,7 @@ export default function CategoriesPage() {
         </button>
         {!showAll && (
           <span className="text-xs text-brand-muted">
-            {categories.length} categorias de {BUSINESS_TYPE_LABELS[currentBusinessType]}
+            {categories.length} categorías de {BUSINESS_TYPE_LABELS[currentBusinessType]}
           </span>
         )}
       </div>
@@ -174,7 +174,7 @@ export default function CategoriesPage() {
                 <tr>
                   <td colSpan={4} className="py-16 text-center text-brand-muted">
                     <Layers size={40} className="mx-auto mb-3 opacity-30" />
-                    <p>{showAll ? "No hay categorias creadas." : `No hay categorias de ${BUSINESS_TYPE_LABELS[currentBusinessType]}.`}</p>
+                    <p>{showAll ? "No hay categorías creadas." : `No hay categorías de ${BUSINESS_TYPE_LABELS[currentBusinessType]}.`}</p>
                   </td>
                 </tr>
               )}
@@ -187,18 +187,18 @@ export default function CategoriesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="glass-panel w-full max-w-sm rounded-3xl p-8 space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-display font-bold text-white">{editing ? "Editar Categoria" : "Nueva Categoria"}</h2>
+              <h2 className="text-xl font-display font-bold text-white">{editing ? "Editar Categoría" : "Nueva Categoría"}</h2>
               <button onClick={() => setShowModal(false)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
             </div>
             <form onSubmit={handleSave} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Nombre *</label>
                 <input required value={name} onChange={(e) => setName(e.target.value)} className={inp} placeholder="ej: Proteinas, Vitaminas..." />
-                <p className="text-xs text-brand-muted mt-1">Se asignara automaticamente a {BUSINESS_TYPE_LABELS[currentBusinessType]}</p>
+                <p className="text-xs text-brand-muted mt-1">Se asignará automáticamente a {BUSINESS_TYPE_LABELS[currentBusinessType]}</p>
               </div>
               {error && <p className="text-red-400 text-sm">{error}</p>}
               <button type="submit" disabled={saving} className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold disabled:opacity-50">
-                {saving ? "Guardando..." : editing ? "Guardar Cambios" : "Crear Categoria"}
+                {saving ? "Guardando..." : editing ? "Guardar Cambios" : "Crear Categoría"}
               </button>
             </form>
           </div>
@@ -210,8 +210,8 @@ export default function CategoriesPage() {
           <div className="glass-panel w-full max-w-sm rounded-3xl p-8 space-y-6 text-center">
             <Trash2 size={40} className="mx-auto text-red-400" />
             <div>
-              <h3 className="text-lg font-bold text-white">Eliminar categoria</h3>
-              <p className="text-brand-muted text-sm mt-1">Los productos quedaran sin categoria. No se puede deshacer.</p>
+              <h3 className="text-lg font-bold text-white">Eliminar categoría</h3>
+              <p className="text-brand-muted text-sm mt-1">Los productos quedarán sin categoría. No se puede deshacer.</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteId(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-colors">Cancelar</button>

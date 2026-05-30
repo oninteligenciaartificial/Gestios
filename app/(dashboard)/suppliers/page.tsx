@@ -104,7 +104,7 @@ export default function SuppliersPage() {
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="p-5 text-brand-muted font-medium">Proveedor</th>
                 <th className="p-5 text-brand-muted font-medium">Contacto</th>
-                <th className="p-5 text-brand-muted font-medium">Telefono</th>
+                <th className="p-5 text-brand-muted font-medium">Teléfono</th>
                 <th className="p-5 text-brand-muted font-medium">Email</th>
                 <th className="p-5 text-brand-muted font-medium">Acciones</th>
               </tr>
@@ -174,7 +174,7 @@ export default function SuppliersPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-sm text-brand-muted">Telefono</label>
+                  <label className="text-sm text-brand-muted">Teléfono</label>
                   <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inp} placeholder="+52 55 0000 0000" />
                 </div>
                 <div className="space-y-1.5">
@@ -201,7 +201,7 @@ export default function SuppliersPage() {
             <Trash2 size={40} className="mx-auto text-red-400" />
             <div>
               <h3 className="text-lg font-bold text-white">Eliminar proveedor</h3>
-              <p className="text-brand-muted text-sm mt-1">Esta accion no se puede deshacer.</p>
+              <p className="text-brand-muted text-sm mt-1">Esta acción no se puede deshacer.</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteId(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-colors">Cancelar</button>

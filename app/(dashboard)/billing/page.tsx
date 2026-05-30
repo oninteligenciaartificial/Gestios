@@ -22,13 +22,13 @@ const D: PlanType[] = ["EMPRESARIAL"];
 const ALL_FEATURES: Feat[] = [
   { label: "Dashboard", plans: A }, { label: "Punto de Venta", plans: A },
   { label: "Inventario", plans: A }, { label: "Pedidos", plans: A },
-  { label: "Clientes", plans: A }, { label: "Corte de Caja", plans: A }, { label: "Categorias", plans: A },
+  { label: "Clientes", plans: A }, { label: "Corte de Caja", plans: A }, { label: "Categorías", plans: A },
   { label: "Variantes de productos", plans: B }, { label: "Descuentos ilimitados", plans: B },
   { label: "Reportes avanzados", plans: B }, { label: "Proveedores", plans: B },
   { label: "Import/Export CSV", plans: B }, { label: "Vencimientos", plans: B },
   { label: "Tienda Online", plans: C }, { label: "Registro Público", plans: C },
   { label: "Pagos QR Bolivia", plans: C }, { label: "Email marketing", plans: C }, { label: "Garantías", plans: C },
-  { label: "Sucursales multiples", plans: D }, { label: "Auditoría (Audit Log)", plans: D },
+  { label: "Sucursales múltiples", plans: D }, { label: "Auditoría (Audit Log)", plans: D },
   { label: "Facturación SIAT", plans: D }, { label: "Roles avanzados", plans: D },
 ];
 

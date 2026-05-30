@@ -92,7 +92,7 @@ export default function PurchaseOrdersPage() {
         <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight flex items-center gap-3">
             <Package size={32} className="text-brand-kinetic-orange" />
-            Ordenes de Compra
+            Órdenes de Compra
           </h1>
           <p className="text-brand-muted mt-1">Gestiona pedidos a proveedores.</p>
         </div>
@@ -129,7 +129,7 @@ export default function PurchaseOrdersPage() {
       ) : orders.length === 0 ? (
         <div className="glass-panel rounded-2xl p-12 text-center">
           <Package size={48} className="text-brand-muted mx-auto mb-4" />
-          <p className="text-white font-bold mb-1">No hay ordenes de compra</p>
+          <p className="text-white font-bold mb-1">No hay órdenes de compra</p>
           <p className="text-brand-muted text-sm">Crea tu primera orden para empezar a gestionar proveedores.</p>
         </div>
       ) : (
@@ -460,7 +460,7 @@ function DetailModal({ order, onClose, onUpdate }: { order: PurchaseOrder; onClo
             )}
             {confirmDelete ? (
               <div className="flex items-center gap-2">
-                <span className="text-brand-muted text-xs">¿Confirmar eliminacion?</span>
+                <span className="text-brand-muted text-xs">¿Confirmar eliminación?</span>
                 <button onClick={deleteOrder} disabled={updating} className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 disabled:opacity-50 transition-colors">
                   {updating ? "Eliminando..." : "Confirmar"}
                 </button>

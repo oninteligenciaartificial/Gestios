@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { Shield, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 
 interface AuditLog {
@@ -124,8 +124,8 @@ export default function AuditPage() {
             </thead>
             <tbody>
               {logs.map((log) => (
-                <>
-                  <tr key={log.id}
+                <Fragment key={log.id}>
+                  <tr
                     className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors cursor-pointer"
                     onClick={() => setExpanded(expanded === log.id ? null : log.id)}>
                     <td className="px-5 py-3 text-brand-muted whitespace-nowrap">
@@ -139,7 +139,7 @@ export default function AuditPage() {
                     <td className="px-5 py-3 text-brand-muted text-xs">{(log.before || log.after) ? "▶" : ""}</td>
                   </tr>
                   {expanded === log.id && (log.before || log.after) && (
-                    <tr key={`${log.id}-detail`} className="bg-white/[0.02]">
+                    <tr className="bg-white/[0.02]">
                       <td colSpan={7} className="px-5 py-4">
                         <div className="grid grid-cols-2 gap-4">
                           {log.before && (
@@ -162,7 +162,7 @@ export default function AuditPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

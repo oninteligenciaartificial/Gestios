@@ -130,16 +130,16 @@ export default function BranchesPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-muted mb-1">Direccion</label>
+              <label className="block text-sm font-medium text-brand-muted mb-1">Dirección</label>
               <input
                 value={form.address}
                 onChange={e => setForm({ ...form, address: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-                placeholder="Calle y numero, colonia"
+                placeholder="Calle y número, zona"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-muted mb-1">Telefono</label>
+              <label className="block text-sm font-medium text-brand-muted mb-1">Teléfono</label>
               <input
                 value={form.phone}
                 onChange={e => setForm({ ...form, phone: e.target.value })}
@@ -174,7 +174,7 @@ export default function BranchesPage() {
       ) : branches.length === 0 ? (
         <div className="glass-panel rounded-3xl p-12 text-center">
           <Building2 size={40} className="text-brand-muted mx-auto mb-4 opacity-40" />
-          <p className="text-brand-muted">No tienes sucursales registradas aun.</p>
+          <p className="text-brand-muted">No tienes sucursales registradas aún.</p>
           <p className="text-brand-muted/60 text-sm mt-1">Crea tu primera sucursal para empezar.</p>
         </div>
       ) : (

@@ -42,7 +42,7 @@ interface CorteData {
   } | null;
 }
 
-const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
+const fmt = (n: number) => n.toLocaleString("es-BO", { minimumFractionDigits: 2 });
 
 export default function CajaPage() {
   const [data, setData] = useState<CajaData | null>(null);
@@ -99,7 +99,7 @@ export default function CajaPage() {
     <style>body{font-family:monospace;font-size:13px;margin:20px}h2,h3{text-align:center}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:4px 6px;text-align:left}th{border-bottom:1px solid #ccc}.row{display:flex;justify-content:space-between;margin:4px 0}.total{font-size:18px;font-weight:bold;text-align:right}.sep{border-top:2px solid #333;margin:12px 0}.green{color:green}.red{color:red}</style>
     </head><body>
     <h2>Corte de Caja</h2>
-    <p style="text-align:center">${new Date(data.date).toLocaleDateString("es-MX", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}</p>
+    <p style="text-align:center">${new Date(data.date).toLocaleDateString("es-BO", { weekday:"long", year:"numeric", month:"long", day:"numeric" })}</p>
     <div class="sep"></div>
     <div class="row"><span>Total ventas:</span><span class="total">Bs. ${fmt(data.totalRevenue)}</span></div>
     <div class="row"><span>Pedidos:</span><span>${data.totalOrders}</span></div>
@@ -112,7 +112,7 @@ export default function CajaPage() {
     <h3>Top Productos</h3>
     <table><thead><tr><th>Producto</th><th>Cant.</th><th>Ingresos</th></tr></thead><tbody>${top}</tbody></table>
     <div class="sep"></div>
-    <h3>Pedidos del dia</h3>
+    <h3>Pedidos del día</h3>
     <table><thead><tr><th>Cliente</th><th>Items</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
     </body></html>`);
     win.document.close();
@@ -151,7 +151,7 @@ export default function CajaPage() {
     }
   }
 
-  const today = new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const today = new Date().toLocaleDateString("es-BO", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const montoRealNum = parseFloat(montoReal) || 0;
   const diferencia = corteData ? montoRealNum - corteData.totalEfectivo : 0;
 
@@ -180,7 +180,7 @@ export default function CajaPage() {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Ingresos del dia", value: `Bs. ${fmt(data.totalRevenue)}`, icon: DollarSign, color: "text-brand-growth-neon" },
+              { label: "Ingresos del día", value: `Bs. ${fmt(data.totalRevenue)}`, icon: DollarSign, color: "text-brand-growth-neon" },
               { label: "Pedidos", value: String(data.totalOrders), icon: ShoppingCart, color: "text-blue-400" },
               { label: "Ticket promedio", value: `Bs. ${fmt(data.avgTicket)}`, icon: TrendingUp, color: "text-brand-kinetic-orange" },
               { label: "Cancelados", value: String(data.cancelled), icon: XCircle, color: "text-red-400" },
@@ -294,7 +294,7 @@ export default function CajaPage() {
             <div className="glass-panel rounded-2xl p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Package size={16} className="text-brand-kinetic-orange" />
-                <h2 className="font-bold text-white">Mas vendidos hoy</h2>
+                <h2 className="font-bold text-white">Más vendidos hoy</h2>
               </div>
               {data.topProducts.length === 0 ? (
                 <p className="text-brand-muted text-sm py-4 text-center">Sin ventas aun.</p>
@@ -322,7 +322,7 @@ export default function CajaPage() {
             <div className="glass-panel rounded-2xl overflow-hidden">
               <div className="p-4 border-b border-white/5 flex items-center gap-2">
                 <ShoppingCart size={16} className="text-brand-kinetic-orange" />
-                <h2 className="font-bold text-white">Pedidos del dia</h2>
+                <h2 className="font-bold text-white">Pedidos del día</h2>
               </div>
               {data.orders.length === 0 ? (
                 <p className="text-brand-muted text-sm py-8 text-center">No hay pedidos hoy.</p>
@@ -332,7 +332,7 @@ export default function CajaPage() {
                     <div key={o.id} className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors">
                       <div>
                         <div className="text-sm font-medium text-white">{o.customerName}</div>
-                        <div className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-bold text-white">Bs. {fmt(o.total)}</div>

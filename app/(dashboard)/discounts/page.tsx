@@ -111,7 +111,7 @@ export default function DiscountsPage() {
       <header className="flex justify-between items-end animate-pop">
         <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Descuentos</h1>
-          <p className="text-brand-muted mt-1">Codigos promocionales y ofertas</p>
+          <p className="text-brand-muted mt-1">Códigos promocionales y ofertas</p>
         </div>
         <button
           onClick={openCreate}
@@ -128,7 +128,7 @@ export default function DiscountsPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="p-5 text-brand-muted font-medium">Codigo</th>
+                <th className="p-5 text-brand-muted font-medium">Código</th>
                 <th className="p-5 text-brand-muted font-medium">Tipo</th>
                 <th className="p-5 text-brand-muted font-medium">Valor</th>
                 <th className="p-5 text-brand-muted font-medium">Vencimiento</th>
@@ -147,13 +147,13 @@ export default function DiscountsPage() {
                     </td>
                     <td className="p-5 text-sm text-white">{d.type === "PORCENTAJE" ? "Porcentaje" : "Monto Fijo"}</td>
                     <td className="p-5 font-bold text-white">
-                      {d.type === "PORCENTAJE" ? `${d.value}%` : `$${Number(d.value).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`}
+                      {d.type === "PORCENTAJE" ? `${d.value}%` : `Bs. ${Number(d.value).toLocaleString("es-BO", { minimumFractionDigits: 2 })}`}
                     </td>
                     <td className="p-5 text-sm">
                       {d.expiresAt ? (
                         <span className={`flex items-center gap-1.5 ${expired ? "text-red-400" : "text-brand-muted"}`}>
                           <Calendar size={13} />
-                          {new Date(d.expiresAt).toLocaleDateString("es-MX")}
+                          {new Date(d.expiresAt).toLocaleDateString("es-BO")}
                           {expired && " (vencido)"}
                         </span>
                       ) : <span className="text-brand-muted">Sin vencimiento</span>}
@@ -208,19 +208,19 @@ export default function DiscountsPage() {
             </div>
             <form onSubmit={handleSave} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Codigo *</label>
+                <label className="text-sm text-brand-muted">Código *</label>
                 <input required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className={inp} placeholder="PROMO20" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Descripcion</label>
-                <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inp} placeholder="20% en todo el catalogo" />
+                <label className="text-sm text-brand-muted">Descripción</label>
+                <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inp} placeholder="20% en todo el catálogo" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-sm text-brand-muted">Tipo *</label>
                   <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as "PORCENTAJE" | "MONTO_FIJO" })} className={inp}>
                     <option value="PORCENTAJE">Porcentaje (%)</option>
-                    <option value="MONTO_FIJO">Monto Fijo ($)</option>
+                    <option value="MONTO_FIJO">Monto Fijo (Bs.)</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -247,7 +247,7 @@ export default function DiscountsPage() {
             <Trash2 size={40} className="mx-auto text-red-400" />
             <div>
               <h3 className="text-lg font-bold text-white">Eliminar descuento</h3>
-              <p className="text-brand-muted text-sm mt-1">Esta accion no se puede deshacer.</p>
+              <p className="text-brand-muted text-sm mt-1">Esta acción no se puede deshacer.</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteId(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-colors">Cancelar</button>

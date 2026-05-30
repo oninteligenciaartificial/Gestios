@@ -138,7 +138,7 @@ export default function ConversationsPage() {
           <div className="glass-panel rounded-2xl p-5">
             <form onSubmit={handleSend} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Telefono (con codigo de pais)</label>
+                <label className="text-sm text-brand-muted">Teléfono (con código de país)</label>
                 <input
                   type="tel"
                   required
@@ -213,7 +213,7 @@ export default function ConversationsPage() {
                         onClick={() => closeConversation(conv.id)}
                         disabled={closingId === conv.id}
                         className="p-2 rounded-lg text-brand-muted hover:text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50"
-                        title="Cerrar conversacion"
+                        title="Cerrar conversación"
                       >
                         <X size={16} />
                       </button>

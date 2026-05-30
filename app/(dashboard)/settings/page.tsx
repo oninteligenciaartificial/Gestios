@@ -154,7 +154,7 @@ export default function SettingsPage() {
               <div className="p-2 rounded-lg bg-brand-kinetic-orange/10">
                 <User size={18} className="text-brand-kinetic-orange" />
               </div>
-              <h2 className="font-display font-bold text-white">Informacion Personal</h2>
+              <h2 className="font-display font-bold text-white">Información Personal</h2>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm text-brand-muted">Nombre completo</label>
@@ -191,22 +191,22 @@ export default function SettingsPage() {
                 <input value={orgName} onChange={(e) => setOrgName(e.target.value)} className={inp} placeholder="Mi Tienda" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Telefono</label>
+                <label className="text-sm text-brand-muted">Teléfono</label>
                 <input value={orgPhone} onChange={(e) => setOrgPhone(e.target.value)} className={inp} placeholder="591 2 2345678" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">NIT / Identificacion fiscal</label>
+                <label className="text-sm text-brand-muted">NIT / Identificación fiscal</label>
                 <input value={orgRfc} onChange={(e) => setOrgRfc(e.target.value)} className={inp} placeholder="1234567890" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Direccion</label>
+                <label className="text-sm text-brand-muted">Dirección</label>
                 <input value={orgAddress} onChange={(e) => setOrgAddress(e.target.value)} className={inp} placeholder="Calle, ciudad" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Moneda predeterminada</label>
                 <select value={orgCurrency} onChange={(e) => setOrgCurrency(e.target.value)} className={sel} style={{ colorScheme: "dark" }}>
                   <option value="BOB">BOB — Boliviano</option>
-                  <option value="USD">USD — Dolar</option>
+                  <option value="USD">USD — Dólar</option>
                   <option value="MXN">MXN — Peso Mexicano</option>
                   <option value="COP">COP — Peso Colombiano</option>
                   <option value="ARS">ARS — Peso Argentino</option>

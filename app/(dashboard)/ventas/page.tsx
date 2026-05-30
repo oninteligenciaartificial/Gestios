@@ -52,7 +52,7 @@ const PM_LABELS: Record<PaymentMethod, string> = {
   EFECTIVO: "Efectivo", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
 };
 
-const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n: number) => n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function shortId(id: string) { return id.slice(-8).toUpperCase(); }
 
