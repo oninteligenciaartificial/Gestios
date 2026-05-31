@@ -141,7 +141,8 @@ export async function POST(request: Request) {
   }
 
   if (customerEmail) {
-    const orderItems = order.items.map(i => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orderItems = order.items.map((i: any) => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) }));
     sendOrderConfirmation({
       to: customerEmail,
       customerName: order.customerName,
