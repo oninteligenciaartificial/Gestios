@@ -137,8 +137,8 @@ describe("Notifications — PATCH /api/notifications/[id]", () => {
     });
     const res = await PATCH(req, { params: Promise.resolve({ id: "notif-1" }) });
     expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data.read).toBe(true);
+    const json = await res.json();
+    expect(json.data.read).toBe(true);
   });
 });
 
