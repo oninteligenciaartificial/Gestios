@@ -30,7 +30,7 @@ Deploy en **Vercel**. Sin base de datos local — la DB vive en Supabase. No hay
 | `lib/permissions.ts` | RBAC — `hasPermission(role, permission)` |
 | `lib/business-types.ts` | Schemas de variantes por tipo de negocio |
 | `lib/business-ui.ts` | UI labels dinámicos por tipo de negocio |
-| `lib/email.ts` | Envío de emails con logging, rate limiting (280/día) |
+| `lib/email.ts` | Envío vía Resend SDK con logging en DB, rate limiting |
 | `lib/rate-limit.ts` | Rate limiting distribuido (Upstash Redis + in-memory) |
 | `lib/qr-bolivia.ts` | Generación y tracking de pagos QR |
 | `prisma/schema.prisma` | Fuente de verdad de la DB |
@@ -70,23 +70,23 @@ export async function GET(request: Request) {
 | PRO | 800 | ∞ | ∞ | 10 |
 | EMPRESARIAL | 1250 | ∞ | ∞ | ∞ |
 
-## Estado actual (2026-05-13)
+## Estado actual (2026-05-30)
 
-- **Deploy:** Todos los cambios desplegados (67 archivos, 3808 inserciones)
-- **Producción:** https://gesti-os.vercel.app
-- Sistema de variantes por tipo de negocio: **implementado**
-- Add-ons: WhatsApp backend listo, SIAT/QR Bolivia scaffold, QR Bolivia upload implementado
-- QR Bolivia: merchants sin NIT pueden subir QR personal de banco/Tigo
-- Email system: Brevo con logging en DB (`EmailLog`), rate limiting 280/día, dashboard métricas `/email-stats`
-- Webhook Brevo: `/api/webhooks/brevo` para tracking delivery/bounce
-- n8n workflow: `n8n/brevo-email-tracking.json` bridge para plan gratuito de Brevo
-- RLS: habilitado en `public.profiles` con políticas de acceso propio
-- Rate limiting: Upstash Redis con fallback in-memory, aplicado en múltiples endpoints
-- Sentry: error monitoring activo en producción
-- Tests: 229 tests pasando (13 archivos)
-- Sidebar dinámico: labels cambian según `businessType` del org
-- Plan gating completo: variantes requieren CRECER+, tienda PRO+, etc.
-- Ver análisis completo en `docs/ANALYSIS.md`, log de sesiones en `docs/SESSION_LOG.md`
+- **Deploy:** Vercel auto-deploy en rama `main` — https://gesti-os.vercel.app
+- **Tests:** 313 pasando (20 archivos)
+- **Email:** Migrado Brevo → Resend, dominio `onia.com.bo` verificado
+- **Pagos:** Sistema BCP Bolivia (checkout + confirm + n8n auto-confirm WF-GS-05)
+- **n8n activos:** WF-GS-02 (plan expiry WA), WF-GS-03 (birthday WA), WF-GS-04 (weekly digest), WF-GS-05 (BCP auto-payment — pendiente activar credenciales)
+- **Onboarding:** Tour interactivo localStorage-based en dashboard (`components/dashboard/OnboardingTour.tsx`)
+- **Sesiones activas:** `/settings/sessions` + `GET/DELETE /api/sessions`
+- **Notificaciones:** Bell en sidebar + `GET /api/notifications` + tabla `Notification` en DB
+- **i18n:** Toda la UI en español boliviano correcto (locale `es-BO`, moneda `Bs.`, acentos completos)
+- **Audit trail:** `logAudit()` en orders, products, customers (plan EMPRESARIAL)
+- **RLS:** Habilitado en `public.profiles` + 17 tablas públicas de Supabase
+- **Rate limiting:** Upstash Redis + in-memory, aplicado en 7+ endpoints
+- **Sentry:** Error monitoring activo, org `onia-agency`, proyecto `javascript-nextjs`
+- **PostHog:** Analytics activo con reverse proxy `/ingest`
+- Ver log completo en `docs/NEXT_STEPS.md`
 
 ## Documentación completa
 

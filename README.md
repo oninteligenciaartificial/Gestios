@@ -1,36 +1,193 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GestiOS
 
-## Getting Started
+SaaS multi-tenant de gestión comercial para negocios bolivianos. Punto de venta, inventario, clientes, pedidos, reportes y automatizaciones desde una sola plataforma.
 
-First, run the development server:
+**Producción:** https://gesti-os.vercel.app
+
+---
+
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + Tailwind CSS 4 |
+| ORM | Prisma 7 |
+| Base de datos | PostgreSQL (Supabase) |
+| Auth | Supabase Auth |
+| Email | Resend (dominio `onia.com.bo`) |
+| WhatsApp | Meta Business API v20.0 |
+| Automatizaciones | n8n (self-hosted) |
+| Monitoring | Sentry + PostHog |
+| Deploy | Vercel |
+| Rate limiting | Upstash Redis + in-memory fallback |
+
+---
+
+## Módulos
+
+| Módulo | Ruta | Plan mínimo |
+|---|---|---|
+| Dashboard (KPIs, alertas, onboarding) | `/dashboard` | Todos |
+| Punto de Venta | `/pos` | Todos |
+| Inventario + variantes | `/inventory` | Todos |
+| Pedidos (CRUD, estados, email) | `/orders` | Todos |
+| Clientes (CRM, loyalty points) | `/customers` | Todos |
+| Categorías | `/categories` | Todos |
+| Descuentos | `/discounts` | Todos |
+| Corte de caja | `/caja` | Todos |
+| Ventas (historial) | `/ventas` | Todos |
+| Equipo / Staff | `/staff` | Todos |
+| Sesiones activas | `/settings/sessions` | Todos |
+| Reportes + exportación | `/reports` | CRECER |
+| Proveedores | `/suppliers` | CRECER |
+| Órdenes de compra | `/purchase-orders` | CRECER |
+| Tienda online pública | `/{slug}/tienda` | PRO |
+| Página de registro pública | `/registro/{slug}` | PRO |
+| Sucursales | `/branches` | EMPRESARIAL |
+| Auditoría | `/audit` | EMPRESARIAL |
+| WhatsApp / Conversaciones | `/conversations` | Add-on |
+| Panel superadmin | `/superadmin` | SUPERADMIN |
+
+---
+
+## Planes
+
+| Plan | BOB/mes | Productos | Clientes | Staff |
+|---|---|---|---|---|
+| Básico | 350 | 150 | 50 | 1 |
+| Crecer | 530 | 500 | 300 | 3 |
+| Pro | 800 | ∞ | ∞ | 10 |
+| Empresarial | 1.250 | ∞ | ∞ | ∞ |
+
+---
+
+## Desarrollo local
 
 ```bash
+# Instalar dependencias
+npm install
+
+# Generar tipos de Prisma (no requiere DB local)
+npx prisma generate
+
+# Dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> **No hay `.env` local.** La DB vive en Supabase. No ejecutar `prisma migrate dev`.
+> Ver `docs/ARCHITECTURE.md` para reglas críticas.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | Acción |
+|---|---|
+| `npm run dev` | Dev server en localhost:3000 |
+| `npm run build` | `prisma generate` + `next build` |
+| `npm run test` | Vitest (313 tests) |
+| `npm run lint` | ESLint |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Variables de entorno (Vercel)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+DATABASE_URL
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+RESEND_API_KEY
+EMAIL_FROM_ADDRESS          # noreply@onia.com.bo
+EMAIL_FROM_NAME             # GestiOS
+BREVO_WEBHOOK_KEY           # Webhook signing para eventos legacy
+WA_PHONE_NUMBER_ID
+WA_ACCESS_TOKEN
+WA_APP_SECRET
+SENTRY_AUTH_TOKEN
+UPSTASH_REDIS_REST_URL      # opcional
+UPSTASH_REDIS_REST_TOKEN    # opcional
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Estructura de carpetas clave
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/
+├── (dashboard)/    # Rutas autenticadas (sidebar, plan check)
+├── api/            # Route handlers Next.js
+├── [slug]/tienda/  # Storefront público
+└── registro/       # Página de registro pública
+lib/
+├── auth.ts         # getTenantProfile() — contexto de request
+├── plans.ts        # Feature gates + límites por plan
+├── permissions.ts  # RBAC (hasPermission)
+├── prisma.ts       # Singleton PrismaClient
+└── email.ts        # Envío Resend + logging + rate limiting
+prisma/
+├── schema.prisma   # Fuente de verdad DB
+└── migrations/     # SQL versionado
+docs/               # Documentación técnica completa
+tests/              # Vitest — 313 tests
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Documentación
+
+| Archivo | Contenido |
+|---|---|
+| `docs/00-PROJECT-CONTEXT.md` | Contexto para sesiones Claude — pegar al inicio |
+| `docs/ARCHITECTURE.md` | Estructura técnica, auth flow, multi-tenancy |
+| `docs/DATABASE.md` | Todos los modelos Prisma |
+| `docs/API_REFERENCE.md` | Todos los endpoints |
+| `docs/BUSINESS_TYPES.md` | Variantes por tipo de negocio |
+| `docs/EMAILS.md` | 12 tipos de email automático |
+| `docs/BILLING-FLOW.md` | Flujo de pagos BCP Bolivia |
+| `docs/QR-BOLIVIA.md` | Pagos QR Bolivia |
+| `docs/SIAT-BOLIVIA.md` | Facturación electrónica SIAT |
+| `docs/N8N-SETUP.md` | Workflows n8n |
+| `docs/SECURITY_REPORT.md` | Reporte de seguridad |
+| `docs/NEXT_STEPS.md` | Estado del proyecto + log de cambios |
+| `README-admin.md` | Guía de usuario para administradores |
+
+---
+
+## Multi-tenancy
+
+Cada query a la DB lleva `where: { organizationId: profile.organizationId }`. RLS habilitado en `public.profiles`. El aislamiento del resto es a nivel de aplicación.
+
+```typescript
+// Patrón de API route
+const profile = await getTenantProfile();
+if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+const data = await prisma.model.findMany({
+  where: { organizationId: profile.organizationId }
+});
+```
+
+---
+
+## Automatizaciones n8n activas
+
+| Workflow | Trigger | Acción |
+|---|---|---|
+| WF-GS-02 | Diario 12pm | Alerta plan próximo a vencer por WhatsApp |
+| WF-GS-03 | Diario 1pm | Felicitación de cumpleaños por WhatsApp |
+| WF-GS-04 | Lunes 9am | Digest semanal de métricas a admin |
+| WF-GS-05 | Email BCP recibido | Confirmación automática de pago |
+
+---
+
+## Cron jobs (Vercel)
+
+| Job | Horario | Acción |
+|---|---|---|
+| `/api/cron/birthday` | `0 9 * * *` | Email cumpleaños con descuento |
+| `/api/cron/expiry` | `0 8 * * *` | Alerta productos próximos a vencer |
+| `/api/cron/inactive-customers` | `0 10 * * *` | Email clientes inactivos (30+ días) |
+| `/api/cron/plan-expiry` | `0 7 * * *` | Alerta y suspensión de planes |
+| `/api/cron/low-stock` | `30 8 * * *` | Alerta stock bajo a admins |
+| `/api/cron/siat-cufd` | `0 6 * * *` | Renueva CUFD para facturación |
+| `/api/cron/expire-qr` | `0 0 * * *` | Expira QRs de pago vencidos |

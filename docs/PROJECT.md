@@ -11,12 +11,14 @@ Reemplazar hojas de cálculo y sistemas fragmentados con una sola plataforma: pu
 | Capa | Tecnología |
 |---|---|
 | Framework | Next.js 16 (App Router) |
-| UI | React 19 + Tailwind CSS |
-| ORM | Prisma |
+| UI | React 19 + Tailwind CSS 4 |
+| ORM | Prisma 7 |
 | Base de datos | PostgreSQL (Supabase) |
 | Auth | Supabase Auth |
-| Email | Brevo API |
+| Email | Resend (dominio `onia.com.bo`) |
 | WhatsApp | Meta Business API v20.0 |
+| Automatizaciones | n8n (self-hosted) |
+| Monitoring | Sentry + PostHog |
 | Deploy | Vercel |
 
 ## Módulos disponibles

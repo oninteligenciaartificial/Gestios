@@ -1,9 +1,8 @@
 # Emails Automáticos
 
 Proveedor transaccional (Supabase Auth): **Resend SMTP** (`smtp.resend.com:465`).
-Proveedor emails de negocio: **Brevo API** (`BREVO_API_KEY`).  
-Remitente Supabase Auth: `business@onia.com.bo` (dominio verificado en Resend).  
-Remitente emails de negocio: configurable con `BREVO_SENDER_EMAIL`.  
+Proveedor emails de negocio: **Resend API** (`RESEND_API_KEY`). Migrado desde Brevo en 2026-05-19.  
+Remitente: `noreply@onia.com.bo` / `business@onia.com.bo` (dominio `onia.com.bo` verificado en Resend).  
 Template: HTML con diseño dark, fondo `#0a0a0a`, acento naranja `#ff6b00`.  
 Todos los envíos son fire-and-forget (`.catch(() => {})`).
 

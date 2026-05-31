@@ -1,5 +1,48 @@
 # GestiOS — Changelog Mayo 2026
 
+## 2026-05-30 — Audit UI: locale es-BO + acentos completos
+
+### Commits: `3300dce` → `2801e60` (6 commits)
+
+Barrido completo de todos los archivos con texto en español en la UI.
+
+**Locale:**
+- Todos los `toLocaleString("es-MX")` → `"es-BO"` (cero ocurrencias `es-MX` restantes)
+- Todos los `toLocaleDateString("es-MX")` → `"es-BO"`
+- Todos los `toLocaleTimeString("es-MX")` → `"es-BO"`
+- Moneda: `$` fijo → `Bs.` con `toLocaleString("es-BO")` en todos los formateos
+
+**Archivos modificados:**
+- `app/page.tsx` — landing page
+- `app/(dashboard)/customers/page.tsx`
+- `app/(dashboard)/orders/page.tsx` (incluyendo template de impresión)
+- `app/(dashboard)/reports/page.tsx` (headers y labels CSV)
+- `app/(dashboard)/pos/page.tsx`
+- `app/(dashboard)/superadmin/page.tsx`
+- `app/(dashboard)/superadmin/organizations/page.tsx`
+- `app/(dashboard)/superadmin/users/page.tsx`
+- `app/(dashboard)/settings/sessions/page.tsx`
+- `app/(dashboard)/inventory/components/StockHistoryModal.tsx`
+
+**Acentos corregidos en todos los archivos UI** — tildes faltantes, ¿/¡ de apertura, ñ.
+
+---
+
+## 2026-05-29 v2 — Onboarding tour + fixes
+
+### Onboarding tour interactivo
+- `components/dashboard/OnboardingTour.tsx` — tour localStorage-based (`gestios_onboarding_v1`)
+- Welcome card + 4 pasos (POS, Inventario, Clientes, Reportes)
+- Botones "Saltar tour" + "Ir a feature" por paso
+- Activado en dashboard layout para non-superadmins
+
+### Fixes
+- Login redirect: `window.location.href = "/"` → `"/dashboard"` en `app/login/page.tsx`
+- Sessions API: `DELETE /api/sessions` revoca sesión por sessionId
+- Notifications API: try/catch, Promise.all, param `?unread=true`
+
+---
+
 ## 2026-05-13 — Deploy masivo + nuevas features
 
 ### Deploy completo
