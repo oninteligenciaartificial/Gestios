@@ -10,10 +10,12 @@ import { test, expect } from "@playwright/test";
  */
 
 const STORE_SLUG = process.env.STORE_SLUG;
+// La creación de pedido reales solo corre con permiso explícito (jamás en CI/producción
+// por defecto, para no ensuciar tiendas con órdenes falsas).
+const ALLOW_ORDERS = process.env.E2E_CREATE_ORDERS === "true";
 
 test.describe("Tienda — checkout público", () => {
   test.skip(!STORE_SLUG, "Define STORE_SLUG para correr el flujo de checkout");
-  test.skip(process.env.NODE_ENV === "production", "No ejecutar contra producción (crea pedidos reales)");
 
   test("carga la tienda y muestra productos", async ({ page }) => {
     await page.goto(`/${STORE_SLUG}/tienda`);
@@ -22,6 +24,7 @@ test.describe("Tienda — checkout público", () => {
   });
 
   test("agrega al carrito y completa el pedido", async ({ page }) => {
+    test.skip(!ALLOW_ORDERS, "Define E2E_CREATE_ORDERS=true para crear pedidos reales");
     await page.goto(`/${STORE_SLUG}/tienda`);
     await page.getByTestId("add-to-cart").first().click();
 
@@ -42,7 +45,6 @@ test.describe("Tienda — checkout público", () => {
 
 test.describe("Tienda — invariantes de checkout (API)", () => {
   test.skip(!STORE_SLUG, "Define STORE_SLUG para correr invariantes de API");
-  test.skip(process.env.NODE_ENV === "production", "No ejecutar contra producción");
 
   test("rechaza precio manipulado con 400", async ({ request }) => {
     // Tomar un producto real de la tienda

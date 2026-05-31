@@ -69,3 +69,38 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  e2e-storefront:
+    name: E2E Storefront (producción, solo lectura)
+    runs-on: ubuntu-latest
+    # Solo corre si hay un slug de tienda de prueba configurado como repo variable.
+    # No crea pedidos reales: E2E_CREATE_ORDERS queda sin definir, así que el test
+    # de creación de pedido se omite. Únicamente valida GET tienda + rechazos 400.
+    if: vars.E2E_STORE_SLUG != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --prefer-offline
+
+      - name: Install Playwright browser
+        run: npm run test:e2e:install
+
+      - name: Run storefront E2E against production
+        run: npm run test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.E2E_BASE_URL || 'https://gesti-os.vercel.app' }}
+          STORE_SLUG: ${{ vars.E2E_STORE_SLUG }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
