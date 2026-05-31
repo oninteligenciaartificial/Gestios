@@ -38,7 +38,7 @@ const PM_LABELS: Record<PaymentMethod, string> = {
   TRANSFERENCIA: "Transferencia",
 };
 
-const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n: number) => n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function PrintClient({ order, org }: PrintClientProps) {
   useEffect(() => {

@@ -54,7 +54,7 @@ function SignupForm() {
           <div className="text-4xl">📬</div>
           <h2 className="text-xl font-display font-bold text-white">Revisa tu correo</h2>
           <p className="text-brand-muted text-sm leading-relaxed">
-            Te enviamos un enlace de confirmacion a <span className="text-white font-medium">{email}</span>.
+            Te enviamos un enlace de confirmación a <span className="text-white font-medium">{email}</span>.
             Haz clic en el enlace para activar tu cuenta y configurar tu tienda.
           </p>
           {selectedPlan && (
@@ -63,7 +63,7 @@ function SignupForm() {
             </p>
           )}
           <Link href="/login" className="block text-brand-kinetic-orange text-sm hover:underline mt-4">
-            Ya confirme mi correo → Entrar
+            Ya confirmé mi correo → Entrar
           </Link>
         </div>
       </div>
@@ -106,7 +106,7 @@ function SignupForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={inp}
-              placeholder="Minimo 8 caracteres"
+              placeholder="Mínimo 8 caracteres"
             />
           </div>
 
@@ -124,7 +124,7 @@ function SignupForm() {
         <p className="text-center text-sm text-brand-muted">
           ¿Ya tienes cuenta?{" "}
           <Link href="/login" className="text-brand-kinetic-orange hover:underline">
-            Iniciar sesion
+            Iniciar sesión
           </Link>
         </p>
       </div>

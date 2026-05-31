@@ -79,7 +79,7 @@ export default function SetupPage() {
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data.error ?? "Ocurrio un error");
+      setError(data.error ?? "Ocurrió un error");
       setLoading(false);
     }
   }
@@ -97,7 +97,7 @@ export default function SetupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="glass-panel p-6 rounded-3xl space-y-5 animate-pop">
-            <h2 className="text-lg font-bold text-white">Datos basicos</h2>
+            <h2 className="text-lg font-bold text-white">Datos básicos</h2>
             <div className="space-y-2">
               <label className="text-sm font-medium text-brand-muted">Nombre de la tienda</label>
               <input
@@ -124,8 +124,8 @@ export default function SetupPage() {
 
           <div className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
             <div>
-              <h2 className="text-lg font-bold text-white mb-1">Que tipo de negocio tienes?</h2>
-              <p className="text-sm text-brand-muted">Esto define comoGestionas tus productos e inventario.</p>
+              <h2 className="text-lg font-bold text-white mb-1">¿Qué tipo de negocio tienes?</h2>
+              <p className="text-sm text-brand-muted">Esto define cómo gestionas tus productos e inventario.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

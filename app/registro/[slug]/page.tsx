@@ -42,7 +42,7 @@ export default function RegistroPage() {
     if (res.ok) {
       setSuccess(true);
     } else {
-      setError(data.error ?? "Ocurrio un error");
+      setError(data.error ?? "Ocurrió un error");
     }
     setLoading(false);
   }
@@ -93,7 +93,7 @@ export default function RegistroPage() {
             </div>
           )}
           <h1 className="text-2xl font-bold text-white">{org.name}</h1>
-          <p className="text-brand-muted text-sm">Registrate para recibir notificaciones y acumular puntos.</p>
+          <p className="text-brand-muted text-sm">Regístrate para recibir notificaciones y acumular puntos.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,7 +109,7 @@ export default function RegistroPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-brand-muted uppercase tracking-wide">Correo electronico</label>
+            <label className="text-xs font-medium text-brand-muted uppercase tracking-wide">Correo electrónico</label>
             <input
               type="email"
               value={email}
@@ -120,7 +120,7 @@ export default function RegistroPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-brand-muted uppercase tracking-wide">Telefono / WhatsApp</label>
+            <label className="text-xs font-medium text-brand-muted uppercase tracking-wide">Teléfono / WhatsApp</label>
             <input
               value={phone}
               onChange={e => setPhone(e.target.value)}
@@ -150,7 +150,7 @@ export default function RegistroPage() {
           </button>
 
           <p className="text-center text-xs text-brand-muted">
-            Tus datos solo seran usados por <strong>{org.name}</strong> para enviarte notificaciones.
+            Tus datos solo serán usados por <strong>{org.name}</strong> para enviarte notificaciones.
           </p>
         </form>
 
