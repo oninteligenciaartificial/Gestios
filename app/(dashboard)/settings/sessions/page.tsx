@@ -152,7 +152,7 @@ export default function SessionsPage() {
                       <button
                         onClick={() => revoke(s.id)}
                         disabled={revoking === s.id}
-                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/30 text-xs text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-colors disabled:opacity-50"
+                        className="flex-shrink-0 flex items-center gap-1.5 px-4 min-h-[44px] rounded-lg border border-red-500/30 text-xs text-red-400 hover:bg-red-500/10 hover:border-red-500/50 transition-colors disabled:opacity-50"
                       >
                         {revoking === s.id ? (
                           <Loader2 size={12} className="animate-spin" />

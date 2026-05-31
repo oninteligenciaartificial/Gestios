@@ -46,27 +46,47 @@ export function NotificationBell() {
 
   const fetchNotifs = useCallback(async () => {
     try {
-      const res = await fetch("/api/notifications");
+      const res = await fetch("/api/notifications?limit=10");
       if (res.ok) setData(await res.json() as NotifResponse);
     } catch { /* silent */ }
   }, []);
 
-  // Initial fetch + polling every 30s
+  // Initial fetch + polling every 30s (paused while tab hidden)
   useEffect(() => {
     fetchNotifs();
-    const id = setInterval(fetchNotifs, 30000);
-    return () => clearInterval(id);
+    let id = window.setInterval(fetchNotifs, 30000);
+    function onVisibility() {
+      window.clearInterval(id);
+      if (document.visibilityState === "visible") {
+        fetchNotifs();
+        id = window.setInterval(fetchNotifs, 30000);
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [fetchNotifs]);
 
-  // Close on outside click
+  // Close on outside click or Escape
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    if (open) {
+      document.addEventListener("mousedown", onClickOutside);
+      document.addEventListener("keydown", onKey);
+    }
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   async function markRead(notif: Notification) {
@@ -103,6 +123,8 @@ export function NotificationBell() {
         onClick={() => setOpen((v) => !v)}
         className="relative w-9 h-9 flex items-center justify-center rounded-xl text-brand-muted hover:text-white hover:bg-white/10 transition-colors"
         aria-label="Notificaciones"
+        aria-expanded={open}
+        aria-haspopup="true"
       >
         <Bell size={18} />
         {data.unreadCount > 0 && (
@@ -113,7 +135,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 w-80 bg-[#111] border border-white/10 rounded-2xl shadow-2xl z-[60] overflow-hidden">
+        <div className="absolute right-0 top-11 w-80 bg-[#111] border border-white/10 rounded-2xl shadow-2xl z-[60] overflow-hidden" role="menu" aria-label="Lista de notificaciones">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
             <span className="text-sm font-bold text-white">Notificaciones</span>
@@ -171,16 +193,6 @@ export function NotificationBell() {
             )}
           </div>
 
-          {data.notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-white/8">
-              <button
-                onClick={() => { setOpen(false); router.push("/settings"); }}
-                className="text-xs text-brand-kinetic-orange hover:underline"
-              >
-                Ver todas
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

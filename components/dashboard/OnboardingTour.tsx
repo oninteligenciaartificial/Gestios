@@ -65,6 +65,18 @@ export function OnboardingTour() {
     } catch { /* storage blocked */ }
   }, []);
 
+  useEffect(() => {
+    if (!visible) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
+        setVisible(false);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [visible]);
+
   function dismiss() {
     try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
     setVisible(false);
@@ -99,7 +111,7 @@ export function OnboardingTour() {
 
       {/* Card */}
       <div className="fixed inset-0 flex items-center justify-center z-[91] px-4 pointer-events-none">
-        <div className="bg-[#111] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md pointer-events-auto animate-pop">
+        <div className="bg-[#111] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md pointer-events-auto animate-pop" role="dialog" aria-modal="true" aria-label="Tour de bienvenida">
 
           {/* Header */}
           <div className="flex items-center justify-between px-6 pt-5 pb-0">
