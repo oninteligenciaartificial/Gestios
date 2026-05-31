@@ -174,7 +174,7 @@ export default function SuperAdminUsersPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre u organizacion..."
+          placeholder="Buscar por nombre u organización..."
           className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors"
         />
       </div>
@@ -188,7 +188,7 @@ export default function SuperAdminUsersPage() {
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="p-5 text-brand-muted font-medium">Usuario</th>
                 <th className="p-5 text-brand-muted font-medium">Rol</th>
-                <th className="p-5 text-brand-muted font-medium">Organizacion</th>
+                <th className="p-5 text-brand-muted font-medium">Organización</th>
                 <th className="p-5 text-brand-muted font-medium">Plan</th>
                 <th className="p-5 text-brand-muted font-medium">Acciones</th>
               </tr>
@@ -243,7 +243,7 @@ export default function SuperAdminUsersPage() {
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-brand-muted">
                     <Users size={40} className="mx-auto mb-3 opacity-30" />
-                    <p>{search ? "No se encontraron usuarios." : "No hay usuarios aun."}</p>
+                    <p>{search ? "No se encontraron usuarios." : "No hay usuarios aún."}</p>
                   </td>
                 </tr>
               )}
@@ -301,7 +301,7 @@ export default function SuperAdminUsersPage() {
                   required
                   minLength={8}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-                  placeholder="Minimo 8 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                 />
               </div>
               <div>
@@ -318,13 +318,13 @@ export default function SuperAdminUsersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-brand-muted mb-1">Organizacion (opcional)</label>
+                <label className="block text-sm text-brand-muted mb-1">Organización (opcional)</label>
                 <select
                   value={formOrgId}
                   onChange={(e) => setFormOrgId(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-brand-kinetic-orange transition-colors"
                 >
-                  <option value="">Sin organizacion</option>
+                  <option value="">Sin organización</option>
                   {orgs.map((o) => (
                     <option key={o.id} value={o.id}>{o.name}</option>
                   ))}
@@ -351,7 +351,7 @@ export default function SuperAdminUsersPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-display font-bold text-white mb-2">Eliminar Usuario</h2>
-            <p className="text-brand-muted text-sm mb-6">Esta accion eliminara al usuario y su cuenta de Supabase. No se puede deshacer.</p>
+            <p className="text-brand-muted text-sm mb-6">Esta acción eliminará al usuario y su cuenta de Supabase. No se puede deshacer.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteId(null)}
@@ -414,13 +414,13 @@ export default function SuperAdminUsersPage() {
                 />
                 <div className="flex gap-2 mt-2">
                   <button type="button" onClick={() => renewDays(30)} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-brand-muted hover:bg-white/10 hover:text-white transition-colors">
-                    +30 dias
+                    +30 días
                   </button>
                   <button type="button" onClick={() => renewDays(90)} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-brand-muted hover:bg-white/10 hover:text-white transition-colors">
-                    +90 dias
+                    +90 días
                   </button>
                   <button type="button" onClick={() => renewDays(365)} className="flex-1 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-brand-muted hover:bg-white/10 hover:text-white transition-colors">
-                    +1 ano
+                    +1 año
                   </button>
                 </div>
               </div>

@@ -64,12 +64,12 @@ export default function SessionsPage() {
       const r = await fetch(`/api/sessions?sessionId=${id}`, { method: "DELETE" });
       if (r.ok) {
         setSessions((prev) => prev.filter((s) => s.id !== id));
-        toast.success("Sesion cerrada correctamente");
+        toast.success("Sesión cerrada correctamente");
       } else {
-        toast.error("No se pudo cerrar la sesion");
+        toast.error("No se pudo cerrar la sesión");
       }
     } catch {
-      toast.error("Error al cerrar la sesion");
+      toast.error("Error al cerrar la sesión");
     } finally {
       setRevoking(null);
     }
@@ -91,7 +91,7 @@ export default function SessionsPage() {
           href="/settings"
           className="inline-flex items-center gap-1.5 text-sm text-brand-muted hover:text-white transition-colors mb-4"
         >
-          <ArrowLeft size={14} /> Configuracion
+          <ArrowLeft size={14} /> Configuración
         </Link>
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-brand-kinetic-orange/10">
@@ -102,7 +102,7 @@ export default function SessionsPage() {
               Sesiones activas
             </h1>
             <p className="text-brand-muted mt-0.5 text-sm">
-              Dispositivos con sesion iniciada en tu cuenta
+              Dispositivos con sesión iniciada en tu cuenta
             </p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function SessionsPage() {
                           )}
                         </div>
                         <div className="text-xs text-brand-muted mt-0.5">
-                          Ultimo acceso: {timeAgo(s.updatedAt)} &middot;{" "}
+                          Último acceso: {timeAgo(s.updatedAt)} &middot;{" "}
                           {new Date(s.updatedAt).toLocaleString("es-BO")}
                         </div>
                       </div>
@@ -191,8 +191,8 @@ export default function SessionsPage() {
           <div className="space-y-1">
             <p className="text-sm font-medium text-white">Acerca de las sesiones</p>
             <p className="text-xs text-brand-muted leading-relaxed">
-              Cada vez que inicias sesion en un dispositivo nuevo se crea una entrada aqui.
-              Si ves un dispositivo que no reconoces, cerralo de inmediato y cambia tu contrasena.
+              Cada vez que inicias sesión en un dispositivo nuevo se crea una entrada aquí.
+              Si ves un dispositivo que no reconoces, ciérralo de inmediato y cambia tu contraseña.
             </p>
           </div>
         </div>
