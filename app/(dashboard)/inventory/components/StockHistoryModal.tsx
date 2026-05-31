@@ -82,7 +82,7 @@ export function StockHistoryModal({ productId, productName, open, onClose }: Pro
                   return (
                     <tr key={e.id} className="hover:bg-white/[0.02]">
                       <td className="py-3 text-brand-muted">
-                        {new Date(e.createdAt).toLocaleDateString("es-MX", {
+                        {new Date(e.createdAt).toLocaleDateString("es-BO", {
                           day: "2-digit", month: "short", year: "numeric",
                         })}
                       </td>

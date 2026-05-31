@@ -294,7 +294,7 @@ export default function OrdersPage() {
 
             <div className="flex items-center gap-3">
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[detailOrder.status]}`}>{STATUS_LABELS[detailOrder.status]}</span>
-              <span className="text-xs text-brand-muted">{new Date(detailOrder.createdAt).toLocaleString("es-MX")}</span>
+              <span className="text-xs text-brand-muted">{new Date(detailOrder.createdAt).toLocaleString("es-BO")}</span>
             </div>
 
             <div className="space-y-2">
