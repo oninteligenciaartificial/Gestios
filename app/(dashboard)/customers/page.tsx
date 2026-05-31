@@ -40,7 +40,7 @@ const STATUS_LABELS: Record<string, string> = {
   PENDIENTE: "Pendiente", CONFIRMADO: "Confirmado", ENVIADO: "Enviado",
   ENTREGADO: "Entregado", CANCELADO: "Cancelado",
 };
-const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
+const fmt = (n: number) => n.toLocaleString("es-BO", { minimumFractionDigits: 2 });
 
 const inp = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
 const EMPTY = { name: "", phone: "", email: "", address: "", rfc: "", birthday: "", notes: "" };
@@ -260,7 +260,7 @@ export default function CustomersPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre, telefono o email..."
+          placeholder="Buscar por nombre, teléfono o email..."
           className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors"
         />
       </div>
@@ -270,7 +270,7 @@ export default function CustomersPage() {
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-brand-muted space-y-3">
           <Users size={40} className="mx-auto opacity-30" />
-          <p>{search ? "No se encontraron clientes." : "No hay clientes aun. Agrega el primero."}</p>
+          <p>{search ? "No se encontraron clientes." : "No hay clientes aún. Agrega el primero."}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -293,7 +293,7 @@ export default function CustomersPage() {
                 </div>
                 <div>
                   <Link href={`/customers/${c.id}`} className="font-bold text-white hover:text-brand-kinetic-orange transition-colors">{c.name}</Link>
-                  <p className="text-xs text-brand-muted">{new Date(c.createdAt).toLocaleDateString("es-MX")}</p>
+                  <p className="text-xs text-brand-muted">{new Date(c.createdAt).toLocaleDateString("es-BO")}</p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -365,7 +365,7 @@ export default function CustomersPage() {
                   <input
                     required
                     type="text"
-                    placeholder="Razon del ajuste"
+                    placeholder="Razón del ajuste"
                     value={pointsReason}
                     onChange={(e) => setPointsReason(e.target.value)}
                     className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm"
@@ -413,7 +413,7 @@ export default function CustomersPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${STATUS_COLORS[o.status] ?? "bg-white/10 text-brand-muted"}`}>{STATUS_LABELS[o.status] ?? o.status}</span>
-                          <span className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleDateString("es-MX")}</span>
+                          <span className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleDateString("es-BO")}</span>
                         </div>
                         <span className="font-bold text-white text-sm">Bs. {fmt(Number(o.total))}</span>
                       </div>

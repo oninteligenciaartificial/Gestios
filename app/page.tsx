@@ -20,9 +20,9 @@ const BUSINESS_TYPES = [
   { icon: Store, label: "General", desc: "Productos variados" },
   { icon: Shirt, label: "Ropa", desc: "Tallas y colores" },
   { icon: Dumbbell, label: "Suplementos", desc: "Sabores y vencimientos" },
-  { icon: Monitor, label: "Electronica", desc: "Garantias y modelos" },
+  { icon: Monitor, label: "Electrónica", desc: "Garantías y modelos" },
   { icon: Pill, label: "Farmacia", desc: "Dosis y lotes" },
-  { icon: Wrench, label: "Ferreteria", desc: "Medidas y materiales" },
+  { icon: Wrench, label: "Ferretería", desc: "Medidas y materiales" },
 ];
 
 const STEPS = [
@@ -103,7 +103,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="text-brand-muted text-lg sm:text-xl max-w-lg leading-relaxed">
-              POS, inventario, pedidos, clientes y reportes. Con etiquetas, atributos y funciones especificas para ropa, farmacia, electronica, suplementos, ferreteria y mas.
+              POS, inventario, pedidos, clientes y reportes. Con etiquetas, atributos y funciones específicas para ropa, farmacia, electrónica, suplementos, ferretería y más.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-4">
@@ -267,7 +267,7 @@ export default async function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 text-center text-xs text-brand-muted space-y-2">
-        <div>GestiOS · Sistema de gestion para negocios en Bolivia y Latinoamerica</div>
+        <div>GestiOS · Sistema de gestión para negocios en Bolivia y Latinoamérica</div>
         <div className="flex items-center justify-center gap-4">
           <Link href="/privacidad" className="hover:text-white transition-colors">Política de Privacidad</Link>
           <span className="text-white/20">·</span>
