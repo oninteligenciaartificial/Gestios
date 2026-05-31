@@ -51,7 +51,7 @@ export default async function SuperAdminPage() {
     { label: "Usuarios en plataforma", value: String(totalUsers), icon: Users, color: "text-white" },
     { label: "Pedidos totales", value: String(totalOrders), icon: ShoppingCart, color: "text-brand-growth-neon" },
     { label: "Productos activos", value: String(totalProducts), icon: Package, color: "text-white" },
-    { label: "Ingresos del mes", value: `$${revenue.toLocaleString("es-MX")}`, icon: TrendingUp, color: "text-brand-kinetic-orange" },
+    { label: "Ingresos del mes", value: `Bs. ${revenue.toLocaleString("es-BO")}`, icon: TrendingUp, color: "text-brand-kinetic-orange" },
   ];
 
   return (
@@ -73,7 +73,7 @@ export default async function SuperAdminPage() {
       <header className="flex flex-wrap justify-between items-start gap-3 animate-pop">
         <div>
           <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">Panel de Control</h1>
-          <p className="text-brand-muted mt-1 text-sm">Vision global de todas las tiendas en GestiOS</p>
+          <p className="text-brand-muted mt-1 text-sm">Visión global de todas las tiendas en GestiOS</p>
         </div>
         <a
           href="/superadmin/organizations"
@@ -125,14 +125,14 @@ export default async function SuperAdminPage() {
                   <td className="p-5 text-white font-display">{org._count.profiles}</td>
                   <td className="p-5 text-white font-display">{org._count.products}</td>
                   <td className="p-5 text-white font-display">{org._count.orders}</td>
-                  <td className="p-5 text-brand-muted text-sm">{new Date(org.createdAt).toLocaleDateString("es-MX")}</td>
+                  <td className="p-5 text-brand-muted text-sm">{new Date(org.createdAt).toLocaleDateString("es-BO")}</td>
                 </tr>
               ))}
               {recentOrgs.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-brand-muted">
                     <Building2 size={40} className="mx-auto mb-3 opacity-30" />
-                    <p>No hay tiendas. Crea la primera con el boton de arriba.</p>
+                    <p>No hay tiendas. Crea la primera con el botón de arriba.</p>
                   </td>
                 </tr>
               )}
@@ -167,7 +167,7 @@ export default async function SuperAdminPage() {
                   <div className="font-bold text-white text-lg">{org._count.orders}</div>
                 </div>
               </div>
-              <div className="text-xs text-brand-muted">{new Date(org.createdAt).toLocaleDateString("es-MX")}</div>
+              <div className="text-xs text-brand-muted">{new Date(org.createdAt).toLocaleDateString("es-BO")}</div>
             </div>
           ))}
         </div>

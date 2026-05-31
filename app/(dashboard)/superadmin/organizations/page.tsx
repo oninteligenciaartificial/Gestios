@@ -265,7 +265,7 @@ export default function OrganizationsPage() {
                   <td className="p-5 text-white">{org._count.profiles}</td>
                   <td className="p-5 text-white">{org._count.products}</td>
                   <td className="p-5 text-white">{org._count.orders}</td>
-                  <td className="p-5 text-brand-muted text-sm">{new Date(org.createdAt).toLocaleDateString("es-MX")}</td>
+                  <td className="p-5 text-brand-muted text-sm">{new Date(org.createdAt).toLocaleDateString("es-BO")}</td>
                   <td className="p-5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
@@ -305,7 +305,7 @@ export default function OrganizationsPage() {
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-brand-muted">
                     <Building2 size={40} className="mx-auto mb-3 opacity-30" />
-                    <p>No hay tiendas aun.</p>
+                    <p>No hay tiendas aún.</p>
                   </td>
                 </tr>
               )}
@@ -321,7 +321,7 @@ export default function OrganizationsPage() {
         ) : orgs.length === 0 ? (
           <div className="py-16 text-center text-brand-muted">
             <Building2 size={40} className="mx-auto mb-3 opacity-30" />
-            <p>No hay tiendas aun.</p>
+            <p>No hay tiendas aún.</p>
           </div>
         ) : orgs.map((org) => (
           <div key={org.id} className="glass-panel rounded-2xl p-4 space-y-3">
@@ -394,8 +394,8 @@ export default function OrganizationsPage() {
                     <input required type="email" value={createForm.adminEmail} onChange={(e) => setCreateForm({ ...createForm, adminEmail: e.target.value })} className={input} placeholder="admin@tienda.com" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm text-brand-muted">Contrasena temporal *</label>
-                    <input required type="text" minLength={8} value={createForm.adminPassword} onChange={(e) => setCreateForm({ ...createForm, adminPassword: e.target.value })} className={input} placeholder="Min 8 caracteres" />
+                    <label className="text-sm text-brand-muted">Contraseña temporal *</label>
+                    <input required type="text" minLength={8} value={createForm.adminPassword} onChange={(e) => setCreateForm({ ...createForm, adminPassword: e.target.value })} className={input} placeholder="Mín. 8 caracteres" />
                   </div>
                 </div>
               </div>
@@ -446,11 +446,11 @@ export default function OrganizationsPage() {
                 <input required value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className={input} />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Telefono</label>
+                <label className="text-sm text-brand-muted">Teléfono</label>
                 <input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} className={input} placeholder="+52 55 0000 0000" />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Direccion</label>
+                <label className="text-sm text-brand-muted">Dirección</label>
                 <input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} className={input} placeholder="Calle, Ciudad" />
               </div>
               <div className="space-y-1.5">
@@ -487,13 +487,13 @@ export default function OrganizationsPage() {
                 />
                 <div className="flex gap-2">
                   <button type="button" onClick={() => renewDays(30)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs text-brand-muted hover:text-white hover:border-brand-kinetic-orange transition-colors">
-                    +30 dias
+                    +30 días
                   </button>
                   <button type="button" onClick={() => renewDays(90)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs text-brand-muted hover:text-white hover:border-brand-kinetic-orange transition-colors">
-                    +90 dias
+                    +90 días
                   </button>
                   <button type="button" onClick={() => renewDays(365)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs text-brand-muted hover:text-white hover:border-brand-kinetic-orange transition-colors">
-                    +1 ano
+                    +1 año
                   </button>
                 </div>
               </div>
@@ -532,8 +532,8 @@ export default function OrganizationsPage() {
           <div className="glass-panel w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 space-y-6 text-center">
             <Trash2 size={40} className="mx-auto text-red-400" />
             <div>
-              <h3 className="text-lg font-bold text-white">Eliminar organizacion</h3>
-              <p className="text-brand-muted text-sm mt-1">Se eliminaran todos sus datos. Esta accion no se puede deshacer.</p>
+              <h3 className="text-lg font-bold text-white">Eliminar organización</h3>
+              <p className="text-brand-muted text-sm mt-1">Se eliminarán todos sus datos. Esta acción no se puede deshacer.</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteId(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-colors">Cancelar</button>
