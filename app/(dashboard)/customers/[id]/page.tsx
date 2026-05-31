@@ -140,7 +140,7 @@ export default function CustomerDetailPage() {
 
           {/* Stats */}
           <div className="glass-panel p-5 rounded-2xl space-y-3 animate-pop">
-            <h2 className="font-bold text-white text-sm uppercase tracking-wider">Estadisticas</h2>
+            <h2 className="font-bold text-white text-sm uppercase tracking-wider">Estadísticas</h2>
             <div className="flex justify-between items-center">
               <span className="text-brand-muted text-sm flex items-center gap-2">
                 <ShoppingBag size={14} className="text-brand-kinetic-orange" /> Pedidos
@@ -188,7 +188,7 @@ export default function CustomerDetailPage() {
                 {customer.orders.map((order) => (
                   <a
                     key={order.id}
-                    href={`/ventas`}
+                    href={`/ventas/${order.id}`}
                     className="py-4 px-5 flex justify-between items-start hover:bg-white/[0.02] transition-colors group"
                   >
                     <div className="flex-1 min-w-0">

@@ -102,9 +102,9 @@ export default async function Dashboard() {
 
   const kpis = [
     { title: "Inventario Total",  value: String(totalProducts),                  label: "SKUs Activos",    icon: Package,       color: "text-brand-kinetic-orange", delta: null as number | null },
-    { title: "Pedidos Semana",    value: String(weeklyOrders),                    label: "Ultimos 7 dias",  icon: ShoppingCart,  color: "text-white",                delta: deltaOrders },
+    { title: "Pedidos Semana",    value: String(weeklyOrders),                    label: "Últimos 7 días",  icon: ShoppingCart,  color: "text-white",                delta: deltaOrders },
     { title: "Alertas Stock",     value: String(lowStockAlerts.length),           label: "Reabastecer Ya",  icon: AlertTriangle, color: "text-red-400",              delta: null as number | null },
-    { title: "Ingresos",          value: `Bs. ${monthlyRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, label: "Mensual", icon: DollarSign, color: "text-brand-growth-neon", delta: deltaRevenue },
+    { title: "Ingresos",          value: `Bs. ${monthlyRevenue.toLocaleString("es-BO", { minimumFractionDigits: 2 })}`, label: "Mensual", icon: DollarSign, color: "text-brand-growth-neon", delta: deltaRevenue },
   ];
 
   return (
@@ -112,7 +112,7 @@ export default async function Dashboard() {
       <header className="flex flex-wrap justify-between items-start gap-3 animate-pop">
         <div>
           <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">Dashboard</h1>
-          <p className="text-brand-muted mt-1 text-sm">Vision general de tu tienda</p>
+          <p className="text-brand-muted mt-1 text-sm">Visión general de tu tienda</p>
         </div>
         <div className="flex gap-2 sm:gap-4 flex-shrink-0">
           <SyncButton />
@@ -164,7 +164,7 @@ export default async function Dashboard() {
             <div className="divide-y divide-white/5">
               {lowStockAlerts.length === 0 && (
                 <div className="py-8 px-6 text-center text-brand-muted">
-                  {isEmpty ? "Carga datos de ejemplo para ver alertas de stock" : "Todo el inventario esta en buen nivel"}
+                  {isEmpty ? "Carga datos de ejemplo para ver alertas de stock" : "Todo el inventario está en buen nivel"}
                 </div>
               )}
               {lowStockAlerts.map((item) => (
@@ -174,7 +174,7 @@ export default async function Dashboard() {
                     <div className="text-sm text-brand-muted mt-1">
                       Quedan {item.stock} unidades
                       {item.stock <= item.minStock && (
-                        <span className="ml-2 text-red-400 font-medium">Critico</span>
+                        <span className="ml-2 text-red-400 font-medium">Crítico</span>
                       )}
                     </div>
                   </div>
@@ -202,11 +202,11 @@ export default async function Dashboard() {
             <div className="space-y-3 text-sm text-brand-muted">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-growth-neon flex-shrink-0" />
-                Confirmacion automatica al crear pedido
+                Confirmación automática al crear pedido
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-growth-neon flex-shrink-0" />
-                Actualizacion de estado al cliente
+                Actualización de estado al cliente
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-kinetic-orange flex-shrink-0" />
@@ -243,7 +243,7 @@ export default async function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-white">Bs. {Number(o.total.toString()).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                      <div className="font-bold text-white">Bs. {Number(o.total.toString()).toLocaleString("es-BO", { minimumFractionDigits: 2 })}</div>
                       <div className={`text-xs font-medium ${statusColor}`}>{statusLabel}</div>
                     </div>
                   </div>
