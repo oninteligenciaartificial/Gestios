@@ -4,25 +4,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendBirthdayEmail, sendPlainNotification } from "@/lib/email";
 import { reportAsyncError } from "@/lib/monitoring";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-
-function verifyCronSecret(provided: string | null): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || !provided) return false;
-  if (secret.length !== provided.length) return false;
-  let diff = 0;
-  for (let i = 0; i < secret.length; i++) {
-    diff |= secret.charCodeAt(i) ^ provided.charCodeAt(i);
-  }
-  return diff === 0;
-}
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 export async function GET(request: Request) {
   const rateLimited = await checkRateLimit(request, "cron-birthday", RATE_LIMITS.cron);
   if (rateLimited) return rateLimited;
 
-  const authHeader = request.headers.get("Authorization");
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!verifyCronSecret(token)) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
