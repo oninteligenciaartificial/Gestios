@@ -56,7 +56,7 @@ interface CartItem {
 }
 
 function fmt(n: number) {
-  return n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function cartKey(item: CartItem) {

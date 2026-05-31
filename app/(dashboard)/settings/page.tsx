@@ -341,7 +341,7 @@ export default function SettingsPage() {
               </div>
               <h2 className="font-display font-bold text-white">Seguridad</h2>
             </div>
-            <p className="text-sm text-brand-muted">Para cambiar tu contrasena, usa el enlace de recuperacion desde la pantalla de login.</p>
+            <p className="text-sm text-brand-muted">Para cambiar tu contraseña, usa el enlace de recuperación desde la pantalla de login.</p>
           </section>
 
           <section className="glass-panel p-6 rounded-3xl animate-pop">
@@ -369,7 +369,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h2 className="font-display font-bold text-white">Sesiones activas</h2>
-                  <p className="text-xs text-brand-muted mt-0.5">Gestiona los dispositivos con sesion iniciada</p>
+                  <p className="text-xs text-brand-muted mt-0.5">Gestiona los dispositivos con sesión iniciada</p>
                 </div>
               </div>
               <NextLink href="/settings/sessions" className="flex items-center gap-1 text-sm font-bold text-brand-kinetic-orange hover:underline">
@@ -401,7 +401,7 @@ export default function SettingsPage() {
                     <div key={log.id} className="py-3 space-y-0.5">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-white font-medium">{log.userName}</span>
-                        <span className="text-xs text-brand-muted">{new Date(log.createdAt).toLocaleString("es-MX")}</span>
+                        <span className="text-xs text-brand-muted">{new Date(log.createdAt).toLocaleString("es-BO")}</span>
                       </div>
                       <p className="text-xs text-brand-muted">
                         <span className="text-brand-kinetic-orange">{log.action}</span> · {log.entity}
@@ -485,7 +485,7 @@ function SessionsSection() {
           </div>
           <div>
             <h2 className="font-display font-bold text-white">Sesiones activas</h2>
-            <p className="text-xs text-brand-muted mt-0.5">Dispositivos con sesion iniciada</p>
+            <p className="text-xs text-brand-muted mt-0.5">Dispositivos con sesión iniciada</p>
           </div>
         </div>
         {!loaded && (
@@ -525,7 +525,7 @@ function SessionsSection() {
                       {s.isCurrent && <span className="ml-2 text-xs text-brand-kinetic-orange font-normal">Este dispositivo</span>}
                     </div>
                     <div className="text-xs text-brand-muted">
-                      Ultimo acceso: {new Date(s.updatedAt).toLocaleString("es-BO")}
+                      Último acceso: {new Date(s.updatedAt).toLocaleString("es-BO")}
                     </div>
                   </div>
                 </div>

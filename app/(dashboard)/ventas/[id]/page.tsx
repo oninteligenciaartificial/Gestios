@@ -66,7 +66,7 @@ const PM_LABELS: Record<PaymentMethod, string> = {
   EFECTIVO: "Efectivo", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
 };
 
-const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n: number) => n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function dateLabel(iso: string) {
   return new Date(iso).toLocaleString("es-BO", {
