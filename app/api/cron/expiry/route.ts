@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendExpiryAlert } from "@/lib/email";
 import { reportAsyncError } from "@/lib/monitoring";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 export async function GET(request: Request) {
-  if (request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

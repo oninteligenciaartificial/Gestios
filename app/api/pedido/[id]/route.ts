@@ -17,7 +17,7 @@ export async function GET(
       paymentMethod: true,
       total: true,
       shippingAddress: true,
-      notes: true,
+      // notes omitted — contains serialized customer email/phone (PII)
       createdAt: true,
       updatedAt: true,
       organization: {

@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendInactiveCustomerEmail } from "@/lib/email";
 import { reportAsyncError } from "@/lib/monitoring";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 // Runs daily — sends reactivation emails to customers who haven't ordered in 30 days
 // Only for EMPRESARIAL orgs (email_advanced feature)
 export async function GET(request: Request) {
-  if (request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

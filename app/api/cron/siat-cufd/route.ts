@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { refreshCUFD } from "@/lib/siat";
 import { reportAsyncError } from "@/lib/monitoring";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 // Runs daily at 06:00 — refreshes CUFD for all orgs with SIAT addon active
 export async function GET(request: Request) {
-  if (request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

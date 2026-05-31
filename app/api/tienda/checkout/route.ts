@@ -88,37 +88,57 @@ export async function POST(request: Request) {
     customerPhone ? `Tel: ${customerPhone}` : null,
   ].filter(Boolean).join(" | ") || null;
 
-  const orderCreateOp = prisma.order.create({
-    data: {
-      organizationId: org.id,
-      customerName: customerName.trim(),
-      paymentMethod: "TRANSFERENCIA",
-      status: "PENDIENTE",
-      total,
-      shippingAddress: shippingAddress ?? null,
-      notes: notesStr,
-      items: {
-        create: items.map((i): Prisma.OrderItemUncheckedCreateWithoutOrderInput => ({
-          productId: i.productId,
-          quantity: i.quantity,
-          unitPrice: i.unitPrice,
-          variantId: i.variantId ?? null,
-          variantSnapshot: (i.variantSnapshot ?? Prisma.DbNull) as Prisma.InputJsonValue | typeof Prisma.DbNull,
-        })),
-      },
-    },
-    include: { items: { include: { product: { select: { name: true } } } } },
-  });
-
-  const stockOps = items.map(i =>
-    i.variantId
-      ? prisma.productVariant.update({ where: { id: i.variantId }, data: { stock: { decrement: i.quantity } } })
-      : prisma.product.update({ where: { id: i.productId }, data: { stock: { decrement: i.quantity } } })
-  );
-
+  // Interactive transaction: atomic stock check + decrement + order creation
+  // Throwing inside rolls back everything — prevents race conditions / negative stock
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const txResults = await (prisma.$transaction as (ops: any[]) => Promise<any[]>)([orderCreateOp, ...stockOps]);
-  const order = txResults[0] as Awaited<typeof orderCreateOp>;
+  let order: any;
+  try {
+    order = await prisma.$transaction(async (tx) => {
+      // Decrement stock atomically — updateMany returns {count:0} if stock insufficient
+      for (const i of items) {
+        const res = i.variantId
+          ? await tx.productVariant.updateMany({
+              where: { id: i.variantId, stock: { gte: i.quantity } },
+              data: { stock: { decrement: i.quantity } },
+            })
+          : await tx.product.updateMany({
+              where: { id: i.productId, stock: { gte: i.quantity } },
+              data: { stock: { decrement: i.quantity } },
+            });
+        if (res.count === 0) {
+          throw new Error("STOCK_INSUFICIENTE");
+        }
+      }
+      // All stock decrements succeeded — create the order
+      return tx.order.create({
+        data: {
+          organizationId: org.id,
+          customerName: customerName.trim(),
+          paymentMethod: "TRANSFERENCIA",
+          status: "PENDIENTE",
+          total,
+          shippingAddress: shippingAddress ?? null,
+          notes: notesStr,
+          items: {
+            create: items.map((i): Prisma.OrderItemUncheckedCreateWithoutOrderInput => ({
+              productId: i.productId,
+              quantity: i.quantity,
+              unitPrice: i.unitPrice,
+              variantId: i.variantId ?? null,
+              variantSnapshot: (i.variantSnapshot ?? Prisma.DbNull) as Prisma.InputJsonValue | typeof Prisma.DbNull,
+            })),
+          },
+        },
+        include: { items: { include: { product: { select: { name: true } } } } },
+      });
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    if (msg === "STOCK_INSUFICIENTE") {
+      return NextResponse.json({ error: "Stock insuficiente. Alguien más compró antes. Recarga e intenta de nuevo." }, { status: 409 });
+    }
+    throw err;
+  }
 
   if (customerEmail) {
     const orderItems = order.items.map(i => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) }));

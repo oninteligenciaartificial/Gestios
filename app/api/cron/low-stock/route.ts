@@ -3,11 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendLowStockAlert } from "@/lib/email";
 import { reportAsyncError } from "@/lib/monitoring";
+import { verifyCronSecret } from "@/lib/cron-auth";
 
 // Runs daily at 8:30 AM — alerts org admins of products at or below minStock
 // Only for orgs with stock_alert feature (CRECER+)
 export async function GET(request: Request) {
-  if (request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
