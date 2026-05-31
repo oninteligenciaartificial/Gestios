@@ -41,7 +41,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 const inp = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
-const fmt = (n: number) => n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
+const fmt = (n: number) => n.toLocaleString("es-BO", { minimumFractionDigits: 2 });
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -141,7 +141,7 @@ export default function OrdersPage() {
       <style>body{font-family:monospace;font-size:13px;margin:20px}h2{text-align:center;margin-bottom:4px}p{text-align:center;color:#666;margin:2px 0}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:4px 6px}th{border-bottom:1px solid #ccc;text-align:left}tfoot td{border-top:2px solid #333;font-weight:bold}.footer{text-align:center;margin-top:16px;color:#999;font-size:11px}</style>
       </head><body>
       <h2>Ticket de Venta</h2>
-      <p>${new Date(order.createdAt).toLocaleString("es-MX")}</p>
+      <p>${new Date(order.createdAt).toLocaleString("es-BO")}</p>
       <p>Cliente: <strong>${order.customerName}</strong></p>
       <table><thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">Subtotal</th></tr></thead>
       <tbody>${lines}</tbody>
@@ -165,7 +165,7 @@ export default function OrdersPage() {
       <header className="flex justify-between items-end animate-pop">
         <div>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">Pedidos</h1>
-          <p className="text-brand-muted mt-1 text-sm">Gestiona las ordenes de tus clientes.</p>
+          <p className="text-brand-muted mt-1 text-sm">Gestiona las órdenes de tus clientes.</p>
         </div>
         <button onClick={openCreate} className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-4 md:px-6 py-2.5 md:py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] text-sm md:text-base">
           <Plus size={16} /> Nuevo
@@ -215,7 +215,7 @@ export default function OrdersPage() {
                     <td className="p-4 text-brand-muted text-sm">{o.items.length}</td>
                     <td className="p-4 font-bold text-white text-sm">Bs. {fmt(Number(o.total))}</td>
                     <td className="p-4"><span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${STATUS_COLORS[o.status]}`}>{STATUS_ICONS[o.status]}{STATUS_LABELS[o.status]}</span></td>
-                    <td className="p-4 text-brand-muted text-xs">{new Date(o.createdAt).toLocaleDateString("es-MX")}</td>
+                    <td className="p-4 text-brand-muted text-xs">{new Date(o.createdAt).toLocaleDateString("es-BO")}</td>
                     <td className="p-4" onClick={(e) => e.stopPropagation()}>
                       <div className="relative">
                         <button onClick={() => setActionsId(actionsId === o.id ? null : o.id)} className="flex items-center gap-1 text-brand-muted hover:text-white transition-colors text-xs py-1 px-2 rounded-lg hover:bg-white/5">
@@ -246,7 +246,7 @@ export default function OrdersPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-white truncate">{o.customerName}</div>
-                    <div className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" })}</div>
+                    <div className="text-xs text-brand-muted">{new Date(o.createdAt).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })}</div>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 flex-shrink-0 ${STATUS_COLORS[o.status]}`}>{STATUS_ICONS[o.status]}{STATUS_LABELS[o.status]}</span>
                 </div>
@@ -345,7 +345,7 @@ export default function OrdersPage() {
             <form onSubmit={handleCreate} className="space-y-4 overflow-y-auto flex-1">
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Nombre del cliente *</label>
-                <input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} className={inp} placeholder="Nombre o razon social" />
+                <input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} className={inp} placeholder="Nombre o razón social" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Cliente registrado (opcional)</label>

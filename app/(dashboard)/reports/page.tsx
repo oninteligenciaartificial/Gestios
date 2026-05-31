@@ -78,12 +78,12 @@ export default function ReportsPage() {
       ["Clientes", data.totalCustomers],
       ["Ticket promedio", data.totalOrders > 0 ? data.totalRevenue / data.totalOrders : 0],
       [],
-      ["Metodos de pago"],
-      ["Metodo", "Monto"],
+      ["Métodos de pago"],
+      ["Método", "Monto"],
       ...Object.entries(data.paymentBreakdown).map(([m, v]) => [PAYMENT_LABELS[m] ?? m, v]),
       [],
-      ["Ventas por categoria"],
-      ["Categoria", "Ingresos", "Unidades"],
+      ["Ventas por categoría"],
+      ["Categoría", "Ingresos", "Unidades"],
       ...data.salesByCategory.map((c) => [c.name, c.revenue, c.quantity]),
       [],
       ["Top Clientes"],
@@ -98,11 +98,11 @@ export default function ReportsPage() {
       ["Producto", "Unidades vendidas", "Ingresos", "Margen"],
       ...data.topSelling.map((p) => [p.name, p.quantity, p.revenue, p.margin]),
       [],
-      ["Stock critico"],
-      ["Producto", "Stock actual", "Stock minimo"],
+      ["Stock crítico"],
+      ["Producto", "Stock actual", "Stock mínimo"],
       ...data.lowStock.map((p) => [p.name, p.stock, p.minStock]),
       [],
-      ["Productos sin movimiento (30 dias)"],
+      ["Productos sin movimiento (30 días)"],
       ["Producto", "Stock"],
       ...data.noMovement.map((p) => [p.name, p.stock]),
     ];
@@ -125,7 +125,7 @@ export default function ReportsPage() {
       <header className="flex justify-between items-end animate-pop">
         <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Reportes</h1>
-          <p className="text-brand-muted mt-1">Analisis de ventas e inventario.</p>
+          <p className="text-brand-muted mt-1">Análisis de ventas e inventario.</p>
         </div>
         {data && (
           <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export default function ReportsPage() {
             <section className="space-y-4 animate-pop">
               <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
                 <Tag size={20} className="text-blue-400" />
-                Ventas por Categoria
+                Ventas por Categoría
               </h2>
               <div className="glass-panel rounded-2xl p-5">
                 <Suspense fallback={<div className="h-56 animate-pulse bg-white/5 rounded-xl" />}>
@@ -298,14 +298,14 @@ export default function ReportsPage() {
               </h2>
               <div className="glass-panel rounded-2xl overflow-hidden">
                 {data.lowStock.length === 0 ? (
-                  <div className="py-12 text-center text-brand-muted text-sm">Todo el inventario esta en buen nivel.</div>
+                  <div className="py-12 text-center text-brand-muted text-sm">Todo el inventario está en buen nivel.</div>
                 ) : (
                   <div className="divide-y divide-white/5">
                     {data.lowStock.map((p) => (
                       <div key={p.id} className="p-4 flex justify-between items-center">
                         <div>
                           <div className="font-medium text-white">{p.name}</div>
-                          <div className="text-xs text-brand-muted mt-0.5">Minimo: {p.minStock} uds.</div>
+                          <div className="text-xs text-brand-muted mt-0.5">Mínimo: {p.minStock} uds.</div>
                         </div>
                         <div className="text-right">
                           <div className={`text-xl font-display font-bold ${p.stock === 0 ? "text-red-400" : p.stock <= p.minStock ? "text-yellow-400" : "text-white"}`}>{p.stock}</div>
@@ -322,7 +322,7 @@ export default function ReportsPage() {
             <section className="space-y-4 animate-pop">
               <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
                 <CreditCard size={20} className="text-blue-400" />
-                Metodos de Pago
+                Métodos de Pago
               </h2>
               <div className="glass-panel rounded-2xl overflow-hidden">
                 {Object.keys(data.paymentBreakdown).length === 0 ? (
