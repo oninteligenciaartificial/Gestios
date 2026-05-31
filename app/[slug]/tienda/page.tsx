@@ -155,7 +155,7 @@ export default function TiendaPage() {
   );
 
   if (success) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 p-4">
+    <div data-testid="order-success" className="min-h-screen flex items-center justify-center bg-gray-950 p-4">
       <div className="max-w-sm w-full text-center space-y-6">
         <CheckCircle size={64} className="mx-auto text-green-400" />
         <div>
@@ -192,6 +192,7 @@ export default function TiendaPage() {
             />
             <button
               onClick={() => setCartOpen(true)}
+              data-testid="cart-button"
               className="relative p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
             >
               <ShoppingCart size={20} />
@@ -223,7 +224,7 @@ export default function TiendaPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map(p => (
-              <div key={p.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-white/20 transition-colors">
+              <div key={p.id} data-testid="product-card" className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-white/20 transition-colors">
                 {p.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.imageUrl} alt={p.name} className="w-full h-40 object-cover bg-white/5" />
@@ -239,6 +240,7 @@ export default function TiendaPage() {
                     <span className="font-bold text-orange-400">{fmt(Number(p.price), store?.currency ?? "Bs.")}</span>
                     <button
                       onClick={() => addToCart(p)}
+                      data-testid="add-to-cart"
                       className="p-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 transition-colors"
                     >
                       <Plus size={16} />
@@ -294,6 +296,7 @@ export default function TiendaPage() {
                 </div>
                 <button
                   onClick={() => { setCartOpen(false); setCheckoutOpen(true); }}
+                  data-testid="open-checkout"
                   className="w-full py-3 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors"
                 >
                   Hacer pedido
@@ -344,15 +347,16 @@ export default function TiendaPage() {
             </div>
             <form onSubmit={handleCheckout} className="space-y-4">
               {[
-                { label: "Nombre completo *", value: name, set: setName, type: "text", required: true },
-                { label: "Email (para confirmación)", value: email, set: setEmail, type: "email", required: false },
-                { label: "Teléfono / WhatsApp", value: phone, set: setPhone, type: "tel", required: false },
-                { label: "Dirección de entrega", value: address, set: setAddress, type: "text", required: false },
+                { label: "Nombre completo *", value: name, set: setName, type: "text", required: true, testid: "checkout-name" },
+                { label: "Email (para confirmación)", value: email, set: setEmail, type: "email", required: false, testid: "checkout-email" },
+                { label: "Teléfono / WhatsApp", value: phone, set: setPhone, type: "tel", required: false, testid: "checkout-phone" },
+                { label: "Dirección de entrega", value: address, set: setAddress, type: "text", required: false, testid: "checkout-address" },
               ].map(f => (
                 <div key={f.label} className="space-y-1">
                   <label className="text-sm text-white/60">{f.label}</label>
                   <input
                     required={f.required}
+                    data-testid={f.testid}
                     type={f.type}
                     value={f.value}
                     onChange={(e) => f.set(e.target.value)}
@@ -381,8 +385,8 @@ export default function TiendaPage() {
                   <span className="text-orange-400">{fmt(total, store?.currency ?? "Bs.")}</span>
                 </div>
               </div>
-              {orderError && <p className="text-red-400 text-sm">{orderError}</p>}
-              <button type="submit" disabled={submitting} className="w-full py-3 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors disabled:opacity-50">
+              {orderError && <p data-testid="checkout-error" className="text-red-400 text-sm">{orderError}</p>}
+              <button type="submit" data-testid="confirm-order" disabled={submitting} className="w-full py-3 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-400 transition-colors disabled:opacity-50">
                 {submitting ? "Enviando..." : "Confirmar pedido"}
               </button>
             </form>

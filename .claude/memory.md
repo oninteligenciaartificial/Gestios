@@ -32,8 +32,23 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Prisma 7 · Supa
 - Onboarding tour (`OnboardingTour.tsx`, gate localStorage `gestios_onboarding_v1`)
 
 ## Gaps conocidos
-- Sin tests E2E (POS, checkout) — pendiente
 - `isCurrent` de sesiones = heurística "más reciente" (Supabase no expone token-hash)
+- E2E POS (venta autenticada) aún sin spec — pendiente (requiere seed de auth)
+
+## E2E (Playwright)
+- `@playwright/test` ^1.60, config `playwright.config.ts` (chromium, webServer `npm run dev`)
+- Scripts: `npm run test:e2e`, `npm run test:e2e:install` (instala browser)
+- Specs en `tests/e2e/`:
+  - `landing.spec.ts` — smoke landing
+  - `storefront-checkout.spec.ts` — flujo tienda + invariantes API (precio manipulado→400, body inválido→400). Mapea a evals/critical-flows.json (checkout-price-tamper)
+- Guard: requiere env `STORE_SLUG` (tienda sembrada); se omite sin él. Skip en `NODE_ENV=production` (no crea pedidos reales)
+- testids agregados en `app/[slug]/tienda/page.tsx`: cart-button, product-card, add-to-cart, open-checkout, checkout-name/email/phone/address, confirm-order, checkout-error, order-success
+
+## Planes futuros
+- E2E POS autenticado: fixture de login Supabase + org sembrada → venta completa
+- E2E checkout-stock-race: 2 requests paralelas a stock=1 → 1×201 + 1×409 (necesita seed determinístico)
+- CI: workflow GitHub Actions corriendo test:e2e contra preview Vercel con STORE_SLUG de prueba
+- Cerrar último gap harness-audit: instalar plugin ECC (nivel usuario)
 
 ## Reglas críticas
 - NO inventar URLs/APIs/datos externos sin verificar
