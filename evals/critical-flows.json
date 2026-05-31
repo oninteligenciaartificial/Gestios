@@ -1,0 +1,51 @@
+{
+  "version": "2026-05-31",
+  "project": "GestiOS",
+  "flows": [
+    {
+      "id": "checkout-stock-race",
+      "name": "Checkout tienda — stock atómico",
+      "endpoint": "POST /api/tienda/checkout",
+      "given": "Producto con stock=1, dos pedidos simultáneos de quantity=1",
+      "when": "Ambos llegan en paralelo",
+      "expect": "Solo un pedido crea orden (201); el otro recibe 409 STOCK_INSUFICIENTE. Stock final = 0, nunca negativo.",
+      "invariant": "Transacción interactiva con updateMany gte:quantity; count===0 hace rollback"
+    },
+    {
+      "id": "checkout-price-tamper",
+      "name": "Checkout tienda — precio manipulado",
+      "endpoint": "POST /api/tienda/checkout",
+      "given": "Cliente envía unitPrice distinto al precio real del producto",
+      "when": "Diferencia > 0.01",
+      "expect": "400 'Precio manipulado'",
+      "invariant": "Precio recalculado server-side desde DB, no se confía en el cliente"
+    },
+    {
+      "id": "tenant-isolation",
+      "name": "Aislamiento multi-tenant",
+      "endpoint": "cualquier /api/* autenticada",
+      "given": "Usuario de org A solicita recurso de org B por id",
+      "when": "findFirst/findMany ejecuta",
+      "expect": "404 No encontrado (nunca devuelve datos de otra org)",
+      "invariant": "Todo where incluye organizationId del profile"
+    },
+    {
+      "id": "cron-auth",
+      "name": "Autenticación cron timing-safe",
+      "endpoint": "GET /api/cron/*",
+      "given": "Request sin bearer o con secret incorrecto",
+      "when": "verifyCronSecret evalúa",
+      "expect": "401 Unauthorized",
+      "invariant": "Comparación XOR longitud-constante; false si falta o difiere"
+    },
+    {
+      "id": "notifications-scope",
+      "name": "Notificaciones scope por org",
+      "endpoint": "GET /api/notifications",
+      "given": "Usuario org A lista notificaciones",
+      "when": "findMany ejecuta",
+      "expect": "Solo notificaciones con organizationId === A; unreadCount idem",
+      "invariant": "where.organizationId = profile.organizationId"
+    }
+  ]
+}

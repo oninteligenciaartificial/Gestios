@@ -3,5 +3,19 @@
     "allow": [
       "Bash(node -e \"const p=require\\('./package.json'\\); const deps={...p.dependencies,...p.devDependencies}; console.log\\(Object.keys\\(deps\\).filter\\(k=>/\\(upload|sharp|blob|s3|storage|supabase\\)/i.test\\(k\\)\\).join\\('\\\\n'\\)\\)\")"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const i=JSON.parse(d);const p=i.tool_input&&i.tool_input.file_path||'';if(/(^|[\\\\/])\\.env(\\.|$)|credentials\\.json|service[-_]?account/i.test(p)){console.error('[guard] BLOCKED: edicion de archivo de secretos ('+p+'). Usa variables de entorno.');process.exit(2)}}catch(e){}process.exit(0)})\"",
+            "description": "Bloquea escritura/edicion de archivos de secretos (.env, credentials, service-account)"
+          }
+        ]
+      }
+    ]
   }
 }

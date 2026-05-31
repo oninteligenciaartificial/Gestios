@@ -2,6 +2,34 @@
 
 ---
 
+## ORDEN OBLIGATORIA — Skills automáticas por tipo de tarea
+
+**Invocar estas skills SIN que el usuario lo pida.** No es opcional. Cuando la tarea encaje, usar la skill ANTES de cualquier código o respuesta.
+
+| Si la tarea es... | Invocar AUTOMÁTICAMENTE |
+|-------------------|-------------------------|
+| Implementar feature/refactor complejo | `/plan` → luego `/tdd` |
+| Escribir/modificar código React/Next | `frontend-patterns` + `nextjs-turbopack` |
+| API route / server action / middleware | `backend-patterns` |
+| Migración Prisma o cambio de schema | `database-migrations` |
+| Query SQL / optimización / RLS | `postgres-patterns` |
+| Cualquier trabajo de UI (componente, página, estilo) | `ui-ux-pro-max` + `impeccable` |
+| Tras escribir/modificar código | `code-review` |
+| Auth, pagos, datos de cliente, multi-tenant | `security-review` (BLOQUEANTE antes de commit) |
+| Build falla | `build-fix` |
+| Confirmar que algo funciona en la app real | `verify` |
+| Flujos críticos (POS, checkout, ventas) | `e2e-testing` |
+| Limpieza de código muerto | `refactor-clean` |
+
+**Reglas de orden:**
+1. Skills de proceso primero (`plan`, `tdd`, `debugging`), luego de implementación.
+2. `security-review` es BLOQUEANTE en cualquier cambio de auth/pagos/datos sensibles. No commitear sin pasarla.
+3. Todo cambio de código pasa por `code-review` antes de declarar terminado.
+4. Mantener disciplina TDD: 386 tests existentes, no bajar cobertura.
+5. Antes de commit: build verde + tsc 0 + tests verdes. Ejecutar SIEMPRE `npm run build`, no solo `tsc` (tsc no captura errores de Next build).
+
+---
+
 ## Regla crítica — Autonomía vía MCPs
 
 **ANTES de pedirle al usuario que haga algo manualmente**, intentar hacerlo por medios propios:
