@@ -4,6 +4,7 @@ import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseFeature, planGateError } from "@/lib/plans";
 import { sendLowStockAlert } from "@/lib/email";
+import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST() {
   const supabase = await createClient();
@@ -13,6 +14,9 @@ export async function POST() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!canUseFeature(profile.plan, "stock_alert")) return NextResponse.json(planGateError("stock_alert"), { status: 403 });
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "stock-alert-email", RATE_LIMITS.write);
+  if (rateLimited) return rateLimited;
 
   const allProducts = await prisma.product.findMany({
     where: { organizationId: profile.organizationId, active: true },

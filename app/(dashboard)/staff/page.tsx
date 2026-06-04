@@ -16,18 +16,11 @@ interface StaffMember {
   createdAt: string;
 }
 
-interface ApiResponse {
-  data: StaffMember[];
-  meta: { total: number; page: number; limit: number; pages: number };
-}
-
-type StaffMemberFromApi = StaffMember;
-
 export default function StaffPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +28,7 @@ export default function StaffPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Omit<StaffMember, "userId"> | null>(null);
 
-  const fetchStaff = async (p: number = 1) => {
+  const fetchStaff = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -56,7 +49,7 @@ export default function StaffPage() {
   };
 
   useEffect(() => {
-    fetchStaff(page);
+    fetchStaff();
   }, [page, limit]);
 
   const handleAddStaff = async (data: { email: string; name: string; role: string; branchId?: string }) => {
@@ -74,7 +67,7 @@ export default function StaffPage() {
 
       toast.success("Miembro agregado al equipo");
       setShowAddModal(false);
-      fetchStaff(1);
+      fetchStaff();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -94,7 +87,7 @@ export default function StaffPage() {
       }
 
       toast.success("Miembro actualizado");
-      fetchStaff(1);
+      fetchStaff();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -115,7 +108,7 @@ export default function StaffPage() {
       toast.success("Miembro eliminado");
       setShowDeleteModal(false);
       setSelectedStaff(null);
-      fetchStaff(1);
+      fetchStaff();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
@@ -147,16 +140,13 @@ export default function StaffPage() {
         staff={staff}
         loading={loading}
         onEdit={(member) => {
-          const { userId, ...rest } = member as StaffMember;
-          setSelectedStaff(rest);
+          setSelectedStaff(toSelectedStaff(member as StaffMember));
           setShowAddModal(true);
         }}
         onDelete={(member) => {
-          const { userId, ...rest } = member as StaffMember;
-          setSelectedStaff(rest);
+          setSelectedStaff(toSelectedStaff(member as StaffMember));
           setShowDeleteModal(true);
         }}
-        onUpdateRole={handleUpdateStaff}
       />
 
       {total > limit && (
@@ -205,4 +195,14 @@ export default function StaffPage() {
       )}
     </div>
   );
+}
+
+function toSelectedStaff(member: StaffMember): Omit<StaffMember, "userId"> {
+  return {
+    id: member.id,
+    name: member.name,
+    role: member.role,
+    branchId: member.branchId,
+    createdAt: member.createdAt,
+  };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { ExternalLink, Copy, Check, RefreshCw } from "lucide-react";
 
 interface TiendaData {
@@ -116,12 +117,12 @@ export function TiendaSettings() {
             Todos los productos marcados como activos aparecen en tu tienda. Desactiva los que no quieras mostrar desde el inventario.
           </p>
         </div>
-        <a
+        <Link
           href="/inventory"
           className="shrink-0 rounded-lg border border-brand-border bg-brand-base hover:bg-brand-surface px-4 py-2 text-sm text-brand-text transition-colors"
         >
           Ir a Inventario
-        </a>
+        </Link>
       </div>
     </div>
   );

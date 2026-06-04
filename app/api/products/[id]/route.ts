@@ -55,6 +55,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const result = updateSchema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
 
+  if (result.data.categoryId) {
+    const category = await prisma.category.findFirst({
+      where: { id: result.data.categoryId, organizationId: profile.organizationId },
+      select: { id: true },
+    });
+    if (!category) return NextResponse.json({ error: "Categoria no encontrada" }, { status: 404 });
+  }
+
+  if (result.data.supplierId) {
+    const supplier = await prisma.supplier.findFirst({
+      where: { id: result.data.supplierId, organizationId: profile.organizationId },
+      select: { id: true },
+    });
+    if (!supplier) return NextResponse.json({ error: "Proveedor no encontrado" }, { status: 404 });
+  }
+
   const updated = await prisma.product.update({ where: { id }, data: result.data });
 
   logAudit({ orgId: profile.organizationId, orgPlan: profile.plan, userId: profile.userId, action: "update", entityType: "product", entityId: id, before: { name: product.name, price: product.price, stock: product.stock }, after: { name: updated.name, price: updated.price, stock: updated.stock } });

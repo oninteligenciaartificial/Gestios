@@ -5,6 +5,8 @@ import { canUseFeature, planGateError } from "@/lib/plans";
 import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  void request;
+
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!canUseFeature(profile.plan, "csv_export")) {
@@ -21,6 +23,11 @@ export async function GET(request: Request) {
   });
 
   const header = "Nombre,SKU,Categoria,Proveedor,Precio,Costo,Stock,Stock Minimo,Unidad,Codigo de Barras";
+  const safeCsvField = (value: unknown) => {
+    const text = String(value ?? "");
+    const spreadsheetSafe = /^[=+\-@\t\r]/.test(text.trimStart()) ? `'${text}` : text;
+    return `"${spreadsheetSafe.replace(/"/g, '""')}"`;
+  };
   const rows = products.map((p) => {
     const fields = [
       p.name,
@@ -34,7 +41,7 @@ export async function GET(request: Request) {
       p.unit ?? "",
       p.barcode ?? "",
     ];
-    return fields.map((f) => `"${String(f).replace(/"/g, '""')}"`).join(",");
+    return fields.map(safeCsvField).join(",");
   });
 
   const csv = [header, ...rows].join("\r\n");

@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/purity */
 "use client";
 
 import { useState } from "react";
@@ -7,6 +7,7 @@ import { SidebarNav } from "./SidebarNav";
 import { SidebarUser } from "./SidebarUser";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface NavLink { href: string; label: string; external?: boolean }
 
@@ -67,8 +68,8 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
       `}>
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-xl font-display font-bold tracking-widest text-brand-kinetic-orange">
-              GestiOS.
+            <div className="inline-flex rounded-2xl bg-white px-2.5 py-2">
+              <BrandLogo href="/dashboard" variant="full" size="nav" priority />
             </div>
             <div className={`text-xs mt-1 truncate ${
               isSuperAdmin

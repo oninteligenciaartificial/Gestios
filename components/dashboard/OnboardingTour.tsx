@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
   ShoppingCart, Package, Users, BarChart3,
@@ -53,24 +53,38 @@ const STEPS: Step[] = [
   },
 ];
 
+function subscribeToOnboarding(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener("gestios-onboarding-dismissed", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("gestios-onboarding-dismissed", callback);
+  };
+}
+
+function shouldShowOnboarding() {
+  try {
+    return !localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return false;
+  }
+}
+
+function dismissOnboarding() {
+  try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
+  window.dispatchEvent(new Event("gestios-onboarding-dismissed"));
+}
+
 export function OnboardingTour() {
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
+  const visible = useSyncExternalStore(subscribeToOnboarding, shouldShowOnboarding, () => false);
   const [step, setStep] = useState(0); // 0 = welcome, 1-4 = feature steps
-
-  useEffect(() => {
-    try {
-      const done = localStorage.getItem(STORAGE_KEY);
-      if (!done) setVisible(true);
-    } catch { /* storage blocked */ }
-  }, []);
 
   useEffect(() => {
     if (!visible) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
-        setVisible(false);
+        dismissOnboarding();
       }
     }
     document.addEventListener("keydown", onKey);
@@ -78,8 +92,7 @@ export function OnboardingTour() {
   }, [visible]);
 
   function dismiss() {
-    try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
-    setVisible(false);
+    dismissOnboarding();
   }
 
   function goToFeature(href: string) {
@@ -142,6 +155,7 @@ export function OnboardingTour() {
               onClick={dismiss}
               className="text-brand-muted hover:text-white transition-colors"
               aria-label="Cerrar tour"
+              title="Cerrar tour"
             >
               <X size={18} />
             </button>

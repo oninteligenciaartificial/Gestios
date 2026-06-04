@@ -24,6 +24,15 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const ip = getRequestIp(new Headers(request.headers));
+  const rateLimit = await consumeRateLimit(`tienda:${ip}`, { windowMs: 60_000, max: 30 });
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes. Intenta nuevamente en unos minutos." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   let body: unknown;
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "JSON invalido" }, { status: 400 }); }
@@ -42,21 +51,12 @@ export async function POST(request: Request) {
   if (!canUseFeature(org.plan as PlanType, "tienda_online"))
     return NextResponse.json({ error: "Tienda no disponible" }, { status: 403 });
 
-  const ip = getRequestIp(new Headers(request.headers));
-  const rateLimit = await consumeRateLimit(`tienda:${ip}`, { windowMs: 60_000, max: 30 });
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: "Demasiadas solicitudes. Intenta nuevamente en unos minutos." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) } }
-    );
-  }
-
   const productIds = items.map(i => i.productId);
   const products = await prisma.product.findMany({
     where: { id: { in: productIds }, organizationId: org.id, active: true },
     select: {
       id: true, stock: true, hasVariants: true, price: true,
-      variants: { select: { id: true, stock: true, price: true } },
+      variants: { where: { active: true }, select: { id: true, productId: true, stock: true, price: true } },
     },
   });
   const productMap = Object.fromEntries(products.map(p => [p.id, p]));
@@ -98,11 +98,17 @@ export async function POST(request: Request) {
       for (const i of items) {
         const res = i.variantId
           ? await tx.productVariant.updateMany({
-              where: { id: i.variantId, stock: { gte: i.quantity } },
+              where: {
+                id: i.variantId,
+                productId: i.productId,
+                organizationId: org.id,
+                active: true,
+                stock: { gte: i.quantity },
+              },
               data: { stock: { decrement: i.quantity } },
             })
           : await tx.product.updateMany({
-              where: { id: i.productId, stock: { gte: i.quantity } },
+              where: { id: i.productId, organizationId: org.id, active: true, stock: { gte: i.quantity } },
               data: { stock: { decrement: i.quantity } },
             });
         if (res.count === 0) {

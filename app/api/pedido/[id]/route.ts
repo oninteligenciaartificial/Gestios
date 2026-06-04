@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-// GET /api/pedido/[id] — public order tracking (no auth required)
+// GET /api/pedido/[id] - public order tracking (no auth required).
 export async function GET(
-  _: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const rateLimited = await checkRateLimit(request, "public-order-tracking", RATE_LIMITS.read);
+  if (rateLimited) return rateLimited;
+
   const { id } = await params;
 
   const order = await prisma.order.findUnique({
@@ -17,7 +21,7 @@ export async function GET(
       paymentMethod: true,
       total: true,
       shippingAddress: true,
-      // notes omitted — contains serialized customer email/phone (PII)
+      // notes omitted: contains serialized customer email/phone (PII).
       createdAt: true,
       updatedAt: true,
       organization: {

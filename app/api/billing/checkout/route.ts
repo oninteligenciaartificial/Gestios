@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PLAN_PRICES_BOB, type PlanType } from "@/lib/plans";
+import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const BANK_INFO = {
   bank: "BCP Bolivia",
@@ -27,6 +28,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (profile.role !== "ADMIN") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "billing-checkout", RATE_LIMITS.write);
+  if (rateLimited) return rateLimited;
 
   let rawBody: unknown;
   try {

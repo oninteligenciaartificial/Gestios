@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseFeature, PLAN_LIMITS, type PlanType } from "@/lib/plans";
+import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { hasPermission } from "@/lib/permissions";
 
 const MAX_ROWS = 500;
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const CSV_MIME_TYPES = new Set(["text/csv", "application/csv", "application/vnd.ms-excel", ""]);
 
 interface RowError {
   row: number;
@@ -12,21 +16,58 @@ interface RowError {
 }
 
 function parseCSV(text: string): { headers: string[]; rows: Record<string, string>[] } {
-  const lines = text.trim().split(/\r?\n/).filter(Boolean);
+  const lines = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/).filter(Boolean);
   if (lines.length === 0) return { headers: [], rows: [] };
 
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
   const rows = lines.slice(1).map((line) => {
-    const values = line.split(",").map((v) => v.trim());
-    return Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""]));
+    const values = parseCsvLine(line);
+    return Object.fromEntries(headers.map((h, i) => {
+      if (h === "__proto__" || h === "constructor" || h === "prototype") return ["", ""];
+      return [h, values[i] ?? ""];
+    }).filter(([h]) => h));
   });
 
   return { headers, rows };
 }
 
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const next = line[i + 1];
+    if (char === '"' && inQuotes && next === '"') {
+      current += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  values.push(current.trim());
+  return values;
+}
+
+function isCsvFile(file: File): boolean {
+  return file.name.toLowerCase().endsWith(".csv") && CSV_MIME_TYPES.has(file.type);
+}
+
+function hasSpreadsheetFormulaRisk(value: string): boolean {
+  return /^[=+\-@\t\r]/.test(value.trimStart());
+}
+
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (!hasPermission(profile.role, "products:import")) {
+    return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+  }
 
   if (!canUseFeature(profile.plan as PlanType, "csv_import")) {
     return NextResponse.json(
@@ -34,6 +75,9 @@ export async function POST(request: Request) {
       { status: 403 }
     );
   }
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "products-import-legacy", RATE_LIMITS.import);
+  if (rateLimited) return rateLimited;
 
   const url = new URL(request.url);
   const isDry = url.searchParams.get("dry") === "true";
@@ -47,6 +91,8 @@ export async function POST(request: Request) {
 
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "Archivo CSV requerido" }, { status: 400 });
+  if (file.size > MAX_FILE_BYTES) return NextResponse.json({ error: "Archivo demasiado grande (max 5 MB)" }, { status: 413 });
+  if (!isCsvFile(file)) return NextResponse.json({ error: "Solo se permite CSV" }, { status: 400 });
 
   const text = await file.text();
   const { headers, rows } = parseCSV(text);
@@ -92,6 +138,12 @@ export async function POST(request: Request) {
       errors.push({ row: rowNum, field: "nombre", message: "Nombre requerido" });
       continue;
     }
+    for (const field of ["nombre", "sku", "barcode", "categoria"] as const) {
+      if (row[field] && hasSpreadsheetFormulaRisk(row[field])) {
+        errors.push({ row: rowNum, field, message: "No puede empezar con =, +, -, @, tab o retorno" });
+      }
+    }
+    if (errors.some((error) => error.row === rowNum)) continue;
 
     // Validate precio
     const precio = parseFloat(row.precio ?? "");

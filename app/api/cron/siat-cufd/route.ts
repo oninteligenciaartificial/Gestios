@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { refreshCUFD } from "@/lib/siat";
 import { reportAsyncError } from "@/lib/monitoring";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { verifyCronSecret } from "@/lib/cron-auth";
 
 // Runs daily at 06:00 — refreshes CUFD for all orgs with SIAT addon active
 export async function GET(request: Request) {
+  const rateLimited = await checkRateLimit(request, "cron-siat-cufd", RATE_LIMITS.cron);
+  if (rateLimited) return rateLimited;
+
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

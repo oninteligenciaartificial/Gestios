@@ -21,7 +21,7 @@ export function StockEntryModal({ product, qty, saving, onQtyChange, onSubmit, o
             <h2 className="text-lg font-display font-bold text-white">Entrada de Stock</h2>
             <p className="text-xs text-brand-muted mt-0.5 truncate">{product.name}</p>
           </div>
-          <button onClick={onClose} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
+          <button onClick={onClose} className="text-brand-muted hover:text-white transition-colors" aria-label="Cerrar entrada de stock"><X size={20} /></button>
         </div>
         <div className="p-4 rounded-xl bg-white/5 text-center">
           <div className="text-brand-muted text-xs mb-1">Stock actual</div>

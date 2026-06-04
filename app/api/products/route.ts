@@ -92,6 +92,22 @@ export async function POST(request: Request) {
 
   const { name, description, sku, barcode, unit, categoryId, supplierId, price, cost, stock, minStock, batchExpiry, imageUrl, hasVariants, attributeSchema } = result.data;
 
+  if (categoryId) {
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, organizationId: profile.organizationId },
+      select: { id: true },
+    });
+    if (!category) return NextResponse.json({ error: "Categoria no encontrada" }, { status: 404 });
+  }
+
+  if (supplierId) {
+    const supplier = await prisma.supplier.findFirst({
+      where: { id: supplierId, organizationId: profile.organizationId },
+      select: { id: true },
+    });
+    if (!supplier) return NextResponse.json({ error: "Proveedor no encontrado" }, { status: 404 });
+  }
+
   const product = await prisma.product.create({
     data: {
       organizationId: profile.organizationId,

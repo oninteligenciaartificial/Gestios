@@ -41,8 +41,8 @@ Gmail Trigger (every 1 min, from BolBancaMov@bcp.com.bo)
 1. Go to n8n → Credentials → New
 2. Type: **Supabase**
 3. Name: `Supabase GestiOS`
-4. Host: `https://dlcwmqylhctpuimtfqrs.supabase.co`
-5. Service Role Key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsY3dtcXlsaGN0cHVpbXRmcXJzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzM1NzU2MSwiZXhwIjoyMDU4OTMzNTYxfQ.wTVHEKJb-7XPXdL7fX8RijJyvx2vBqXNE5xpV4Eiqek`
+4. Host: `https://<SUPABASE_PROJECT_REF>.supabase.co`
+5. Service Role Key: `<SUPABASE_SERVICE_ROLE_KEY>`
 6. Save
 
 Then assign this credential to these 3 HTTP Request nodes in the workflow:

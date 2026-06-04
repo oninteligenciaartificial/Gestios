@@ -1,6 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config as loadEnv } from "dotenv";
 
-// Si PLAYWRIGHT_BASE_URL apunta a un host remoto (preview/producción), no se
+if (!process.env.CI && !process.env.PLAYWRIGHT_BASE_URL) {
+  loadEnv({ path: ".env.local" });
+}
+
+// Si PLAYWRIGHT_BASE_URL apunta a un host remoto (preview/produccion), no se
 // levanta el dev server local: se testea contra ese deploy directamente.
 const remoteBaseURL = process.env.PLAYWRIGHT_BASE_URL;
 const baseURL = remoteBaseURL ?? "http://localhost:3000";

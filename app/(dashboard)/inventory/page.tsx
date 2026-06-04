@@ -1,9 +1,9 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Search, Plus, Upload, Download, Lock } from "lucide-react";
+import { Search, Plus, Upload, Download } from "lucide-react";
 import { getBusinessSchema, type BusinessType } from "@/lib/business-types";
 import { getBusinessUI } from "@/lib/business-ui";
 import { isPlanAtLeast, type PlanType } from "@/lib/plans";
@@ -47,6 +47,7 @@ export default function Inventory() {
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const openedEditParam = useRef<string | null>(null);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<"price" | "stock" | "deactivate" | "activate" | "">("");
@@ -136,6 +137,16 @@ export default function Inventory() {
     setShowVariants(product.hasVariants);
     setShowModal(true);
   }
+
+  useEffect(() => {
+    const editProductId = new URLSearchParams(window.location.search).get("edit");
+    if (!editProductId || loading || openedEditParam.current === editProductId) return;
+    const product = products.find((item) => item.id === editProductId);
+    if (!product) return;
+
+    openedEditParam.current = editProductId;
+    openEdit(product);
+  }, [loading, products]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -334,8 +345,8 @@ export default function Inventory() {
           </button>
           <label className={`px-3 py-2 rounded-full flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-colors ${importing ? "opacity-50 cursor-not-allowed" : "glass-panel text-brand-growth-neon hover:bg-white/10"}`}>
             <Upload size={13} />
-            {importing ? "Importando..." : <><span className="hidden sm:inline">Importar Excel</span><span className="sm:hidden">Importar</span></>}
-            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
+            {importing ? "Importando..." : <><span className="hidden sm:inline">Importar CSV</span><span className="sm:hidden">Importar</span></>}
+            <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleImport} disabled={importing} />
           </label>
           <a
             href="/api/export/products"

@@ -3,9 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendExpiryAlert } from "@/lib/email";
 import { reportAsyncError } from "@/lib/monitoring";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { verifyCronSecret } from "@/lib/cron-auth";
 
 export async function GET(request: Request) {
+  const rateLimited = await checkRateLimit(request, "cron-expiry", RATE_LIMITS.cron);
+  if (rateLimited) return rateLimited;
+
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

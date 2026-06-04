@@ -18,20 +18,31 @@ interface Props {
 }
 
 export function StockHistoryModal({ productId, productName, open, onClose }: Props) {
-  const [entries, setEntries] = useState<StockEntry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<{
+    productId: string | null;
+    entries: StockEntry[];
+  }>({ productId: null, entries: [] });
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/products/stock-entry?productId=${encodeURIComponent(productId)}`)
       .then((r) => r.json())
-      .then((data: StockEntry[]) => setEntries(Array.isArray(data) ? data : []))
-      .catch(() => setEntries([]))
-      .finally(() => setLoading(false));
+      .then((data: StockEntry[]) => {
+        if (!cancelled) {
+          setHistory({ productId, entries: Array.isArray(data) ? data : [] });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setHistory({ productId, entries: [] });
+      });
+    return () => { cancelled = true; };
   }, [open, productId]);
 
   if (!open) return null;
+
+  const loading = history.productId !== productId;
+  const entries = loading ? [] : history.entries;
 
   return (
     <div
@@ -47,7 +58,12 @@ export function StockHistoryModal({ productId, productName, open, onClose }: Pro
             <h2 className="text-lg font-display font-bold text-white">Movimientos de Stock</h2>
             <p className="text-xs text-brand-muted mt-0.5 truncate">{productName}</p>
           </div>
-          <button onClick={onClose} className="text-brand-muted hover:text-white transition-colors">
+          <button
+            onClick={onClose}
+            className="text-brand-muted hover:text-white transition-colors"
+            aria-label="Cerrar historial de stock"
+            title="Cerrar historial de stock"
+          >
             <X size={20} />
           </button>
         </div>

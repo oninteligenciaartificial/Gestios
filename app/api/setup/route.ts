@@ -9,6 +9,8 @@ const schema = z.object({
   organizationName: z.string().min(1).max(100),
   userName: z.string().min(1).max(100),
   businessType: z.enum(["GENERAL", "ROPA", "SUPLEMENTOS", "ELECTRONICA", "FARMACIA", "FERRETERIA"]).optional(),
+  authUserId: z.string().optional(),
+  email: z.string().email().optional(),
 });
 
 export async function POST(request: Request) {
@@ -30,7 +32,15 @@ export async function POST(request: Request) {
   const result = schema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
 
-  const { organizationName, userName, businessType } = result.data;
+  const { organizationName, userName, businessType, authUserId, email } = result.data;
+
+  if (authUserId && authUserId !== user.id) {
+    return NextResponse.json({ error: "La sesion de Google no coincide con el usuario enviado" }, { status: 403 });
+  }
+
+  if (email && user.email && email.toLowerCase() !== user.email.toLowerCase()) {
+    return NextResponse.json({ error: "El email no coincide con la sesion de Google" }, { status: 403 });
+  }
 
   // Crear slug unico a partir del nombre
   const slug = organizationName

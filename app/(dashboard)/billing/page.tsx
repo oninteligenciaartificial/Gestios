@@ -369,6 +369,7 @@ export default function BillingPage() {
             <div className="glass-panel rounded-2xl p-5 space-y-4 text-center">
               <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Escanea el QR para pagar</h3>
               {qrData.qrImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={qrData.qrImageUrl} alt="QR de pago" className="w-48 h-48 mx-auto rounded-xl" />
               ) : (
                 <div className="w-48 h-48 mx-auto rounded-xl bg-white/5 flex items-center justify-center">
@@ -488,11 +489,13 @@ export default function BillingPage() {
         {/* Static QR card */}
         <div className="rounded-2xl overflow-hidden border border-white/10 bg-white">
           <div className="bg-white px-5 py-4 flex items-center justify-between border-b border-gray-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/LOGO ONIA.jpeg" alt="OnIA" className="h-8 object-contain" />
             <span className="text-xs text-gray-400 font-medium">{BANK_DATA.bank}</span>
           </div>
           <div className="bg-white flex items-center justify-center px-6 py-2 overflow-hidden">
             <div className="relative w-56 overflow-hidden" style={{ height: "224px" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/QR-BCP-GESTIOS.png"
                 alt="QR de pago"
@@ -675,6 +678,7 @@ export default function BillingPage() {
                               <input type="file" accept="image/*" onChange={handleQrImageSelect} className="hidden" />
                               {qrImagePreview ? (
                                 <div className="space-y-2">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={qrImagePreview} alt="QR preview" className="w-32 h-32 mx-auto rounded-lg object-contain bg-white p-2" />
                                   <p className="text-xs text-brand-muted">Cambiar imagen</p>
                                 </div>

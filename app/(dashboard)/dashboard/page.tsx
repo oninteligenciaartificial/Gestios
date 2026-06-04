@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/purity */
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";
@@ -7,6 +7,7 @@ import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, PackageSe
 import { StockAlertButton } from "../StockAlertButton";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { SyncButton } from "@/components/dashboard/SyncButton";
+import Link from "next/link";
 
 function Delta({ pct }: { pct: number | null }) {
   if (pct === null) return null;
@@ -75,14 +76,13 @@ export default async function Dashboard() {
 
   // Previous period (days 31-60) for delta comparison
   type RevAgg = { _sum: { total: unknown }; _count: { id: number } };
-  const [prevRevAgg, prevWeeklyOrders, prevNewCustomers] = await Promise.all([
+  const [prevRevAgg, prevWeeklyOrders] = await Promise.all([
     prisma.order.aggregate({
       where: { organizationId: orgId, status: { not: "CANCELADO" }, createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
       _sum: { total: true },
       _count: { id: true },
     }) as Promise<RevAgg>,
     prisma.order.count({ where: { organizationId: orgId, createdAt: { gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), lt: weekAgo } } }),
-    prisma.customer.count({ where: { organizationId: orgId, createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } } }),
   ]);
 
   const prevRevenue = Number(prevRevAgg._sum.total ?? 0);
@@ -95,8 +95,6 @@ export default async function Dashboard() {
 
   const deltaRevenue = calcDelta(currentRevenue30, prevRevenue);
   const deltaOrders = calcDelta(weeklyOrders, prevWeeklyOrders);
-  const currentNewCustomers = await prisma.customer.count({ where: { organizationId: orgId, createdAt: { gte: thirtyDaysAgo } } });
-  const deltaNewCustomers = calcDelta(currentNewCustomers, prevNewCustomers);
 
   const isEmpty = totalProducts === 0 && totalCustomers === 0;
 
@@ -116,10 +114,10 @@ export default async function Dashboard() {
         </div>
         <div className="flex gap-2 sm:gap-4 flex-shrink-0">
           <SyncButton />
-          <a href="/orders" className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all text-sm sm:text-base">
+          <Link href="/orders" className="bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all text-sm sm:text-base">
             <Plus size={16} />
             <span>Pedido</span>
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -157,9 +155,9 @@ export default async function Dashboard() {
           <div className="glass-panel rounded-3xl overflow-hidden animate-pop">
             <div className="p-6 border-b border-white/5 flex justify-between items-center">
               <h3 className="font-medium text-brand-muted">Productos con stock bajo</h3>
-              <a href="/inventory" className="text-brand-kinetic-orange text-sm font-bold flex items-center gap-1 hover:underline">
+              <Link href="/inventory" className="text-brand-kinetic-orange text-sm font-bold flex items-center gap-1 hover:underline">
                 <PackageSearch size={16} /> Ver Todo
-              </a>
+              </Link>
             </div>
             <div className="divide-y divide-white/5">
               {lowStockAlerts.length === 0 && (
@@ -178,9 +176,9 @@ export default async function Dashboard() {
                       )}
                     </div>
                   </div>
-                  <a href="/inventory" className="px-4 py-2 rounded-lg border border-white/10 hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange transition-colors">
+                  <Link href="/inventory" className="px-4 py-2 rounded-lg border border-white/10 hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange transition-colors">
                     Reabastecer
-                  </a>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -227,7 +225,7 @@ export default async function Dashboard() {
             <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
               <Clock size={20} className="text-brand-kinetic-orange" /> Pedidos Recientes
             </h2>
-            <a href="/ventas" className="text-brand-kinetic-orange text-sm font-bold hover:underline">Ver todos →</a>
+            <Link href="/ventas" className="text-brand-kinetic-orange text-sm font-bold hover:underline">Ver todos →</Link>
           </div>
           <div className="glass-panel rounded-3xl overflow-hidden">
             <div className="divide-y divide-white/5">

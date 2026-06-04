@@ -5,6 +5,8 @@ import { canUseFeature, planGateError } from "@/lib/plans";
 import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  void request;
+
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!canUseFeature(profile.plan, "csv_export")) {

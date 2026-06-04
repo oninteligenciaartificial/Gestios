@@ -27,6 +27,61 @@
   color-scheme: dark;
 }
 
+.public-light {
+  color-scheme: light;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 107, 0, 0.10), transparent 32rem),
+    linear-gradient(180deg, #fffaf7 0%, #f8fafc 45%, #ffffff 100%);
+  color: #111827;
+}
+
+.public-light nav {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+
+.public-light .glass-panel,
+.public-card {
+  background: rgba(255, 255, 255, 0.86) !important;
+  border: 1px solid rgba(15, 23, 42, 0.10) !important;
+  box-shadow: 0 20px 70px rgba(15, 23, 42, 0.10);
+  backdrop-filter: blur(16px);
+}
+
+.public-light [class*="text-white"] {
+  color: #111827 !important;
+}
+
+.public-light [class*="text-brand-muted"] {
+  color: #64748b !important;
+}
+
+.public-light [class*="border-white"] {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+.public-light input,
+.public-light select,
+.public-light textarea {
+  background-color: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #111827 !important;
+}
+
+.public-light input::placeholder,
+.public-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.panel-reveal {
+  animation: panel-reveal 220ms ease-out both;
+}
+
+.error-shake {
+  animation: error-shake 180ms ease-out both;
+}
+
 body {
   background-color: var(--color-brand-background);
   color: #e2e2e8;
@@ -38,6 +93,17 @@ body {
   to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
+@keyframes panel-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+}
+
 .animate-pop {
   animation: pop-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -47,7 +113,11 @@ body {
 .kpi-grid .animate-pop:nth-child(4) { animation-delay: 180ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-pop { animation: none; }
+  .animate-pop,
+  .panel-reveal,
+  .error-shake {
+    animation: none;
+  }
 }
 
 @layer utilities {

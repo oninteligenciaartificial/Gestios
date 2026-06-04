@@ -148,7 +148,7 @@ export const Scene4POS: React.FC = () => {
 
           {/* Cart items */}
           <div style={{ flex: 1, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {CART_ITEMS.map((item, i) => (
+            {CART_ITEMS.map((item) => (
               <div
                 key={item.name}
                 style={{

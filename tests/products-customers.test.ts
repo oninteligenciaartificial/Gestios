@@ -1,4 +1,3 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from "vitest";
 import { PLAN_LIMITS } from "@/lib/plans";
 
@@ -49,6 +48,7 @@ describe("Products â€” plan limits", () => {
     const where = { organizationId: "org-123", active: true };
     const currentCount = 149;
     const { maxProducts } = PLAN_LIMITS.BASICO;
+    expect(where).toEqual({ organizationId: "org-123", active: true });
     expect(currentCount < maxProducts).toBe(true);
   });
 });
@@ -83,15 +83,12 @@ describe("Customers â€” plan limits", () => {
 
   it("upgrade message uses correct limit number", () => {
     const { maxCustomers } = PLAN_LIMITS.BASICO;
-    const currentCount = 50;
-    const requiresUpgrade = currentCount >= maxCustomers;
     const errorMsg = `Tu plan permite hasta ${maxCustomers} clientes. Actualiza tu plan para agregar mÃ¡s.`;
     expect(errorMsg).toContain("50");
     expect(errorMsg).toContain("clientes");
   });
 
   it("count query does NOT filter by active (customers have no active flag)", () => {
-    const where = { organizationId: "org-123" };
     const currentCount = 49;
     const { maxCustomers } = PLAN_LIMITS.BASICO;
     expect(currentCount < maxCustomers).toBe(true);
@@ -368,7 +365,6 @@ describe("Customers â€” search", () => {
   });
 
   it("returns all customers when no search", () => {
-    const search = null;
     const where = { organizationId: "org-123" };
     expect(where).not.toHaveProperty("OR");
   });

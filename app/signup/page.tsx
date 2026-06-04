@@ -1,34 +1,66 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+import { BrandLogo } from "@/components/BrandLogo";
+import { PublicShell } from "@/components/PublicShell";
+import { createClient } from "@/lib/supabase/client";
+
+const PLAN_NAMES: Record<string, string> = {
+  basico: "Basico",
+  crecer: "Crecer",
+  pro: "Pro",
+  empresarial: "Empresarial",
+};
 
 function SignupForm() {
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan");
+  const message = searchParams.get("message");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [oauthUser, setOauthUser] = useState<User | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  const inp = "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors";
-
-  const PLAN_NAMES: Record<string, string> = {
-    basico: "Básico",
-    crecer: "Crecer",
-    pro: "Pro",
-    empresarial: "Empresarial",
-  };
-
   const selectedPlan = planParam ? PLAN_NAMES[planParam] : null;
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setOauthUser(user);
+      if (user?.email) setEmail(user.email);
+      setCheckingSession(false);
+    });
+  }, []);
+
+  async function handleGoogleSignup() {
+    setError("");
+    const supabase = createClient();
+    const planQuery = planParam ? `&plan=${encodeURIComponent(planParam)}` : "";
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/setup?from=google${planQuery}`)}`,
+      },
+    });
+
+    if (oauthError) setError(oauthError.message);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (oauthUser) {
+      window.location.href = "/setup?from=google";
+      return;
+    }
 
     const supabase = createClient();
     const { error: signUpError } = await supabase.auth.signUp({
@@ -49,12 +81,12 @@ function SignupForm() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-background px-4">
-        <div className="glass-panel rounded-3xl p-8 w-full max-w-md text-center space-y-4">
-          <div className="text-4xl">📬</div>
-          <h2 className="text-xl font-display font-bold text-white">Revisa tu correo</h2>
+      <PublicShell className="flex items-center justify-center px-4 py-10">
+        <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 text-center space-y-4">
+          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
+          <h2 className="text-xl font-display font-bold text-slate-950">Revisa tu correo</h2>
           <p className="text-brand-muted text-sm leading-relaxed">
-            Te enviamos un enlace de confirmación a <span className="text-white font-medium">{email}</span>.
+            Te enviamos un enlace de confirmacion a <span className="font-medium text-slate-950">{email}</span>.
             Haz clic en el enlace para activar tu cuenta y configurar tu tienda.
           </p>
           {selectedPlan && (
@@ -63,72 +95,111 @@ function SignupForm() {
             </p>
           )}
           <Link href="/login" className="block text-brand-kinetic-orange text-sm hover:underline mt-4">
-            Ya confirmé mi correo → Entrar
+            Ya confirme mi correo - Entrar
           </Link>
         </div>
-      </div>
+      </PublicShell>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-background px-4">
-      <div className="glass-panel rounded-3xl p-8 w-full max-w-md space-y-6">
+    <PublicShell className="flex items-center justify-center px-4 py-10">
+      <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-display font-bold text-brand-kinetic-orange tracking-widest">
-            GestiOS.
-          </h1>
-          <p className="text-brand-muted mt-2 text-sm">Crea tu cuenta — 7 días gratis, sin tarjeta</p>
+          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
+          <p className="text-brand-muted mt-4 text-sm">Crea tu cuenta - 7 dias gratis, sin tarjeta</p>
           {selectedPlan && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-medium">
-              Plan {selectedPlan} seleccionado · 7 días gratis
+              Plan {selectedPlan} seleccionado - 7 dias gratis
             </div>
           )}
         </div>
 
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+        >
+          <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-xs font-black text-[#4285F4]">
+            G
+          </span>
+          Continuar con Google
+        </button>
+
+        <div className="flex items-center gap-3 text-xs text-slate-400">
+          <span className="h-px flex-1 bg-slate-200" />
+          <span>{oauthUser ? "cuenta Google detectada" : "o con email"}</span>
+          <span className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        {message === "complete_profile" && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            Completa los datos de tu negocio para entrar al dashboard.
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-brand-muted">Correo electrónico</label>
+            <label htmlFor="signup-email" className="text-sm text-brand-muted">
+              Correo electronico
+            </label>
             <input
+              id="signup-email"
               type="email"
               required
               value={email}
+              readOnly={Boolean(oauthUser)}
               onChange={(e) => setEmail(e.target.value)}
-              className={inp}
+              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors read-only:bg-slate-50 read-only:text-slate-500"
               placeholder="tu@negocio.com"
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm text-brand-muted">Contraseña</label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inp}
-              placeholder="Mínimo 8 caracteres"
-            />
-          </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {!oauthUser && (
+            <div className="space-y-1.5">
+              <label htmlFor="signup-password" className="text-sm text-brand-muted">
+                Contrasena
+              </label>
+              <input
+                id="signup-password"
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
+                placeholder="Minimo 8 caracteres"
+              />
+            </div>
+          )}
+
+          {error && (
+            <p className="error-shake rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all disabled:opacity-50"
+            disabled={loading || checkingSession}
+            className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold shadow-[0_0_20px_rgba(255,107,0,0.24)] transition-[box-shadow,opacity,transform] duration-200 hover:shadow-[0_0_30px_rgba(255,107,0,0.36)] active:scale-[0.99] disabled:opacity-50"
           >
-            {loading ? "Creando cuenta..." : "Crear cuenta gratis"}
+            {loading
+              ? "Continuando..."
+              : oauthUser
+                ? "Completar datos del negocio"
+                : "Crear cuenta gratis"}
           </button>
         </form>
 
         <p className="text-center text-sm text-brand-muted">
-          ¿Ya tienes cuenta?{" "}
+          Ya tienes cuenta?{" "}
           <Link href="/login" className="text-brand-kinetic-orange hover:underline">
-            Iniciar sesión
+            Iniciar sesion
           </Link>
         </p>
       </div>
-    </div>
+    </PublicShell>
   );
 }
 

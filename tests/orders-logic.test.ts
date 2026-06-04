@@ -1,5 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { reportAsyncError } from "@/lib/monitoring";
 
 describe("Stock decrement logic (orders/route.ts)", () => {
@@ -112,7 +111,6 @@ describe("Loyalty points redemption (orders/route.ts)", () => {
 
   it("no discount when loyaltyPointsRedeemed is undefined", () => {
     const subtotal = 200;
-    const loyaltyPointsRedeemed = undefined;
     const pointsDiscount = 0;
     const total = Math.max(0, subtotal - pointsDiscount);
     expect(total).toBe(200);

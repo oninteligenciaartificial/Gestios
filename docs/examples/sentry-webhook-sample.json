@@ -1,0 +1,63 @@
+{
+  "action": "created",
+  "data": {
+    "issue": {
+      "id": "123456789",
+      "shortId": "GESTIOS-DEMO-1",
+      "title": "TypeError: Cannot read properties of undefined",
+      "permalink": "https://sentry.io/organizations/onia-agency/issues/123456789/",
+      "level": "error",
+      "count": "12",
+      "userCount": 3,
+      "metadata": {
+        "type": "TypeError",
+        "value": "Cannot read properties of undefined"
+      }
+    },
+    "event": {
+      "event_id": "demo-event-id",
+      "environment": "production",
+      "release": "gestios@demo",
+      "transaction": "POST /api/tienda/checkout",
+      "platform": "javascript",
+      "tags": [
+        ["runtime", "node"],
+        ["organizationId", "org_demo_redacted"]
+      ],
+      "entries": [
+        {
+          "type": "exception",
+          "data": {
+            "values": [
+              {
+                "type": "TypeError",
+                "value": "Cannot read properties of undefined",
+                "stacktrace": {
+                  "frames": [
+                    {
+                      "filename": "app/api/tienda/checkout/route.ts",
+                      "function": "POST",
+                      "lineno": 42,
+                      "in_app": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "request": {
+        "url": "https://gesti-os.vercel.app/api/tienda/checkout",
+        "headers": {
+          "authorization": "Bearer demo-redacted-token",
+          "cookie": "demo-session=redacted"
+        }
+      }
+    }
+  },
+  "actor": {
+    "type": "application",
+    "name": "Sentry"
+  }
+}

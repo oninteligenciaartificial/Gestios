@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 function createAuthClient() {
   return createSupabaseClient(
@@ -14,6 +15,9 @@ function createAuthClient() {
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "sessions-read", RATE_LIMITS.read);
+  if (rateLimited) return rateLimited;
 
   // Get current session token to identify "this device"
   const supabase = await createClient();
@@ -47,6 +51,9 @@ export async function GET() {
 export async function DELETE(req: NextRequest) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "sessions-delete", RATE_LIMITS.write);
+  if (rateLimited) return rateLimited;
 
   const sessionId = req.nextUrl.searchParams.get("sessionId");
   if (!sessionId) return NextResponse.json({ error: "sessionId requerido" }, { status: 400 });

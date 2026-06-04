@@ -1,9 +1,18 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { Suspense, useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { BrandLogo } from "@/components/BrandLogo";
+import { PublicShell } from "@/components/PublicShell";
+import { createClient } from "@/lib/supabase/client";
 import { loginAction } from "./actions";
+
+function getSafeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
+  return value;
+}
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -11,34 +20,62 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all disabled:opacity-50"
+      className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold shadow-[0_0_20px_rgba(255,107,0,0.24)] transition-[box-shadow,opacity,transform] duration-200 hover:shadow-[0_0_30px_rgba(255,107,0,0.36)] active:scale-[0.99] disabled:opacity-50"
     >
       {pending ? "Entrando..." : "Entrar"}
     </button>
   );
 }
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
   const [state, formAction] = useActionState(loginAction, null);
+  const safeNext = getSafeNext(searchParams.get("next"));
+  const oauthError = searchParams.get("error");
 
-  // When the server action succeeds, the auth cookies are already set
-  // by Supabase SSR via the server cookieStore. A hard navigation
-  // ensures the dashboard layout reads the fresh cookies on the next
-  // request (router.push/refresh can race the cookie propagation).
   useEffect(() => {
     if (state?.ok) {
-      window.location.href = "/dashboard";
+      window.location.href = safeNext;
     }
-  }, [state]);
+  }, [safeNext, state]);
+
+  async function handleGoogleLogin() {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
+      },
+    });
+
+    if (error) {
+      window.location.href = `/login?error=${encodeURIComponent(error.message)}`;
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-brand-background px-4">
-      <div className="glass-panel rounded-3xl p-8 w-full max-w-md space-y-6">
+    <PublicShell className="flex items-center justify-center px-4 py-10">
+      <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-display font-bold text-brand-kinetic-orange tracking-widest">
-            GestiOS.
-          </h1>
-          <p className="text-brand-muted mt-2">Inicia sesión para continuar</p>
+          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
+          <p className="text-brand-muted mt-4">Inicia sesion para continuar</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+        >
+          <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-xs font-black text-[#4285F4]">
+            G
+          </span>
+          Continuar con Google
+        </button>
+
+        <div className="flex items-center gap-3 text-xs text-slate-400">
+          <span className="h-px flex-1 bg-slate-200" />
+          <span>o con email</span>
+          <span className="h-px flex-1 bg-slate-200" />
         </div>
 
         <form action={formAction} className="space-y-4">
@@ -52,7 +89,7 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
               placeholder="admin@minegocio.com"
             />
           </div>
@@ -60,10 +97,10 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-brand-muted">
-                Contraseña
+                Contrasena
               </label>
               <Link href="/forgot-password" className="text-xs text-brand-kinetic-orange hover:underline">
-                Olvidé mi contraseña
+                Olvide mi contrasena
               </Link>
             </div>
             <input
@@ -72,29 +109,45 @@ export default function LoginPage() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-              placeholder="••••••••"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
+              placeholder="Minimo 8 caracteres"
             />
           </div>
 
-          {state && !state.ok && (
-            <p className="text-red-400 text-sm">{state.error}</p>
+          {oauthError && (
+            <p className="error-shake rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {oauthError === "auth_callback_error"
+                ? "No pudimos completar el acceso con Google. Intenta nuevamente."
+                : oauthError}
+            </p>
           )}
 
-          {state?.ok && (
-            <p className="text-green-400 text-sm">Sesión iniciada. Redirigiendo…</p>
+          {state && !state.ok && (
+            <p className="error-shake rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {state.error}
+            </p>
           )}
+
+          {state?.ok && <p className="text-green-700 text-sm">Sesion iniciada. Redirigiendo...</p>}
 
           <SubmitButton />
         </form>
 
         <p className="text-center text-sm text-brand-muted">
-          ¿No tienes cuenta?{" "}
+          No tienes cuenta?{" "}
           <Link href="/signup" className="text-brand-kinetic-orange hover:underline">
             Crear cuenta gratis
           </Link>
         </p>
       </div>
-    </div>
+    </PublicShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

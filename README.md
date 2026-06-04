@@ -84,7 +84,7 @@ npm run dev
 |---|---|
 | `npm run dev` | Dev server en localhost:3000 |
 | `npm run build` | `prisma generate` + `next build` |
-| `npm run test` | Vitest (313 tests) |
+| `npm run test` | Vitest (404 tests) |
 | `npm run lint` | ESLint |
 
 ---
@@ -128,7 +128,7 @@ prisma/
 ├── schema.prisma   # Fuente de verdad DB
 └── migrations/     # SQL versionado
 docs/               # Documentación técnica completa
-tests/              # Vitest — 313 tests
+tests/              # Vitest — 404 tests
 ```
 
 ---
@@ -137,6 +137,10 @@ tests/              # Vitest — 313 tests
 
 | Archivo | Contenido |
 |---|---|
+| `AGENTS.md` | Reglas obligatorias para agentes antes de tocar el repo |
+| `docs/ORCHESTRATOR.md` | Protocolo práctico para plan, skills, MCPs, subagentes y validación |
+| `docs/SKILLS_ROUTING.md` | Selección de skills reales por tipo de tarea |
+| `docs/AGENT_WORK_ORDER.md` | Coordinación multi-agente por frentes |
 | `docs/00-PROJECT-CONTEXT.md` | Contexto para sesiones Claude — pegar al inicio |
 | `docs/ARCHITECTURE.md` | Estructura técnica, auth flow, multi-tenancy |
 | `docs/DATABASE.md` | Todos los modelos Prisma |
@@ -147,6 +151,7 @@ tests/              # Vitest — 313 tests
 | `docs/QR-BOLIVIA.md` | Pagos QR Bolivia |
 | `docs/SIAT-BOLIVIA.md` | Facturación electrónica SIAT |
 | `docs/N8N-SETUP.md` | Workflows n8n |
+| `docs/MONITORING_REPAIR_FLOW.md` | Flujo Sentry/n8n/GitHub Issue/Codex para errores de produccion |
 | `docs/SECURITY_REPORT.md` | Reporte de seguridad |
 | `docs/NEXT_STEPS.md` | Estado del proyecto + log de cambios |
 | `README-admin.md` | Guía de usuario para administradores |

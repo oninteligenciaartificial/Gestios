@@ -16,7 +16,6 @@ interface Props {
   loading: boolean;
   onEdit: (member: StaffMember) => void;
   onDelete: (member: StaffMember) => void;
-  onUpdateRole: (id: string, data: { role?: string }) => void;
 }
 
 const roleLabels: Record<string, string> = {
@@ -33,7 +32,7 @@ function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
-export default function StaffTable({ staff, loading, onEdit, onDelete, onUpdateRole }: Props) {
+export default function StaffTable({ staff, loading, onEdit, onDelete }: Props) {
   if (loading && staff.length === 0) {
     return <div className="text-center py-12 text-brand-muted text-sm">Cargando equipo...</div>;
   }

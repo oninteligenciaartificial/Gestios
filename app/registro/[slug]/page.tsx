@@ -86,6 +86,7 @@ export default function RegistroPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-3">
           {org.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={org.logoUrl} alt={org.name} className="h-16 mx-auto object-contain" />
           ) : (
             <div className="w-16 h-16 rounded-2xl bg-brand-kinetic-orange/15 flex items-center justify-center mx-auto">

@@ -3,6 +3,8 @@ import { Store, Shirt, Pill, Monitor, Wrench, Dumbbell, ArrowRight, Zap, Shield,
 import { DashboardMockup } from "@/components/landing/DashboardMockup";
 import { OnboardingVideo } from "@/components/landing/OnboardingVideo";
 import { FAQAccordion } from "@/components/landing/FAQAccordion";
+import { BrandLogo } from "@/components/BrandLogo";
+import { PublicShell } from "@/components/PublicShell";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -57,10 +59,10 @@ export default async function HomePage() {
     else if (profile) redirect("/dashboard");
   }
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <PublicShell>
       {/* Nav */}
       <nav className="border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md">
-        <div className="text-xl font-display font-bold tracking-widest text-brand-kinetic-orange">GestiOS.</div>
+        <BrandLogo />
         <div className="flex items-center gap-3">
           <Link href="/pricing" className="text-sm text-brand-muted hover:text-white transition-colors hidden sm:block">
             Precios
@@ -274,6 +276,6 @@ export default async function HomePage() {
           <Link href="/terminos" className="hover:text-white transition-colors">Términos y Condiciones</Link>
         </div>
       </footer>
-    </div>
+    </PublicShell>
   );
 }

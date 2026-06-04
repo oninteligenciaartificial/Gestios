@@ -82,6 +82,15 @@ export async function POST(request: Request) {
   });
   if (!supplier) return NextResponse.json({ error: "Proveedor no encontrado" }, { status: 404 });
 
+  const productIds = [...new Set(items.map((item) => item.productId))];
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, organizationId: profile.organizationId, active: true },
+    select: { id: true },
+  });
+  if (products.length !== productIds.length) {
+    return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+  }
+
   const total = items.reduce((sum, i) => sum + i.quantity * i.unitCost, 0);
 
   const po = await prisma.purchaseOrder.create({
@@ -137,35 +146,40 @@ export async function PATCH(request: Request) {
 
   const existing = await prisma.purchaseOrder.findFirst({
     where: { id, organizationId: profile.organizationId },
+    include: { items: { select: { productId: true, quantity: true } } },
   });
   if (!existing) return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
 
-  const updated = await prisma.purchaseOrder.update({
-    where: { id },
-    data: parsed.data,
-    include: {
-      supplier: { select: { name: true } },
-      items: { include: { product: { select: { name: true } } } },
-    },
-  });
+  let updated;
+  try {
+    updated = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.purchaseOrder.update({
+        where: { id },
+        data: parsed.data,
+        include: {
+          supplier: { select: { name: true } },
+          items: { include: { product: { select: { name: true } } } },
+        },
+      });
 
-  // If status changed to RECIBIDO, update product stock
-  if (parsed.data.status === "RECIBIDO" && existing.status !== "RECIBIDO") {
-    const items = await prisma.purchaseOrderItem.findMany({
-      where: { purchaseOrderId: id },
+      // If status changed to RECIBIDO, update product stock inside the same transaction.
+      if (parsed.data.status === "RECIBIDO" && existing.status !== "RECIBIDO") {
+        for (const item of existing.items) {
+          const stockResult = await tx.product.updateMany({
+            where: { id: item.productId, organizationId: profile.organizationId },
+            data: { stock: { increment: item.quantity } },
+          });
+          if (stockResult.count !== 1) throw new Error("STOCK_TARGET_NOT_FOUND");
+        }
+      }
+
+      return updatedOrder;
     });
-
-    await prisma.$transaction(
-      items.map((item) =>
-        prisma.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: item.quantity } },
-        })
-      )
-    );
-
-    // Stock updated via transaction above
-    // Low stock alerts are handled by the cron job (/api/cron/low-stock)
+  } catch (error) {
+    if (error instanceof Error && error.message === "STOCK_TARGET_NOT_FOUND") {
+      return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+    }
+    throw error;
   }
 
   await logAudit({

@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -87,7 +87,6 @@ export default function NuevaVentaPage() {
   const [orgPlan, setOrgPlan] = useState<PlanType>("BASICO");
   const [notes, setNotes] = useState("");
   const [customerName, setCustomerName] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
   const [manualQrUrl, setManualQrUrl] = useState<string | null>(null);
   const [manualQrOpen, setManualQrOpen] = useState(false);
   const [qrOrderId, setQrOrderId] = useState<string | null>(null);
@@ -490,8 +489,6 @@ export default function NuevaVentaPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
               placeholder={ui.searchPlaceholder}
               className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors text-sm"
             />

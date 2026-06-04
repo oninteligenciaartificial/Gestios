@@ -47,6 +47,22 @@ describe("PATCH /api/products/batch — auth", () => {
     const body = await res.json();
     expect(body.error).toBeDefined();
   });
+
+  it("returns 403 when role cannot edit products", async () => {
+    (getTenantProfile as any).mockResolvedValue({ ...MOCK_PROFILE, role: "VIEWER" });
+
+    const res = await PATCH(makeRequest({ ids: ["id-1"], action: "price", value: 10 }));
+    expect(res.status).toBe(403);
+    expect(prisma.product.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when role cannot delete/deactivate products", async () => {
+    (getTenantProfile as any).mockResolvedValue({ ...MOCK_PROFILE, role: "MANAGER" });
+
+    const res = await PATCH(makeRequest({ ids: ["id-1"], action: "deactivate" }));
+    expect(res.status).toBe(403);
+    expect(prisma.product.findMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("PATCH /api/products/batch — validation", () => {
@@ -116,7 +132,7 @@ describe("PATCH /api/products/batch — price action", () => {
     expect(body.updated).toBe(2);
 
     expect(prisma.product.updateMany).toHaveBeenCalledWith({
-      where: { id: { in: ["p1", "p2"] } },
+      where: { id: { in: ["p1", "p2"] }, organizationId: "org-1" },
       data: { price: 99.99 },
     });
   });
@@ -173,7 +189,7 @@ describe("PATCH /api/products/batch — activate/deactivate actions", () => {
     expect(body.updated).toBe(2);
 
     expect(prisma.product.updateMany).toHaveBeenCalledWith({
-      where: { id: { in: ["p1", "p2"] } },
+      where: { id: { in: ["p1", "p2"] }, organizationId: "org-1" },
       data: { active: false },
     });
   });
@@ -188,7 +204,7 @@ describe("PATCH /api/products/batch — activate/deactivate actions", () => {
     expect(body.updated).toBe(1);
 
     expect(prisma.product.updateMany).toHaveBeenCalledWith({
-      where: { id: { in: ["p1"] } },
+      where: { id: { in: ["p1"] }, organizationId: "org-1" },
       data: { active: true },
     });
   });

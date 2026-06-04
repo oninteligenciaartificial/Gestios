@@ -1,5 +1,36 @@
 # GestiOS Security Hardening Report
 
+## Estado actualizado - release pilot
+
+Este reporte historico conserva auditorias previas. Para cierre actual, la fuente operativa es:
+
+- `docs/RELEASE_CANDIDATE.md`
+- `docs/AGENT_AUDIT_BACKLOG.md`
+- `docs/SUPABASE_RLS_VALIDATION.md`
+- `docs/SENTRY_AUTOFIX_RUNBOOK.md`
+
+Cambios recientes ya aplicados en repo:
+
+- Import/export de productos queda CSV-only; `xlsx` no forma parte del alcance pilot.
+- `npm run lint` ahora usa `eslint --max-warnings=0`.
+- El E2E de checkout ya no acepta `checkout-error` como resultado verde para pedido real; exige `order-success`.
+- La creacion real de pedidos E2E queda bloqueada en host productivo salvo `E2E_ALLOW_PRODUCTION_ORDER=true`.
+- Todos los cron endpoints aplican `RATE_LIMITS.cron` antes de validar `CRON_SECRET`.
+- `reportAsyncError()`, breadcrumbs y mensajes Sentry redaccionan claves sensibles por nombre antes de enviar contexto.
+- `npm run check:release-env` valida presencia/formato de variables criticas sin imprimir valores.
+- `scripts/create-superadmin.mjs` ya no contiene password hardcodeada ni imprime contrasenas.
+- Login, tracking publico de pedidos, billing, sesiones y alerta manual de stock tienen rate limits locales.
+- Playwright no carga `.env.local` en CI ni cuando se testea contra `PLAYWRIGHT_BASE_URL` remoto.
+
+Riesgos restantes que no se pueden cerrar solo con codigo local:
+
+- Validar RLS/policies reales en Supabase siguiendo `docs/SUPABASE_RLS_VALIDATION.md`.
+- Configurar Upstash/Redis para rate limiting distribuido; el fallback en memoria no alcanza para release masivo.
+- Probar Sentry production/preview con error controlado, alertas y source maps reales.
+- Definir cifrado y rotacion de secretos tenant-scoped guardados en DB antes de escalar integraciones reales.
+- Ejecutar E2E con pedido real en tienda sandbox y limpiar la orden creada.
+- Rotar la contrasena superadmin anterior si alguna vez fue usada en Supabase real.
+
 ## 1. THREAT MODEL
 
 ### Assets Protected
@@ -12,7 +43,7 @@
 ### Most Likely Attacks (SaaS Context)
 1. **IDOR/Horizontal privilege escalation**: Accessing another org's data by manipulating IDs
 2. **Price manipulation**: Submitting orders with manipulated unit prices
-3. **CSV/Excel import abuse**: Uploading malicious files, prototype pollution, DoS via large files
+3. **CSV import abuse**: Uploading malicious files, prototype pollution, DoS via large files
 4. **Rate limit bypass**: Brute force auth, spamming write endpoints
 5. **Cron endpoint abuse**: Triggering mass email sends without authentication
 6. **Discount abuse**: Creating unlimited or extreme-value discount codes
@@ -169,10 +200,10 @@
 ### BLOCK 12 — Dependencies
 | Item | Status |
 |------|--------|
-| npm audit clean (HIGH/CRITICAL) | ⚠️ Partial (1 high: xlsx prototype pollution - no fix available) |
+| npm audit clean (HIGH/CRITICAL) | ✅ `npm audit --audit-level=high` exits 0; moderate advisories remain |
 | Lockfile committed | ✅ package-lock.json in git |
 | Dependency minimization | ✅ 670 packages (reasonable for Next.js stack) |
-| ⚠️ xlsx replacement | ❌ Pending (consider csv-parser for CSV, exceljs for XLSX) |
+| XLSX support | Removed from pilot scope; import/export is CSV-only |
 
 ### BLOCK 13 — Business Logic
 | Item | Status |
@@ -227,7 +258,6 @@
 
 | Priority | Item | Risk | Mitigation |
 |----------|------|------|------------|
-| 🔴 HIGH | Replace `xlsx` package | Prototype pollution + ReDoS | Use `csv-parser` for CSV, `exceljs` for XLSX |
 | 🔴 HIGH | Add serverless-compatible rate limiting | In-memory Map resets per invocation | Use Upstash Redis or Vercel KV |
 | 🟡 MEDIUM | MFA/TOTP support | Account takeover | Enable Supabase MFA factor |
 | 🟡 MEDIUM | Encrypt sensitive DB fields | Data breach exposure | Encrypt tokens, financial data at rest |
@@ -263,7 +293,7 @@ The system withstands OWASP Top 10 2021 threats:
 - ✅ A03: Injection — Prisma ORM, Zod validation, CSP headers
 - ✅ A04: Insecure Design — Plan limits, price validation, transactions
 - ✅ A05: Security Misconfiguration — Security headers, robots.txt, no debug endpoints
-- ⚠️ A06: Vulnerable Components — xlsx package (1 high, no fix)
+- ⚠️ A06: Vulnerable Components — high/critical gate passes; moderate advisories remain for follow-up
 - ✅ A07: Auth Failures — Supabase Auth, session management, rate limiting
 - ✅ A08: Data Integrity — Transactions, price validation, input sanitization
 - ✅ A09: Logging Failures — Sentry integration, audit logging, fire-and-forget errors

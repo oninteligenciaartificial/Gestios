@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";

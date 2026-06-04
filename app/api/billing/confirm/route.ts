@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSuperAdmin } from "@/lib/superadmin";
 import { prisma } from "@/lib/prisma";
 import type { PlanType } from "@/lib/plans";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   reference: z.string().min(1),
@@ -11,6 +12,9 @@ const bodySchema = z.object({
 
 // POST /api/billing/confirm — superadmin confirma pago manual y activa plan
 export async function POST(request: Request): Promise<NextResponse> {
+  const rateLimited = await checkRateLimit(request, "billing-confirm", RATE_LIMITS.superadmin);
+  if (rateLimited) return rateLimited;
+
   const admin = await getSuperAdmin();
   if (!admin) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 

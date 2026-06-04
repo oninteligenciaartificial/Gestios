@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, CheckCircle, Copy, ExternalLink } from "lucide-react";
+import { X, CheckCircle, Copy } from "lucide-react";
 
 interface Props {
   qrImageUrl: string;
@@ -85,6 +85,7 @@ export function ManualQrModal({ qrImageUrl, amount, onPaid, onCancel }: Props) {
 
           {/* QR Image */}
           <div className="w-56 h-56 rounded-xl bg-white p-3 overflow-hidden flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qrImageUrl}
               alt="QR de pago"

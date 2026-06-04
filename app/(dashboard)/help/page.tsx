@@ -11,8 +11,6 @@ import {
   Sparkles,
   Settings,
   Store,
-  FileDown,
-  Shield,
   HelpCircle,
   CheckCircle2,
 } from "lucide-react";

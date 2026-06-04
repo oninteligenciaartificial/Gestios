@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
@@ -52,6 +51,8 @@ export default function ReportsPage() {
     setLoading(false);
   }
 
+  // Initial load only; date inputs are applied explicitly with the filter button.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchReport(from, to); }, []);
 
   function applyPreset(preset: typeof PRESETS[0]) {

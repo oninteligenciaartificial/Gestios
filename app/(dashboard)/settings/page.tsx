@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/purity */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -218,6 +218,7 @@ export default function SettingsPage() {
                 <label className="text-sm text-brand-muted">Logo (URL de imagen)</label>
                 <input value={orgLogoUrl} onChange={(e) => setOrgLogoUrl(e.target.value)} className={inp} placeholder="https://..." />
                 {orgLogoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={orgLogoUrl} alt="Logo" className="h-14 mt-2 rounded-lg object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 )}
               </div>
@@ -449,7 +450,7 @@ function parseDevice(ua: string | null): { label: string; icon: React.ReactNode 
 }
 
 function SessionsSection() {
-  /* eslint-disable react-hooks/immutability, react-hooks/set-state-in-effect */
+
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -474,7 +475,7 @@ function SessionsSection() {
     const others = sessions.filter((s) => !s.isCurrent);
     for (const s of others) await revoke(s.id);
   }
-  /* eslint-enable react-hooks/immutability, react-hooks/set-state-in-effect */
+
 
   return (
     <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">

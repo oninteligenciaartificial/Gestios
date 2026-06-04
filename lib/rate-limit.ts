@@ -1,14 +1,13 @@
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
 
-// Lazy init — avoids crash during static build without UPSTASH env vars
+// Lazy init: avoids crash during static build without UPSTASH env vars.
 const redis = new Proxy({} as Redis, {
   get(_target, prop) {
     const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
     if (!url || !token) {
-      // Fallback: no-op Redis for dev without Upstash
       return () => Promise.resolve(null);
     }
 
@@ -21,7 +20,6 @@ const redis = new Proxy({} as Redis, {
 });
 
 declare global {
-   
   var __upstashRedis: Redis | undefined;
 }
 
@@ -36,7 +34,7 @@ type RateLimitResult = {
   resetAt: number;
 };
 
-export function getRequestIp(headers: Headers): string {
+export function getRequestIp(headers: Pick<Headers, "get">): string {
   const forwardedFor = headers.get("x-forwarded-for");
   if (forwardedFor) {
     const firstIp = forwardedFor.split(",")[0]?.trim();
@@ -54,7 +52,6 @@ export async function consumeRateLimit(
   const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 
-  // Fallback to in-memory if Upstash not configured
   if (!url || !token) {
     return consumeRateLimitInMemory(key, options);
   }
@@ -79,12 +76,10 @@ export async function consumeRateLimit(
       resetAt,
     };
   } catch {
-    // If Redis fails, allow the request (fail open)
     return { allowed: true, remaining: options.max, resetAt };
   }
 }
 
-// In-memory fallback (same as old implementation)
 const buckets = new Map<string, { count: number; resetAt: number }>();
 let lastCleanup = Date.now();
 

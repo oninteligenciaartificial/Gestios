@@ -1,4 +1,4 @@
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+import { interpolate, useCurrentFrame } from 'remotion';
 
 const BUSINESS_TYPES = [
   { icon: '👕', label: 'Ropa', color: '#8B5CF6' },
@@ -11,7 +11,6 @@ const BUSINESS_TYPES = [
 
 export const Scene2Setup: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
   const panelSlide = interpolate(frame, [0, 30], [-80, 0], { extrapolateRight: 'clamp' });
   const panelOpacity = interpolate(frame, [0, 25], [0, 1], { extrapolateRight: 'clamp' });

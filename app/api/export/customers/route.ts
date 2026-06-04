@@ -4,7 +4,9 @@ import { canUseFeature, planGateError } from "@/lib/plans";
 import { prisma } from "@/lib/prisma";
 import { toCSV } from "@/lib/csv";
 
-export async function GET(req: Request) {
+export async function GET(request: Request) {
+  void request;
+
   const profile = await getTenantProfile();
   if (!profile) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });

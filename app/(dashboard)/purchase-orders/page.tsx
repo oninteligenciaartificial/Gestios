@@ -1,8 +1,8 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
-import { Package, Plus, Eye, Trash2, Send, CheckCircle, XCircle, Clock, Truck } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Package, Plus, Eye, Send, CheckCircle, XCircle, Clock, Truck } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
 
 interface POItem {
@@ -52,13 +52,7 @@ export default function PurchaseOrdersPage() {
   const [showDetail, setShowDetail] = useState<PurchaseOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState("");
 
-  useEffect(() => {
-    fetchOrders();
-    fetchSuppliers();
-    fetchProducts();
-  }, [filterStatus]);
-
-  async function fetchOrders() {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams({ limit: "50" });
     if (filterStatus) params.set("status", filterStatus);
@@ -68,23 +62,29 @@ export default function PurchaseOrdersPage() {
       setOrders(json.data);
     }
     setLoading(false);
-  }
+  }, [filterStatus]);
 
-  async function fetchSuppliers() {
+  const fetchSuppliers = useCallback(async () => {
     const res = await fetch("/api/suppliers");
     if (res.ok) {
       const json = await res.json();
       setSuppliers(json.data);
     }
-  }
+  }, []);
 
-  async function fetchProducts() {
+  const fetchProducts = useCallback(async () => {
     const res = await fetch("/api/products?limit=200");
     if (res.ok) {
       const json = await res.json();
       setProducts(json.data);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+    fetchSuppliers();
+    fetchProducts();
+  }, [fetchOrders, fetchProducts, fetchSuppliers]);
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">

@@ -1,14 +1,13 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   reportAsyncError,
+  sanitizeMonitoringContext,
   setSentryUser,
   clearSentryUser,
   addSentryBreadcrumb,
   captureSentryMessage,
 } from "@/lib/monitoring";
 
-// Mock @sentry/nextjs
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
   captureMessage: vi.fn(),
@@ -27,7 +26,7 @@ describe("reportAsyncError", () => {
     reportAsyncError("test-scope", error, { key: "value" });
 
     expect(console.error).toHaveBeenCalledWith(
-      "[test-scope] operación async falló",
+      "[test-scope] operacion async fallo",
       { error, key: "value" }
     );
   });
@@ -38,12 +37,57 @@ describe("reportAsyncError", () => {
 
     reportAsyncError("test-scope", error, { userId: "123" });
 
-    // Wait for async import
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(sentry.captureException).toHaveBeenCalledWith(error, {
       tags: { scope: "test-scope" },
       extra: { userId: "123" },
+    });
+  });
+
+  it("redacts sensitive context before logging and sending to Sentry", async () => {
+    const sentry = await import("@sentry/nextjs");
+    const error = new Error("Sensitive error");
+
+    reportAsyncError("test-sensitive", error, {
+      organizationId: "org-123",
+      accessToken: "secret-token",
+      nested: { authorization: "Bearer abc", safe: "ok" },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const expectedContext = {
+      organizationId: "org-123",
+      accessToken: "[REDACTED]",
+      nested: { authorization: "[REDACTED]", safe: "ok" },
+    };
+
+    expect(console.error).toHaveBeenCalledWith(
+      "[test-sensitive] operacion async fallo",
+      { error, ...expectedContext }
+    );
+    expect(sentry.captureException).toHaveBeenCalledWith(error, {
+      tags: { scope: "test-sensitive" },
+      extra: expectedContext,
+    });
+  });
+});
+
+describe("sanitizeMonitoringContext", () => {
+  it("preserves useful IDs while redacting secret-like keys", () => {
+    expect(sanitizeMonitoringContext({
+      userId: "user-1",
+      organizationId: "org-1",
+      apiKey: "key",
+      databaseUrl: "postgres://secret",
+      nested: { cookie: "session", route: "/api/orders" },
+    })).toEqual({
+      userId: "user-1",
+      organizationId: "org-1",
+      apiKey: "[REDACTED]",
+      databaseUrl: "[REDACTED]",
+      nested: { cookie: "[REDACTED]", route: "/api/orders" },
     });
   });
 });
@@ -106,6 +150,22 @@ describe("addSentryBreadcrumb", () => {
       level: "info",
     });
   });
+
+  it("redacts sensitive breadcrumb data", async () => {
+    const sentry = await import("@sentry/nextjs");
+
+    await addSentryBreadcrumb("api", "Webhook received", {
+      authorization: "Bearer abc",
+      path: "/api/webhooks/whatsapp",
+    });
+
+    expect(sentry.addBreadcrumb).toHaveBeenCalledWith({
+      category: "api",
+      message: "Webhook received",
+      data: { authorization: "[REDACTED]", path: "/api/webhooks/whatsapp" },
+      level: "info",
+    });
+  });
 });
 
 describe("captureSentryMessage", () => {
@@ -132,6 +192,20 @@ describe("captureSentryMessage", () => {
     expect(sentry.captureMessage).toHaveBeenCalledWith("Rate limit approaching", {
       level: "warning",
       extra: undefined,
+    });
+  });
+
+  it("redacts sensitive message context", async () => {
+    const sentry = await import("@sentry/nextjs");
+
+    await captureSentryMessage("External provider failed", "error", {
+      apiKey: "key",
+      provider: "qr",
+    });
+
+    expect(sentry.captureMessage).toHaveBeenCalledWith("External provider failed", {
+      level: "error",
+      extra: { apiKey: "[REDACTED]", provider: "qr" },
     });
   });
 });

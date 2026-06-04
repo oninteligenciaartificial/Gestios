@@ -19,6 +19,13 @@ vi.mock("@/lib/auth", () => ({
   getTenantProfile: vi.fn(),
 }));
 
+vi.mock("@/lib/rate-limit", () => ({
+  RATE_LIMITS: {
+    import: { windowMs: 60_000, max: 10 },
+  },
+  checkOrgRateLimit: vi.fn().mockResolvedValue(null),
+}));
+
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function makeFormData(csv: string, filename = "products.csv") {

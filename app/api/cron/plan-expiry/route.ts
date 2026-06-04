@@ -4,9 +4,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendPlanExpiryWarning, sendPlanExpired } from "@/lib/email";
 import { PLAN_META } from "@/lib/plans";
 import { reportAsyncError } from "@/lib/monitoring";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { verifyCronSecret } from "@/lib/cron-auth";
 
 export async function GET(request: Request) {
+  const rateLimited = await checkRateLimit(request, "cron-plan-expiry", RATE_LIMITS.cron);
+  if (rateLimited) return rateLimited;
+
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

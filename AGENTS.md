@@ -1,155 +1,192 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# GestiOS Agent Rules
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+Estas reglas aplican a cualquier agente que trabaje en este repo. Antes de actuar, leer tambien:
 
-## Regla crítica — NO inventar
+- `docs/SKILLS_ROUTING.md`
+- `docs/AGENT_WORK_ORDER.md`
+- `docs/ORCHESTRATOR.md`
 
-**NUNCA** fabricar URLs, nombres de empresas, APIs externas, paquetes npm, o cualquier dato que no esté verificado en el código base o consultado en web real. Si no hay certeza: decirlo y buscar antes de recomendar.
+## Regla base
+
+Antes de ejecutar una accion importante, el agente debe:
+
+1. Entender el objetivo, entregables, restricciones, riesgos y criterio de exito.
+2. Revisar el estado del repo y los archivos relevantes.
+3. Seleccionar skills, MCPs y herramientas aplicables antes de actuar.
+4. Investigar documentacion oficial, GitHub o codigo fuente local antes de usar APIs externas, librerias, comandos o capacidades no verificadas.
+5. Dividir el trabajo en frentes o subagentes cuando sea posible y util.
+6. Documentar decisiones, errores, resultados, checks y proximos pasos.
+7. Validar antes de declarar terminado.
+
+No ejecutar acciones destructivas, irreversibles, costosas o sensibles sin confirmacion explicita del usuario.
+
+## No inventar
+
+Nunca fabricar URLs, empresas, APIs externas, paquetes npm, capacidades de MCP, resultados de pruebas, logs, credenciales, proveedores o estados de deploy.
+
+Si algo no esta verificado:
+
+- buscar en el repo, documentacion oficial o web real cuando corresponda;
+- marcarlo como no verificado;
+- pedir datos al usuario solo si no hay forma segura de avanzar.
+
+## Skills, MCPs y herramientas
+
+- Leer `docs/SKILLS_ROUTING.md` antes de modificar codigo, hacer deploy o cerrar una tarea.
+- Si una skill mencionada no existe, no inventarla: usar una equivalente real o declarar que no esta instalada.
+- Antes de pedir trabajo manual al usuario, revisar si existe una herramienta/MCP que pueda hacerlo de forma segura.
+- Si una herramienta externa no esta disponible, decir exactamente cual falta y para que se necesita.
+- No asumir que existe un MCP, endpoint o permiso si no esta visible en la sesion.
+
+## Trabajo paralelo
+
+Para tareas amplias, multi-area o de release:
+
+1. Seguir `docs/AGENT_WORK_ORDER.md`.
+2. Asignar ownership claro por frente:
+   - Backend/Data: API routes, Prisma, Supabase, queries, server-side.
+   - Frontend/UX: paginas, componentes, responsive, accesibilidad, textos visibles.
+   - Security/RLS: auth, RBAC, RLS, uploads, webhooks, rate limits, secretos, pagos.
+   - QA/Release: tests, E2E, lint, typecheck, build, deploy.
+   - Docs/Context: README, docs, runbooks, handoff, decisiones.
+3. No revertir cambios de otros agentes sin confirmacion explicita.
+4. Consolidar hallazgos P0/P1/P2 antes de declarar terminado.
 
 ## Stack
 
-Next.js 16.2.3 + React 19 + Prisma 7 + Supabase Auth + Tailwind 4 + Zod 4 + Vitest 4 + Sentry
+La fuente de verdad de versiones es `package.json`. Al momento de escribir esto: Next.js 16.2.6 + React 19 + Prisma 7 + Supabase Auth + Tailwind 4 + Zod 4 + Vitest 4 + Sentry.
 
-## Path alias
+Path alias: `@/*` apunta a la raiz del repo.
 
-`@/*` → root (`tsconfig.json` + `vitest.config.ts`). Example: `import { prisma } from "@/lib/prisma"`.
+## Next.js 16
 
-## Commands
+Este no es el Next.js que probablemente recuerdas. Antes de cambiar routing, build, `Link`, config, Turbopack o boundaries server/client, leer la guia relevante en:
 
-```
-npm run dev          # dev server
-npm run build        # prisma generate + next build (NO db push)
-npm test             # vitest run (tests/**/*.test.ts)
-npm test:watch       # vitest watch mode
-npm run lint         # eslint
-npx tsc --noEmit     # typecheck (not in scripts, but works)
-npx prisma generate  # regenerate client types (safe without DATABASE_URL)
-npx vercel --prod --yes  # deploy to production
+```txt
+node_modules/next/dist/docs/
 ```
 
-## Prisma + Supabase — CRITICAL RULES
+Atender deprecations y cambios de API.
 
-### NO agregar campos al schema sin plan de migración
+## Comandos
 
-La DB vive en Supabase. No hay `DATABASE_URL` local. El build de Vercel NO ejecuta `prisma db push`. Si agregás un campo al schema sin aplicar la migración a la DB real, TODAS las queries que usen ese modelo fallarán con `P2022: The column X does not exist`.
+```bash
+npm run dev
+npm run build
+npm test
+npm test:watch
+npm run lint
+npx tsc --noEmit
+npx prisma generate
+```
 
-**Regla:** ANTES de agregar un campo al schema:
-1. Crear SQL en `prisma/migrations/YYYYMMDDHHMMSS_name/migration.sql`
-2. Aplicar manualmente a Supabase (SQL Editor o `npx prisma db push` con DATABASE_URL)
-3. SOLO después de confirmar que la columna existe, agregar al schema
+`npm run build` ejecuta `prisma generate` + `next build`; no aplica migraciones.
 
-**Si no podés aplicar la migración:** NO agregues el campo. Usá otra fuente existente.
+## Produccion y acciones sensibles
 
-### Modelo Profile — campos removidos
+Requieren confirmacion explicita del usuario:
 
-El modelo `Profile` NO tiene estas columnas en la DB real:
-- `email` — usar `user.email` de Supabase Auth
-- `createdAt` / `updatedAt` — usar `id` para ordering
+- `npx vercel --prod --yes` o cualquier deploy productivo;
+- cambios de variables de entorno;
+- migraciones o queries contra Supabase real;
+- operaciones con credenciales, proveedores externos o costo;
+- comandos destructivos de Git, filesystem, DB o infraestructura.
 
-**NO los agregues de vuelta** sin migración previa.
+Antes de deploy productivo: confirmar branch/commit esperado, gates ejecutados, URL objetivo y plan de rollback.
 
-### Modelo EmailLog — tracking de emails
+## Prisma + Supabase
 
-`EmailLog` registra cada email enviado via Brevo. Campos: `id`, `organizationId`, `to`, `type`, `subject`, `status` (SENT/DELIVERED/BOUNCED/FAILED), `brevoMessageId`, `error`, `createdAt`. Webhook en `/api/webhooks/brevo` actualiza status.
+La DB vive en Supabase. No asumir `DATABASE_URL` local.
 
-### Modelo Category — campo businessType
+### No agregar campos sin migracion
 
-`Category` tiene `businessType String @default("GENERAL")`. Las categorías se filtran por este campo en la UI pero persisten en la DB. API: `GET /api/categories?all=1` para ver todas.
+Antes de agregar un campo al schema:
 
-### Modelo OrgAddon — campo phoneNumberId
+1. Crear SQL en `prisma/migrations/YYYYMMDDHHMMSS_name/migration.sql`.
+2. Revisar el SQL.
+3. Aplicarlo en Supabase con SQL revisado o `prisma migrate deploy` cuando corresponda.
+4. Confirmar que la columna existe.
+5. Solo despues actualizar `prisma/schema.prisma` y codigo consumidor.
 
-`OrgAddon.phoneNumberId` se usa para dos propósitos:
-- WhatsApp: Meta `phone_number_id` para routing multi-tenant
-- QR Bolivia: URL de imagen QR subida a Supabase Storage (para merchants sin NIT)
+Si no se puede aplicar la migracion, no agregar el campo.
 
-### Lazy Prisma initialization
+No usar `prisma db push` contra produccion. `db push` queda limitado a entornos no productivos y nunca con `--accept-data-loss`.
 
-`lib/prisma.ts` usa un `Proxy` para lazy init. NO cambies a instanciación directa — el build estático falla sin `DATABASE_URL`.
+### Reglas criticas de modelos
 
-### Todos los queries deben filtrar por `organizationId`
+- `Profile` no tiene `email`, `createdAt` ni `updatedAt`.
+- Usar `user.email` de Supabase Auth cuando haga falta email.
+- `Category.businessType` existe y se usa para filtrar categorias por tipo de negocio.
+- `OrgAddon.phoneNumberId` se usa para WhatsApp y para QR Bolivia como URL de QR subido.
+- `EmailLog` registra envios y webhook de Brevo.
+- No cambiar `lib/prisma.ts` para quitar lazy initialization.
+- Para campos `Json?`: `Prisma.DbNull` para NULL, `undefined` para omitir, valor directo para guardar.
 
-RLS está habilitado solo en `public.profiles` con políticas de acceso propio. El resto del aislamiento multi-tenant es a nivel de aplicación. Usá `getTenantProfile()` de `lib/auth.ts` — devuelve `{ organizationId, plan, businessType, role }`.
+### Multi-tenant
 
-### Emails fire-and-forget
+- Todo query de modelos tenant-scoped debe filtrar por `organizationId`.
+- Usar `getTenantProfile()` desde `lib/auth.ts` en API routes.
+- Excepciones: rutas publicas, setup, cron, webhooks y superadmin con auth propia.
+- RLS esta habilitado solo en `public.profiles`; el resto del aislamiento es a nivel de aplicacion.
+- Una cuenta pertenece a una organizacion. No hay switching entre organizaciones.
 
-Siempre `.catch(() => {})` en envíos de email. Nunca bloquear la respuesta.
+## Auth, planes y dominio
 
-### WhatsApp multi-tenant
+- Staff se gestiona por `/api/team`; crea usuarios reales en Supabase Auth.
+- Superadmin impersonation usa cookies y solo rol `SUPERADMIN`.
+- Usar `isPlanAtLeast(plan, required)` y `canUseFeature(plan, feature)` desde `lib/plans.ts`.
+- Planes: `BASICO`, `CRECER`, `PRO`, `EMPRESARIAL`.
+- `tienda_online`, `registro_publico` y `pagos_qr` requieren PRO+.
+- `sucursales`, `audit_log`, `roles_avanzados` y `facturacion_siat` requieren EMPRESARIAL+.
+- Moneda principal: BOB.
+- SIAT, QR Bolivia y WhatsApp requieren credenciales/proveedores reales; si faltan, documentarlo como gate externo.
 
-`lib/whatsapp.ts` rutea por `OrgAddon.phoneNumberId`. Si el org tiene addon WHATSAPP activo con `phoneNumberId`, usa ese número. Sino fallback a `WA_PHONE_NUMBER_ID` env var. El webhook en `app/api/webhooks/whatsapp/route.ts` ya rutea entrantes por `phone_number_id` del metadata.
+## Implementacion
 
-### Zod `z.record()` requiere 2 argumentos
+- Mantener cambios acotados al pedido.
+- Seguir patrones existentes del repo antes de crear abstracciones nuevas.
+- No agregar dependencias sin verificar documentacion oficial/GitHub y justificar compatibilidad.
+- Emails siempre fire-and-forget con `.catch(() => {})`.
+- Zod 4: `z.record(z.string(), valueType)`.
+- No exponer secretos en logs, docs, commits ni respuestas.
+- No leer ni imprimir `.env*` salvo que sea estrictamente necesario para la tarea y el usuario lo haya autorizado o el flujo lo requiera; aun asi, nunca mostrar valores.
+- Si se detecta un secreto en archivos versionables, reportar ubicacion aproximada, eliminarlo del diff y recomendar rotacion.
+- Archivos `.env*` deben permanecer ignorados salvo `.env.example`.
 
-`z.record(z.string(), valueType)` — un argumento no compila.
+## Gates antes de cerrar
 
-### Campos `Json?` en Prisma
+Para cambios de codigo, ejecutar como minimo:
 
-`Prisma.DbNull` para NULL, `undefined` para omitir, valor directo para guardar.
+```bash
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+```
 
-## Auth & Multi-tenant
+Si toca POS, tienda, checkout, ventas, auth, billing, webhooks, superadmin o flujo critico:
 
-- **1 cuenta = 1 organización.** `Profile.userId` es `@unique`. No hay switching entre orgs.
-- `getTenantProfile()` en `lib/auth.ts` es la fuente de verdad para auth en API routes. Devuelve `{ organizationId, plan, businessType, role }`.
-- Superadmin impersonation usa cookies (`impersonate_org_id`) — solo para rol SUPERADMIN.
-- Staff se gestiona con `/api/team` — crea usuarios reales en Supabase Auth con email+password. NO hay placeholder `temp_` userIds.
+```bash
+npm run test:e2e
+```
 
-## Plan system
+Para dependencias o seguridad:
 
-Plans: `BASICO` → `CRECER` → `PRO` → `EMPRESARIAL`. Usá `isPlanAtLeast(plan, required)` y `canUseFeature(plan, feature)` de `lib/plans.ts`.
+```bash
+npm audit --audit-level=high
+```
 
-Feature gates clave:
-- `reports`, `suppliers`, `csv_import/export` → CRECER+
-- `tienda_online`, `registro_publico`, `pagos_qr` → PRO+
-- `sucursales`, `audit_log`, `roles_avanzados`, `facturacion_siat` → EMPRESARIAL+
-- Variantes de productos → CRECER+ (gate en UI + API `/api/products` 403)
+Si un gate falla, no declararlo verde. Registrar comando, error principal, causa probable y siguiente accion.
 
-Plan limits (`PLAN_LIMITS`): BASICO = 150 productos, 50 clientes, 1 staff, 3 descuentos.
+## Reporte final esperado
 
-## Business types
+Al cerrar una tarea, reportar:
 
-`GENERAL`, `ROPA`, `SUPLEMENTOS`, `ELECTRONICA`, `FARMACIA`, `FERRETERIA`. Definidos en `lib/business-types.ts`.
-
-`lib/business-ui.ts` tiene configs por tipo: labels de sidebar, nombres de productos, atributos de variantes, secciones extra (Vencimientos para FARMACIA/SUPLEMENTOS, Garantías para ELECTRONICA).
-
-El sidebar en `app/(dashboard)/layout.tsx` usa `getBusinessUI(businessType)` para labels dinámicos.
-
-## Supabase env vars — requeridas en Vercel
-
-| Variable | Dónde |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API → Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → anon public |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → service_role |
-| `DATABASE_URL` | Supabase → Settings → Database → Connection string (Transaction) |
-
-## Upstash Redis — rate limiter distribuido
-
-`lib/rate-limit.ts` usa `@upstash/redis` para rate limiting compartido entre instancias serverless. Sin las vars, hace fallback a in-memory.
-
-| Variable | Dónde |
-|---|---|
-| `UPSTASH_REDIS_REST_URL` | Upstash Console → tu base de datos → REST API URL |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Console → tu base de datos → REST API Token |
-
-Crear base gratis en https://upstash.com
-
-## Cron jobs (vercel.json)
-
-7 crons diarios: birthday, expiry, inactive-customers, plan-expiry, low-stock, siat-cufd, expire-qr.
-
-## Tests
-
-Tests live in `tests/` (not `__tests__/`). Pattern: `tests/**/*.test.ts`. Vitest env = `node`. All tests mock Prisma — no real DB needed.
-
-## Monitoring
-
-`@sentry/nextjs` configured with `withSentryConfig`. Errors auto-tracked. User context set via `setSentryUser()` in `lib/auth.ts`.
-
-## Domain
-
-- **Moneda:** BOB (Bolivian Boliviano). Todos los precios en `lib/plans.ts` están en BOB.
-- **SIAT Bolivia:** Facturación electrónica — requiere NIT, CUIS, CUFD del SIN. Credenciales no configuradas en dev.
-- **QR Bolivia:** Pagos vía QR bancario/Tigo/BiPago. Proveedor externo no configurado en dev.
-- **WhatsApp:** Business API — requiere Meta credentials no configuradas en dev.
+- resumen ejecutivo;
+- archivos creados/editados;
+- decisiones tomadas;
+- checks ejecutados y resultado;
+- errores encontrados y solucion;
+- riesgos restantes;
+- proximos pasos;
+- commit sugerido.

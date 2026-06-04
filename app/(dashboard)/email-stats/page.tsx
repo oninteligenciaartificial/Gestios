@@ -1,8 +1,8 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
-import { Mail, CheckCircle, XCircle, AlertCircle, Clock, Filter } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Mail, Filter } from "lucide-react";
 
 type EmailLog = {
   id: string;
@@ -56,11 +56,7 @@ export default function EmailStatsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  useEffect(() => {
-    fetchLogs();
-  }, []);
-
-  async function fetchLogs() {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (typeFilter) params.set("type", typeFilter);
@@ -73,11 +69,11 @@ export default function EmailStatsPage() {
       setStats(data.stats ?? {});
     }
     setLoading(false);
-  }
+  }, [statusFilter, typeFilter]);
 
   useEffect(() => {
     fetchLogs();
-  }, [typeFilter, statusFilter]);
+  }, [fetchLogs]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">

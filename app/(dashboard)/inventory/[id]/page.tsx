@@ -1,7 +1,7 @@
-/* eslint-disable react-hooks/purity, react-hooks/immutability, react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Package, Tag, Barcode, AlertTriangle, CheckCircle, XCircle, TrendingUp, Loader2, History } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
@@ -82,7 +82,12 @@ export default function ProductDetailPage() {
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4 animate-pop">
-        <button onClick={() => router.back()} className="p-2 rounded-xl border border-white/10 hover:border-white/30 text-brand-muted hover:text-white transition-colors mt-1">
+        <button
+          onClick={() => router.back()}
+          className="p-2 rounded-xl border border-white/10 hover:border-white/30 text-brand-muted hover:text-white transition-colors mt-1"
+          aria-label="Volver"
+          title="Volver"
+        >
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
@@ -104,9 +109,12 @@ export default function ProductDetailPage() {
             </p>
           )}
         </div>
-        <a href="/inventory" className="px-4 py-2 rounded-xl border border-white/10 hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange text-brand-muted text-sm transition-colors">
+        <Link
+          href={`/inventory?edit=${encodeURIComponent(product.id)}`}
+          className="px-4 py-2 rounded-xl border border-white/10 hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange text-brand-muted text-sm transition-colors"
+        >
           Editar
-        </a>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

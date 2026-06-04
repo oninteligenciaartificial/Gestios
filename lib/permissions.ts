@@ -68,6 +68,6 @@ export function hasPermission(
 }
 
 export function getRolePermissions(role: string): Permission[] {
-  if (role === "SUPERADMIN" || role === "ADMIN") return Object.keys(ROLE_PERMISSIONS.ADMIN) as Permission[];
+  if (role === "SUPERADMIN" || role === "ADMIN") return [...ROLE_PERMISSIONS.ADMIN];
   return ROLE_PERMISSIONS[role as Role] ?? [];
 }

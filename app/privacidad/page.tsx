@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
+import { PublicShell } from "@/components/PublicShell";
 
 export const metadata = {
   title: "Política de Privacidad — GestiOS",
@@ -7,10 +9,10 @@ export const metadata = {
 
 export default function PrivacidadPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <PublicShell>
       {/* Nav */}
       <nav className="border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-sm">
-        <div className="text-xl font-display font-bold tracking-widest text-[#FF6B00]">GestiOS.</div>
+        <BrandLogo />
         <Link href="/" className="text-sm text-white/50 hover:text-white transition-colors">
           ← Volver al inicio
         </Link>
@@ -143,6 +145,6 @@ export default function PrivacidadPage() {
       <footer className="border-t border-white/5 py-8 text-center text-xs text-white/30">
         GestiOS · Sistema de gestion para negocios en Bolivia y Latinoamerica
       </footer>
-    </div>
+    </PublicShell>
   );
 }

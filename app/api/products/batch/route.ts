@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasPermission } from "@/lib/permissions";
 
 const batchSchema = z.object({
   ids: z.array(z.string()).min(1).max(200),
@@ -31,6 +32,11 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "value is required for price and stock actions" }, { status: 400 });
   }
 
+  const requiredPermission = action === "deactivate" ? "products:delete" : "products:edit";
+  if (!hasPermission(profile.role, requiredPermission)) {
+    return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+  }
+
   // Verify ownership: only update products belonging to this org
   const ownedProducts = await prisma.product.findMany({
     where: { id: { in: ids }, organizationId: profile.organizationId },
@@ -45,7 +51,7 @@ export async function PATCH(request: Request) {
 
   if (action === "price") {
     await prisma.product.updateMany({
-      where: { id: { in: ownedIds } },
+      where: { id: { in: ownedIds }, organizationId: profile.organizationId },
       data: { price: value! },
     });
   } else if (action === "stock") {
@@ -60,12 +66,12 @@ export async function PATCH(request: Request) {
     );
   } else if (action === "deactivate") {
     await prisma.product.updateMany({
-      where: { id: { in: ownedIds } },
+      where: { id: { in: ownedIds }, organizationId: profile.organizationId },
       data: { active: false },
     });
   } else if (action === "activate") {
     await prisma.product.updateMany({
-      where: { id: { in: ownedIds } },
+      where: { id: { in: ownedIds }, organizationId: profile.organizationId },
       data: { active: true },
     });
   }

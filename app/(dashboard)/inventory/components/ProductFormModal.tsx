@@ -50,7 +50,7 @@ export function ProductFormModal({
           <h2 className="text-xl font-display font-bold text-white">
             {editing ? `Editar ${ui.productSingular}` : `Nuevo ${ui.productSingular}`}
           </h2>
-          <button onClick={onClose} className="text-brand-muted hover:text-white transition-colors">
+          <button onClick={onClose} className="text-brand-muted hover:text-white transition-colors" aria-label="Cerrar formulario de producto">
             <X size={20} />
           </button>
         </div>
@@ -112,6 +112,9 @@ export function ProductFormModal({
                   <button
                     type="button"
                     onClick={() => onFormChange({ ...form, hasVariants: !form.hasVariants })}
+                    role="switch"
+                    aria-checked={form.hasVariants}
+                    aria-label={`${form.hasVariants ? "Desactivar" : "Activar"} variantes`}
                     className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${form.hasVariants ? "bg-blue-500" : "bg-white/20"}`}
                   >
                     <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.hasVariants ? "translate-x-6" : "translate-x-1"}`} />
@@ -166,6 +169,7 @@ export function ProductFormModal({
                     <button
                       type="button"
                       onClick={() => onFormChange({ ...form, imageUrl: "" })}
+                      aria-label="Quitar imagen del producto"
                       className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-red-500/80 transition-colors"
                     >
                       <X size={14} />
@@ -227,7 +231,7 @@ export function ProductFormModal({
                               {v.sku && ` · ${v.sku}`}
                             </p>
                           </div>
-                          <button onClick={() => onDeleteVariant(v.id)} className="text-brand-muted hover:text-red-400 transition-colors flex-shrink-0">
+                          <button onClick={() => onDeleteVariant(v.id)} className="text-brand-muted hover:text-red-400 transition-colors flex-shrink-0" aria-label={`Eliminar variante ${Object.entries(v.attributes).map(([k, val]) => `${k}: ${val}`).join(", ")}`}>
                             <Trash2 size={14} />
                           </button>
                         </div>

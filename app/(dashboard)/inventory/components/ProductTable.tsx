@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Trash2, Package, PackagePlus, Layers, History } from "lucide-react";
+import Link from "next/link";
 import type { BusinessUIConfig } from "@/lib/business-ui";
 import { type Product, stockStatus } from "./types";
 
@@ -73,7 +74,7 @@ export function ProductTable({ products, loading, search, ui, selected, onToggle
                   </td>
                   <td className="p-5">
                     <div className="font-bold text-white flex items-center gap-2">
-                      <a href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</a>
+                      <Link href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</Link>
                       {item.hasVariants && <Layers size={13} className="text-blue-400 flex-shrink-0" />}
                     </div>
                     {item.sku && <div className="text-xs text-brand-muted mt-0.5">SKU: {item.sku}</div>}
@@ -90,15 +91,15 @@ export function ProductTable({ products, loading, search, ui, selected, onToggle
                   <td className="p-5 text-right">
                     <div className="flex items-center justify-end gap-3">
                       {!item.hasVariants && (
-                        <button onClick={() => onStockEntry(item)} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock">
+                        <button onClick={() => onStockEntry(item)} className="text-brand-muted hover:text-brand-growth-neon transition-colors" title="Entrada de stock" aria-label={`Registrar entrada de stock para ${item.name}`}>
                           <PackagePlus size={16} />
                         </button>
                       )}
-                      <button onClick={() => onViewHistory(item)} className="text-brand-muted hover:text-blue-400 transition-colors" title="Ver movimientos">
+                      <button onClick={() => onViewHistory(item)} className="text-brand-muted hover:text-blue-400 transition-colors" title="Ver movimientos" aria-label={`Ver movimientos de ${item.name}`}>
                         <History size={16} />
                       </button>
-                      <button onClick={() => onEdit(item)} className="text-brand-muted hover:text-white transition-colors"><Pencil size={16} /></button>
-                      <button onClick={() => onDelete(item.id)} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
+                      <button onClick={() => onEdit(item)} className="text-brand-muted hover:text-white transition-colors" aria-label={`Editar ${item.name}`}><Pencil size={16} /></button>
+                      <button onClick={() => onDelete(item.id)} className="text-brand-muted hover:text-red-400 transition-colors" aria-label={`Eliminar ${item.name}`}><Trash2 size={16} /></button>
                     </div>
                   </td>
                 </tr>
@@ -118,7 +119,7 @@ export function ProductTable({ products, loading, search, ui, selected, onToggle
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-white truncate flex items-center gap-2">
-                    <a href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</a>
+                    <Link href={`/inventory/${item.id}`} className="hover:text-brand-kinetic-orange transition-colors">{item.name}</Link>
                     {item.hasVariants && <Layers size={12} className="text-blue-400 flex-shrink-0" />}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -141,11 +142,11 @@ export function ProductTable({ products, loading, search, ui, selected, onToggle
                 </div>
                 <div className="flex items-center gap-3">
                   {!item.hasVariants && (
-                    <button onClick={() => onStockEntry(item)} className="p-2 rounded-lg bg-white/5 text-brand-growth-neon hover:bg-white/10 transition-colors"><PackagePlus size={15} /></button>
+                    <button onClick={() => onStockEntry(item)} className="p-2 rounded-lg bg-white/5 text-brand-growth-neon hover:bg-white/10 transition-colors" aria-label={`Registrar entrada de stock para ${item.name}`}><PackagePlus size={15} /></button>
                   )}
-                  <button onClick={() => onViewHistory(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-blue-400 hover:bg-white/10 transition-colors" title="Ver movimientos"><History size={15} /></button>
-                  <button onClick={() => onEdit(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white hover:bg-white/10 transition-colors"><Pencil size={15} /></button>
-                  <button onClick={() => onDelete(item.id)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-red-400 hover:bg-white/10 transition-colors"><Trash2 size={15} /></button>
+                  <button onClick={() => onViewHistory(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-blue-400 hover:bg-white/10 transition-colors" title="Ver movimientos" aria-label={`Ver movimientos de ${item.name}`}><History size={15} /></button>
+                  <button onClick={() => onEdit(item)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-white hover:bg-white/10 transition-colors" aria-label={`Editar ${item.name}`}><Pencil size={15} /></button>
+                  <button onClick={() => onDelete(item.id)} className="p-2 rounded-lg bg-white/5 text-brand-muted hover:text-red-400 hover:bg-white/10 transition-colors" aria-label={`Eliminar ${item.name}`}><Trash2 size={15} /></button>
                 </div>
               </div>
             </div>

@@ -12,9 +12,8 @@ vi.mock("@/lib/prisma", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
-    purchaseOrderItem: { findMany: vi.fn() },
     supplier: { findFirst: vi.fn() },
-    product: { update: vi.fn() },
+    product: { findMany: vi.fn(), updateMany: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -211,6 +210,7 @@ describe("POST /api/purchase-orders", () => {
   it("creates a purchase order and returns 201 with correct total", async () => {
     (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
     (prisma.supplier.findFirst as any).mockResolvedValue({ id: "sup-1", name: "ACME" });
+    (prisma.product.findMany as any).mockResolvedValue([{ id: "prod-1" }, { id: "prod-2" }]);
 
     const createdPO = {
       id: "po-new",
@@ -257,6 +257,7 @@ describe("POST /api/purchase-orders", () => {
   it("includes items in the create call", async () => {
     (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
     (prisma.supplier.findFirst as any).mockResolvedValue({ id: "sup-1", name: "ACME" });
+    (prisma.product.findMany as any).mockResolvedValue([{ id: "prod-1" }]);
     (prisma.purchaseOrder.create as any).mockResolvedValue({
       id: "po-new",
       supplier: { name: "ACME" },
@@ -284,13 +285,39 @@ describe("POST /api/purchase-orders", () => {
       })
     );
   });
+
+  it("returns 404 when any product does not belong to the org", async () => {
+    (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
+    (prisma.supplier.findFirst as any).mockResolvedValue({ id: "sup-1", name: "ACME" });
+    (prisma.product.findMany as any).mockResolvedValue([{ id: "prod-1" }]);
+
+    const res = await POST(
+      makeRequest("http://localhost/api/purchase-orders", {
+        method: "POST",
+        body: JSON.stringify({
+          supplierId: "sup-1",
+          items: [
+            { productId: "prod-1", quantity: 2, unitCost: 50 },
+            { productId: "prod-other-org", quantity: 1, unitCost: 100 },
+          ],
+        }),
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    expect(res.status).toBe(404);
+    expect(prisma.purchaseOrder.create).not.toHaveBeenCalled();
+  });
 });
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PATCH
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 describe("PATCH /api/purchase-orders", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (prisma.$transaction as any).mockImplementation(async (callback: any) => callback(prisma));
+  });
 
   it("returns 401 when unauthenticated", async () => {
     (getTenantProfile as any).mockResolvedValue(null);
@@ -334,7 +361,7 @@ describe("PATCH /api/purchase-orders", () => {
 
   it("updates status without touching stock when not transitioning to RECIBIDO", async () => {
     (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
-    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "BORRADOR" });
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "BORRADOR", items: [] });
     (prisma.purchaseOrder.update as any).mockResolvedValue({
       id: "po-1",
       status: "ENVIADO",
@@ -350,23 +377,26 @@ describe("PATCH /api/purchase-orders", () => {
       })
     );
     expect(res.status).toBe(200);
-    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.product.updateMany).not.toHaveBeenCalled();
   });
 
   it("increments product stock when transitioning to RECIBIDO", async () => {
     (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
-    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "ENVIADO" });
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({
+      id: "po-1",
+      status: "ENVIADO",
+      items: [
+        { productId: "prod-1", quantity: 10 },
+        { productId: "prod-2", quantity: 5 },
+      ],
+    });
     (prisma.purchaseOrder.update as any).mockResolvedValue({
       id: "po-1",
       status: "RECIBIDO",
       supplier: { name: "ACME" },
       items: [],
     });
-    (prisma.purchaseOrderItem.findMany as any).mockResolvedValue([
-      { purchaseOrderId: "po-1", productId: "prod-1", quantity: 10 },
-      { purchaseOrderId: "po-1", productId: "prod-2", quantity: 5 },
-    ]);
-    (prisma.$transaction as any).mockResolvedValue([]);
+    (prisma.product.updateMany as any).mockResolvedValue({ count: 1 });
 
     const res = await PATCH(
       makeRequest("http://localhost/api/purchase-orders?id=po-1", {
@@ -377,15 +407,15 @@ describe("PATCH /api/purchase-orders", () => {
     );
     expect(res.status).toBe(200);
     expect(prisma.$transaction).toHaveBeenCalled();
-    expect(prisma.product.update).toHaveBeenCalledWith(
+    expect(prisma.product.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: "prod-1" },
+        where: { id: "prod-1", organizationId: "org-1" },
         data: { stock: { increment: 10 } },
       })
     );
-    expect(prisma.product.update).toHaveBeenCalledWith(
+    expect(prisma.product.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: "prod-2" },
+        where: { id: "prod-2", organizationId: "org-1" },
         data: { stock: { increment: 5 } },
       })
     );
@@ -393,7 +423,7 @@ describe("PATCH /api/purchase-orders", () => {
 
   it("does NOT increment stock when order was already RECIBIDO", async () => {
     (getTenantProfile as any).mockResolvedValue(MOCK_PROFILE);
-    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "RECIBIDO" });
+    (prisma.purchaseOrder.findFirst as any).mockResolvedValue({ id: "po-1", status: "RECIBIDO", items: [] });
     (prisma.purchaseOrder.update as any).mockResolvedValue({
       id: "po-1",
       status: "RECIBIDO",
@@ -408,7 +438,7 @@ describe("PATCH /api/purchase-orders", () => {
         headers: { "Content-Type": "application/json" },
       })
     );
-    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.product.updateMany).not.toHaveBeenCalled();
   });
 });
 

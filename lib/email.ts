@@ -1,10 +1,10 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
-import { reportAsyncError } from "@/lib/monitoring";
 import { consumeRateLimit } from "@/lib/rate-limit";
 
 const FROM_NAME = process.env.EMAIL_FROM_NAME ?? process.env.BREVO_SENDER_NAME ?? "GestiOS";
 const FROM_EMAIL = process.env.EMAIL_FROM_ADDRESS ?? process.env.BREVO_SENDER_EMAIL ?? "noreply@onia.com.bo";
+const DEFAULT_PUBLIC_BASE_URL = "https://www.gestioshq.app";
 
 // Resend free: 3000/month (~100/day). Keep daily guard.
 const DAILY_EMAIL_LIMIT = 90; // Leave buffer under 100/day free tier
@@ -220,7 +220,13 @@ async function sendPlainEmail(to: string, subject: string, textContent: string, 
 // Template
 // =============================================
 
+function getPublicBaseUrl() {
+  return (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_PUBLIC_BASE_URL).replace(/\/$/, "");
+}
+
 function baseTemplate(content: string, orgName: string) {
+  const logoUrl = `${getPublicBaseUrl()}/brand/gestios-logo-full.png`;
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${orgName}</title></head>
@@ -228,8 +234,9 @@ function baseTemplate(content: string, orgName: string) {
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#141414;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
-        <tr><td style="background:linear-gradient(135deg,#ff6b00,#ff8c00);padding:28px 32px;">
-          <span style="font-size:22px;font-weight:800;letter-spacing:2px;color:#000;">${orgName}</span>
+        <tr><td style="background:#ffffff;padding:24px 32px;text-align:left;">
+          <img src="${logoUrl}" alt="GestiOS" height="48" style="display:block;height:48px;width:auto;max-width:220px;border:0;outline:none;text-decoration:none;">
+          <div style="margin-top:12px;font-size:13px;font-weight:700;color:#141414;">${orgName}</div>
         </td></tr>
         <tr><td style="padding:32px;">
           ${content}

@@ -36,8 +36,6 @@ export async function GET() {
   return NextResponse.json({ ...profile, email: user.email, activeAddons: addons.map((a) => a.addon) });
 }
 
-import { BUSINESS_TYPES } from "@/lib/business-types";
-
 const patchSchema = z.object({
   name: z.string().min(1).optional(),
   orgName: z.string().min(1).optional(),

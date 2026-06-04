@@ -3,6 +3,7 @@ import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PLAN_PRICES_BOB, type PlanType } from "@/lib/plans";
 import { generateQR, checkStatus } from "@/lib/qr-bolivia";
+import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const MONTH_DISCOUNT: Record<number, number> = { 1: 0, 3: 5, 6: 10, 12: 15 };
 
@@ -12,19 +13,21 @@ export async function POST(request: Request) {
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (profile.role !== "ADMIN") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
+  const rateLimited = await checkOrgRateLimit(profile.organizationId, "billing-qr", RATE_LIMITS.write);
+  if (rateLimited) return rateLimited;
+
   let body: unknown;
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "JSON inválido" }, { status: 400 }); }
 
-  const schema = { plan: "", months: 1 };
-  const parsed = body as typeof schema;
-  if (!["BASICO", "CRECER", "PRO", "EMPRESARIAL"].includes(parsed.plan))
+  const parsed = body as { plan?: unknown; months?: unknown };
+  if (typeof parsed.plan !== "string" || !["BASICO", "CRECER", "PRO", "EMPRESARIAL"].includes(parsed.plan))
     return NextResponse.json({ error: "Plan inválido" }, { status: 400 });
-  if (![1, 3, 6, 12].includes(parsed.months))
+  if (typeof parsed.months !== "number" || ![1, 3, 6, 12].includes(parsed.months))
     return NextResponse.json({ error: "Meses inválidos" }, { status: 400 });
 
   const plan = parsed.plan as PlanType;
-  const months = parsed.months;
+  const months = parsed.months as 1 | 3 | 6 | 12;
   const pricePerMonth = PLAN_PRICES_BOB[plan];
   const discount = MONTH_DISCOUNT[months] ?? 0;
   const amountBOB = Math.round(pricePerMonth * months * (1 - discount / 100));

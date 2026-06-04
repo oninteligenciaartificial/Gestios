@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, X, Check, CheckCheck } from "lucide-react";
+import { Bell, X, CheckCheck } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -53,7 +53,7 @@ export function NotificationBell() {
 
   // Initial fetch + polling every 30s (paused while tab hidden)
   useEffect(() => {
-    fetchNotifs();
+    const initialId = window.setTimeout(fetchNotifs, 0);
     let id = window.setInterval(fetchNotifs, 30000);
     function onVisibility() {
       window.clearInterval(id);
@@ -64,6 +64,7 @@ export function NotificationBell() {
     }
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
+      window.clearTimeout(initialId);
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVisibility);
     };
@@ -123,6 +124,7 @@ export function NotificationBell() {
         onClick={() => setOpen((v) => !v)}
         className="relative w-9 h-9 flex items-center justify-center rounded-xl text-brand-muted hover:text-white hover:bg-white/10 transition-colors"
         aria-label="Notificaciones"
+        title="Notificaciones"
         aria-expanded={open}
         aria-haspopup="true"
       >
@@ -152,6 +154,8 @@ export function NotificationBell() {
               <button
                 onClick={() => setOpen(false)}
                 className="text-brand-muted hover:text-white transition-colors"
+                aria-label="Cerrar notificaciones"
+                title="Cerrar notificaciones"
               >
                 <X size={15} />
               </button>

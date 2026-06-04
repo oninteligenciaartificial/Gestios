@@ -52,42 +52,57 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const result = updateSchema.safeParse(body);
   if (!result.success) return NextResponse.json({ error: "Datos invalidos" }, { status: 400 });
+  if (order.status === "ENTREGADO" && result.data.status !== "ENTREGADO") {
+    return NextResponse.json({ error: "Los pedidos entregados no pueden cambiar de estado" }, { status: 400 });
+  }
 
-  const updated = await prisma.order.update({ where: { id }, data: result.data });
+  let updated: typeof order;
+  try {
+    updated = await prisma.$transaction(async (tx) => {
+      if (result.data.status === "CANCELADO" && order.status !== "CANCELADO") {
+        for (const item of order.items) {
+          const res = item.variantId
+            ? await tx.productVariant.updateMany({
+                where: { id: item.variantId, productId: item.productId, organizationId: profile.organizationId },
+                data: { stock: { increment: item.quantity } },
+              })
+            : await tx.product.updateMany({
+                where: { id: item.productId, organizationId: profile.organizationId },
+                data: { stock: { increment: item.quantity } },
+              });
+          if (res.count !== 1) throw new Error("STOCK_UPDATE_FAILED");
+        }
+      }
+
+      if (result.data.status !== "CANCELADO" && order.status === "CANCELADO") {
+        for (const item of order.items) {
+          const res = item.variantId
+            ? await tx.productVariant.updateMany({
+                where: { id: item.variantId, productId: item.productId, organizationId: profile.organizationId, stock: { gte: item.quantity } },
+                data: { stock: { decrement: item.quantity } },
+              })
+            : await tx.product.updateMany({
+                where: { id: item.productId, organizationId: profile.organizationId, stock: { gte: item.quantity } },
+                data: { stock: { decrement: item.quantity } },
+              });
+          if (res.count !== 1) throw new Error("STOCK_INSUFICIENTE");
+        }
+      }
+
+      return tx.order.update({ where: { id }, data: result.data, include: { items: true, customer: true } });
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    if (msg === "STOCK_INSUFICIENTE") {
+      return NextResponse.json({ error: "Stock insuficiente para reactivar el pedido" }, { status: 409 });
+    }
+    if (msg === "STOCK_UPDATE_FAILED") {
+      return NextResponse.json({ error: "No se pudo actualizar el stock del pedido" }, { status: 409 });
+    }
+    throw err;
+  }
 
   logAudit({ orgId: profile.organizationId, orgPlan: profile.plan, userId: user.id, action: "update", entityType: "order", entityId: id, before: { status: order.status }, after: { status: result.data.status } });
-
-  if (result.data.status === "CANCELADO" && order.status !== "CANCELADO") {
-    await prisma.$transaction(
-      order.items.map((item) =>
-        item.variantId
-          ? prisma.productVariant.update({
-              where: { id: item.variantId },
-              data: { stock: { increment: item.quantity } },
-            })
-          : prisma.product.update({
-              where: { id: item.productId },
-              data: { stock: { increment: item.quantity } },
-            })
-      )
-    );
-  }
-
-  if (result.data.status !== "CANCELADO" && order.status === "CANCELADO") {
-    await prisma.$transaction(
-      order.items.map((item) =>
-        item.variantId
-          ? prisma.productVariant.update({
-              where: { id: item.variantId },
-              data: { stock: { decrement: item.quantity } },
-            })
-          : prisma.product.update({
-              where: { id: item.productId },
-              data: { stock: { decrement: item.quantity } },
-            })
-      )
-    );
-  }
 
   const customerEmail = order.customer?.email;
   const statusChanged = result.data.status !== order.status;
