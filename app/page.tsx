@@ -59,7 +59,7 @@ export default async function HomePage() {
     else if (profile) redirect("/dashboard");
   }
   return (
-    <PublicShell>
+    <PublicShell tone="dark">
       {/* Nav */}
       <nav className="border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md">
         <BrandLogo />

@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 type PublicShellProps = {
   children: ReactNode;
   className?: string;
+  tone?: "light" | "dark";
 };
 
-export function PublicShell({ children, className = "" }: PublicShellProps) {
-  return <div className={`public-light min-h-screen ${className}`}>{children}</div>;
+export function PublicShell({ children, className = "", tone = "light" }: PublicShellProps) {
+  return <div className={`public-${tone} min-h-screen ${className}`}>{children}</div>;
 }

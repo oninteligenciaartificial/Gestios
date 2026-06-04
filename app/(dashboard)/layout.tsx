@@ -7,6 +7,7 @@ import { ImpersonationBanner } from "./ImpersonationBanner";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { OnboardingTour } from "@/components/dashboard/OnboardingTour";
+import { DashboardThemeProvider } from "@/components/dashboard/DashboardThemeProvider";
 import { canUseFeature, isPlanAtLeast, FEATURE_PLAN, type PlanType } from "@/lib/plans";
 import { getBusinessUI, type BusinessUIConfig } from "@/lib/business-ui";
 import type { BusinessType } from "@/lib/business-types";
@@ -146,7 +147,8 @@ export default async function DashboardLayout({
   ) as Record<string, PlanType>;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <DashboardThemeProvider>
+      <div className="dashboard-app flex h-screen overflow-hidden">
       <SidebarWrapper
         links={navLinks}
         lockedHrefs={isSuperAdmin ? [] : [...lockedHrefs]}
@@ -173,6 +175,7 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
-    </div>
+      </div>
+    </DashboardThemeProvider>
   );
 }

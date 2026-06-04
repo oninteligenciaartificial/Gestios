@@ -8,6 +8,7 @@ import { SidebarUser } from "./SidebarUser";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";
+import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
 
 interface NavLink { href: string; label: string; external?: boolean }
 
@@ -82,6 +83,7 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <DashboardThemeToggle />
             <NotificationBell />
             <button
               className="lg:hidden text-brand-muted hover:text-white transition-colors mt-0.5"
