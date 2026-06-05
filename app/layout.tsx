@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   description: "Plataforma SaaS para gestión de inventario, ventas, pedidos y clientes. Para cualquier tipo de tienda.",
   icons: {
     icon: [
-      { url: "/brand/gestios-icon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/brand/gestios-icon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/brand/gestios-icon-on-dark-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/gestios-icon-on-dark-48.png", sizes: "48x48", type: "image/png" },
       { url: "/icon.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "512x512", type: "image/png" }],

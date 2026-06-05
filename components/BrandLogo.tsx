@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 type BrandLogoVariant = "full" | "icon" | "responsive";
-type BrandLogoSize = "nav" | "auth" | "icon";
+type BrandLogoSize = "nav" | "landing" | "auth" | "icon";
 type BrandLogoTone = "light" | "dark" | "dashboard";
 
 type BrandLogoProps = {
@@ -16,6 +16,7 @@ type BrandLogoProps = {
 
 const sizeClass: Record<BrandLogoSize, string> = {
   nav: "h-8 sm:h-10",
+  landing: "h-12 sm:h-14 md:h-16",
   auth: "h-12 sm:h-16",
   icon: "h-9 w-9 sm:h-10 sm:w-10",
 };
@@ -105,7 +106,7 @@ function LogoImage({
       width={1447}
       height={567}
       className={`${sizeClass[size]} w-auto max-w-full object-contain`}
-      sizes={size === "auth" ? "240px" : "180px"}
+      sizes={size === "auth" ? "240px" : size === "landing" ? "220px" : "180px"}
       priority={priority}
     />
   );
