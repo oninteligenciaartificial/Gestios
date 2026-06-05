@@ -69,8 +69,8 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
       `}>
         <div className="flex items-start justify-between">
           <div>
-            <div className="inline-flex rounded-2xl bg-white px-2.5 py-2">
-              <BrandLogo href="/dashboard" variant="full" size="nav" priority />
+            <div className="dashboard-logo-shell inline-flex rounded-2xl px-2.5 py-2">
+              <BrandLogo href="/dashboard" variant="full" size="nav" tone="dashboard" priority />
             </div>
             <div className={`text-xs mt-1 truncate ${
               isSuperAdmin

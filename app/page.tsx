@@ -62,7 +62,7 @@ export default async function HomePage() {
     <PublicShell tone="dark">
       {/* Nav */}
       <nav className="border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md">
-        <BrandLogo />
+        <BrandLogo tone="dark" />
         <div className="flex items-center gap-3">
           <Link href="/pricing" className="text-sm text-brand-muted hover:text-white transition-colors hidden sm:block">
             Precios

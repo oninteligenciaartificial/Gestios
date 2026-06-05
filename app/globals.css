@@ -106,9 +106,35 @@ html[data-dashboard-theme="light"] body {
   color: #e2e2e8;
 }
 
+.dashboard-logo-light {
+  display: none;
+}
+
+.dashboard-logo-dark {
+  display: block;
+}
+
+.dashboard-logo-shell {
+  background: transparent;
+  border: 1px solid transparent;
+}
+
 html[data-dashboard-theme="light"] .dashboard-app {
   background: #f8fafc;
   color: #0f172a;
+}
+
+html[data-dashboard-theme="light"] .dashboard-logo-light {
+  display: block;
+}
+
+html[data-dashboard-theme="light"] .dashboard-logo-dark {
+  display: none;
+}
+
+html[data-dashboard-theme="light"] .dashboard-logo-shell {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
 }
 
 html[data-dashboard-theme="light"] .dashboard-app aside {
