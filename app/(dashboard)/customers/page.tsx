@@ -280,7 +280,7 @@ export default function CustomersPage() {
                 <button onClick={() => openHistory(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors" title="Ver historial">
                   <ShoppingCart size={14} />
                 </button>
-                <button onClick={() => openEdit(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors">
+                <button onClick={() => openEdit(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors" title="Editar cliente">
                   <Pencil size={16} />
                 </button>
                 <button onClick={() => { setDeleteId(c.id); setDeleteError(""); }} className="p-2 rounded-lg hover:bg-red-500/20 text-brand-muted hover:text-red-400 transition-colors" title="Eliminar cliente">
@@ -457,7 +457,7 @@ export default function CustomersPage() {
               <h2 className="text-xl font-display font-bold text-white">
                 {editing ? "Editar Cliente" : "Nuevo Cliente"}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-brand-muted hover:text-white transition-colors">
+              <button onClick={() => setShowModal(false)} className="text-brand-muted hover:text-white transition-colors" aria-label="Cerrar formulario">
                 <X size={20} />
               </button>
             </div>
