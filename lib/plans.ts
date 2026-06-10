@@ -6,7 +6,7 @@ export const PLAN_PRICES_BOB: Record<PlanType, number> = {
   PRO: 800,
   EMPRESARIAL: 1250,
 };
-export type AddonType = "WHATSAPP" | "FACTURACION" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD";
+export type AddonType = "WHATSAPP" | "FACTURACION" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD" | "INVENTARIO_AVANZADO";
 
 export const PLAN_META: Record<PlanType, { label: string; price: string; color: string; bg: string }> = {
   BASICO:      { label: "Básico",      price: "Bs. 350/mes",   color: "text-brand-muted",          bg: "bg-white/5" },
@@ -27,7 +27,8 @@ export const ADDON_META: Record<AddonType, { label: string; price: string; descr
   FACTURACION: { label: "Facturación SIAT",    price: "Bs. 175/mes",  description: "Facturas electrónicas oficiales según el SIN Bolivia",                              comingSoon: true },
   QR_BOLIVIA:  { label: "Pagos QR Bolivia",    price: "Bs. 105/mes",  description: "Acepta pagos con QR bancario, Tigo Money y BiPago",                                 comingSoon: true },
   ECOMMERCE:   { label: "E-commerce",          price: "Bs. 140/mes",  description: "Conecta tu tienda online y sincroniza inventario automáticamente",                   comingSoon: true },
-  CONTABILIDAD: { label: "Exportación Contable", price: "Bs. 126/mes", description: "Exporta ventas y gastos en CSV/Excel para tu contador",                           comingSoon: true },
+  CONTABILIDAD:        { label: "Exportación Contable",    price: "Bs. 126/mes", description: "Exporta ventas y gastos en CSV/Excel para tu contador", comingSoon: true },
+  INVENTARIO_AVANZADO: { label: "Inventario Avanzado",     price: "Bs. 120/mes", description: "Stock multi-ubicación, puntos de reorden automático y trazabilidad por lote/serie" },
 };
 
 const PLAN_ORDER: Record<PlanType, number> = { BASICO: 0, CRECER: 1, PRO: 2, EMPRESARIAL: 3 };
@@ -56,7 +57,8 @@ export const FEATURE_PLAN: Record<string, PlanType> = {
   variants:         "CRECER",
   purchase_orders:  "CRECER",
   email_stats:      "PRO",
-  export_contable:  "EMPRESARIAL",
+  export_contable:      "EMPRESARIAL",
+  inventario_multi_loc: "BASICO", // requiere add-on INVENTARIO_AVANZADO además del plan
 };
 
 export function canUseFeature(plan: PlanType, feature: string): boolean {

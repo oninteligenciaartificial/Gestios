@@ -19,6 +19,7 @@ enum AddonType {
   QR_BOLIVIA
   ECOMMERCE
   CONTABILIDAD
+  INVENTARIO_AVANZADO
 }
 
 enum Role {
@@ -67,7 +68,8 @@ model Organization {
   trialEndsAt      DateTime?
   stripeCustomerId String?   @unique
   stripeSubId      String?   @unique
-  whatsappAddon    Boolean   @default(false) // Add-on activo (activado por SUPERADMIN)
+  whatsappAddon         Boolean   @default(false) // Add-on activo (activado por SUPERADMIN)
+  inventarioAvanzadoAddon Boolean @default(false) // Add-on Bs. 120/mes — stock multi-ubicación, reorden, trazabilidad
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
