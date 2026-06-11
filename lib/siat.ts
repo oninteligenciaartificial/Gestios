@@ -17,10 +17,11 @@
 import { prisma } from "@/lib/prisma";
 import { reportAsyncError } from "@/lib/monitoring";
 
-const SIAT_API_URL = process.env.SIAT_API_URL ?? "https://api.facturapi.bo/v1";
+const SIAT_API_URL = process.env.SIAT_API_URL;
 const SIAT_API_KEY = process.env.SIAT_API_KEY;
 
 function siatHeaders() {
+  if (!SIAT_API_URL) throw new Error("SIAT_API_URL no configurada — requiere URL del intermediario (ej: FacturAPI Bolivia)");
   if (!SIAT_API_KEY) throw new Error("SIAT_API_KEY no configurada");
   return {
     "Authorization": `Bearer ${SIAT_API_KEY}`,

@@ -15,7 +15,7 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 // por defecto, para no ensuciar tiendas con ordenes falsas).
 const ALLOW_ORDERS = process.env.E2E_CREATE_ORDERS === "true";
 const ALLOW_PRODUCTION_ORDER = process.env.E2E_ALLOW_PRODUCTION_ORDER === "true";
-const IS_PRODUCTION_HOST = /https:\/\/gesti-os\.vercel\.app\/?$/i.test(BASE_URL);
+const IS_PRODUCTION_HOST = /https:\/\/(gesti-os\.vercel\.app|gestioshq\.app)\/?$/i.test(BASE_URL);
 
 test.describe("Tienda - checkout publico", () => {
   test.skip(!STORE_SLUG, "Define STORE_SLUG para correr el flujo de checkout");
