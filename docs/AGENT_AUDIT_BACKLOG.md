@@ -71,17 +71,15 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
   - Billing manual/QR/confirm, sesiones y alerta manual de stock limitados.
   - Checkout publico limita antes de parsear body o consultar DB.
 
+- Hardening de upload QR Bolivia. **Resuelto para piloto.**
+  - `app/api/addons/qr-bolivia/upload/route.ts` valida plan PRO+, rol ADMIN y rate limit por organizacion.
+  - `formData()` esta protegido con `try/catch`.
+  - La ruta valida magic bytes, rechaza SVG/MIME falso y usa `randomUUID()` para el nombre.
+  - `tests/qr-bolivia-upload.test.ts` cubre PNG valido, SVG, MIME falso y gate de plan.
+
 ## P1 - Alto valor antes de produccion amplia
 
 ### Security/RLS
-
-- Endurecer upload de QR Bolivia.
-  - `app/api/addons/qr-bolivia/upload/route.ts`
-  - Agregar `try/catch` para `formData`.
-  - Agregar rate limit.
-  - Validar magic bytes como `products/upload-image`.
-  - Rechazar SVG y MIME falso.
-  - Usar nombre aleatorio, no `Date.now()` + extension original.
 
 - Revisar tracking publico de pedidos.
   - `app/api/pedido/[id]/route.ts`
@@ -104,6 +102,7 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
 ### Frontend/UX
 
 - Agregar nombres accesibles a botones icon-only.
+  - En progreso: `app/[slug]/tienda/page.tsx` y `app/(dashboard)/customers/page.tsx` ya tienen labels/touch targets mejorados.
   - `app/[slug]/tienda/page.tsx`
   - `app/(dashboard)/inventory/components/ProductTable.tsx`
   - `app/(dashboard)/customers/page.tsx`
@@ -152,7 +151,7 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
 1. P0 backend/security en pedidos, purchase orders y productos: resuelto para piloto pago.
 2. P0 dependencias: CSV-only y audit high resuelto para piloto.
 3. P0 lint verde: resuelto para piloto.
-4. P1 hardening de QR upload, import legacy, batch inventory y checkout publico.
+4. P1 tracking publico de pedidos, SIAT explicito, RLS real y E2E sandbox.
 5. P1 a11y/touch targets/moneda/copy.
 6. P1 docs release candidate.
 7. Gates completos.

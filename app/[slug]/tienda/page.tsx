@@ -187,13 +187,15 @@ export default function TiendaPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              aria-label="Buscar productos"
               placeholder="Buscar productos..."
               className="hidden sm:block px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-orange-400 transition-colors text-sm w-56"
             />
             <button
               onClick={() => setCartOpen(true)}
               data-testid="cart-button"
-              className="relative p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+              className="relative h-11 w-11 rounded-xl bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+              aria-label={`Abrir carrito (${totalItems} productos)`}
             >
               <ShoppingCart size={20} />
               {totalItems > 0 && (
@@ -208,6 +210,7 @@ export default function TiendaPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar productos"
             placeholder="Buscar productos..."
             className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-orange-400 transition-colors text-sm"
           />
@@ -241,7 +244,8 @@ export default function TiendaPage() {
                     <button
                       onClick={() => addToCart(p)}
                       data-testid="add-to-cart"
-                      className="p-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 transition-colors"
+                      className="h-10 w-10 rounded-lg bg-orange-500 hover:bg-orange-400 transition-colors flex items-center justify-center"
+                      aria-label={`Agregar ${p.name} al carrito`}
                     >
                       <Plus size={16} />
                     </button>
@@ -261,7 +265,7 @@ export default function TiendaPage() {
           <div className="w-full max-w-sm bg-gray-900 border-l border-white/10 flex flex-col">
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <h2 className="font-bold text-lg">Tu carrito</h2>
-              <button onClick={() => setCartOpen(false)} className="text-white/50 hover:text-white transition-colors" aria-label="Cerrar carrito"><X size={20} /></button>
+              <button onClick={() => setCartOpen(false)} className="h-10 w-10 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center" aria-label="Cerrar carrito"><X size={20} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {cart.length === 0 ? (
@@ -279,11 +283,11 @@ export default function TiendaPage() {
                       <p className="text-xs text-white/40">{fmt(item.effectivePrice, store?.currency ?? "Bs.")} c/u</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <button onClick={() => updateQty(key, -1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20"><Minus size={11} /></button>
+                      <button onClick={() => updateQty(key, -1)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20" aria-label={`Restar una unidad de ${item.product.name}`}><Minus size={14} /></button>
                       <span className="w-5 text-center text-sm font-bold">{item.qty}</span>
-                      <button onClick={() => updateQty(key, 1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20"><Plus size={11} /></button>
+                      <button onClick={() => updateQty(key, 1)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20" aria-label={`Sumar una unidad de ${item.product.name}`}><Plus size={14} /></button>
                     </div>
-                    <button onClick={() => setCart(prev => prev.filter(i => cartKey(i) !== key))} className="text-white/30 hover:text-red-400 transition-colors ml-1" aria-label={`Quitar ${item.product.name} del carrito`}><Trash2 size={13} /></button>
+                    <button onClick={() => setCart(prev => prev.filter(i => cartKey(i) !== key))} className="h-10 w-10 text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors ml-1 rounded-lg flex items-center justify-center" aria-label={`Quitar ${item.product.name} del carrito`}><Trash2 size={15} /></button>
                   </div>
                 );
               })}
@@ -313,7 +317,7 @@ export default function TiendaPage() {
           <div className="bg-gray-900 border border-white/10 w-full max-w-sm rounded-2xl p-6 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="font-bold">{variantTarget.name}</h3>
-              <button onClick={() => setVariantTarget(null)} className="text-white/50 hover:text-white" aria-label="Cerrar selector de variante"><X size={18} /></button>
+              <button onClick={() => setVariantTarget(null)} className="h-10 w-10 rounded-lg text-white/50 hover:text-white hover:bg-white/10 flex items-center justify-center" aria-label="Cerrar selector de variante"><X size={18} /></button>
             </div>
             <div className="space-y-2">
               {variantTarget.variants.filter(v => v.stock > 0).map(v => (
@@ -343,7 +347,7 @@ export default function TiendaPage() {
           <div className="bg-gray-900 border border-white/10 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 space-y-4 max-h-[95vh] overflow-y-auto">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold">Datos del pedido</h2>
-              <button onClick={() => setCheckoutOpen(false)} className="text-white/50 hover:text-white" aria-label="Cerrar checkout"><X size={18} /></button>
+              <button onClick={() => setCheckoutOpen(false)} className="h-10 w-10 rounded-lg text-white/50 hover:text-white hover:bg-white/10 flex items-center justify-center" aria-label="Cerrar checkout"><X size={18} /></button>
             </div>
             <form onSubmit={handleCheckout} className="space-y-4">
               {[

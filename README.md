@@ -2,7 +2,7 @@
 
 SaaS multi-tenant de gestión comercial para negocios bolivianos. Punto de venta, inventario, clientes, pedidos, reportes y automatizaciones desde una sola plataforma.
 
-**Producción:** https://gesti-os.vercel.app
+**Producción:** https://gestioshq.app
 
 ---
 
@@ -84,7 +84,7 @@ npm run dev
 |---|---|
 | `npm run dev` | Dev server en localhost:3000 |
 | `npm run build` | `prisma generate` + `next build` |
-| `npm run test` | Vitest (404 tests) |
+| `npm run test` | Vitest (408 tests) |
 | `npm run lint` | ESLint |
 
 ---
@@ -128,7 +128,7 @@ prisma/
 ├── schema.prisma   # Fuente de verdad DB
 └── migrations/     # SQL versionado
 docs/               # Documentación técnica completa
-tests/              # Vitest — 404 tests
+tests/              # Vitest — 408 tests
 ```
 
 ---
@@ -141,6 +141,8 @@ tests/              # Vitest — 404 tests
 | `docs/ORCHESTRATOR.md` | Protocolo práctico para plan, skills, MCPs, subagentes y validación |
 | `docs/SKILLS_ROUTING.md` | Selección de skills reales por tipo de tarea |
 | `docs/AGENT_WORK_ORDER.md` | Coordinación multi-agente por frentes |
+| `docs/AGENT_RELEASE_PLAYBOOK.md` | Guia de cierre: skills por frente, gates, deploy y plan futuro |
+| `docs/GITHUB_REPO_RESEARCH.md` | Repos verificados para producto y fuentes aprobadas de skills externas |
 | `docs/00-PROJECT-CONTEXT.md` | Contexto para sesiones Claude — pegar al inicio |
 | `docs/ARCHITECTURE.md` | Estructura técnica, auth flow, multi-tenancy |
 | `docs/DATABASE.md` | Todos los modelos Prisma |
@@ -148,6 +150,8 @@ tests/              # Vitest — 404 tests
 | `docs/BUSINESS_TYPES.md` | Variantes por tipo de negocio |
 | `docs/EMAILS.md` | 12 tipos de email automático |
 | `docs/BILLING-FLOW.md` | Flujo de pagos BCP Bolivia |
+| `docs/env-vars-reference.md` | Variables de entorno y donde configurarlas sin exponer secretos |
+| `docs/DENTALGEST_REUSE_AUDIT.md` | Auditoria de funciones utiles portadas desde DentalGest |
 | `docs/QR-BOLIVIA.md` | Pagos QR Bolivia |
 | `docs/SIAT-BOLIVIA.md` | Facturación electrónica SIAT |
 | `docs/N8N-SETUP.md` | Workflows n8n |

@@ -223,6 +223,7 @@ export default function CustomersPage() {
             onClick={downloadTemplate}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-full glass-panel text-brand-muted hover:text-white text-sm transition-colors"
             title="Descargar plantilla CSV"
+            aria-label="Descargar plantilla CSV"
           >
             <Download size={15} />
           </button>
@@ -230,6 +231,7 @@ export default function CustomersPage() {
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-full glass-panel text-brand-muted hover:text-white text-sm transition-colors disabled:opacity-50"
+            aria-label={importing ? "Importando clientes CSV" : "Importar clientes CSV"}
           >
             <Upload size={15} />
             {importing ? "Importando..." : "Importar CSV"}
@@ -260,6 +262,7 @@ export default function CustomersPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          aria-label="Buscar clientes"
           placeholder="Buscar por nombre, teléfono o email..."
           className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-brand-muted focus:outline-none focus:border-brand-kinetic-orange transition-colors"
         />
@@ -276,14 +279,14 @@ export default function CustomersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((c) => (
             <div key={c.id} className="glass-panel p-6 rounded-3xl animate-pop group relative">
-              <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                <button onClick={() => openHistory(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors" title="Ver historial">
+              <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all">
+                <button onClick={() => openHistory(c)} className="h-10 w-10 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors flex items-center justify-center" title="Ver historial" aria-label={`Ver historial de compras de ${c.name}`}>
                   <ShoppingCart size={14} />
                 </button>
-                <button onClick={() => openEdit(c)} className="p-2 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors" title="Editar cliente">
+                <button onClick={() => openEdit(c)} className="h-10 w-10 rounded-lg hover:bg-white/10 text-brand-muted hover:text-white transition-colors flex items-center justify-center" title="Editar cliente" aria-label={`Editar cliente ${c.name}`}>
                   <Pencil size={16} />
                 </button>
-                <button onClick={() => { setDeleteId(c.id); setDeleteError(""); }} className="p-2 rounded-lg hover:bg-red-500/20 text-brand-muted hover:text-red-400 transition-colors" title="Eliminar cliente">
+                <button onClick={() => { setDeleteId(c.id); setDeleteError(""); }} className="h-10 w-10 rounded-lg hover:bg-red-500/20 text-brand-muted hover:text-red-400 transition-colors flex items-center justify-center" title="Eliminar cliente" aria-label={`Eliminar cliente ${c.name}`}>
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -333,7 +336,7 @@ export default function CustomersPage() {
                 <h2 className="text-lg font-display font-bold text-white">{viewCustomer.name}</h2>
                 <p className="text-xs text-brand-muted mt-0.5">Historial de compras</p>
               </div>
-              <button onClick={() => setViewCustomer(null)} className="text-brand-muted hover:text-white transition-colors"><X size={20} /></button>
+              <button onClick={() => setViewCustomer(null)} className="h-10 w-10 rounded-lg text-brand-muted hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center" aria-label="Cerrar historial de compras"><X size={20} /></button>
             </div>
 
             {/* Loyalty points */}
@@ -457,7 +460,7 @@ export default function CustomersPage() {
               <h2 className="text-xl font-display font-bold text-white">
                 {editing ? "Editar Cliente" : "Nuevo Cliente"}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-brand-muted hover:text-white transition-colors" aria-label="Cerrar formulario">
+              <button onClick={() => setShowModal(false)} className="h-10 w-10 rounded-lg text-brand-muted hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center" aria-label="Cerrar formulario">
                 <X size={20} />
               </button>
             </div>

@@ -12,6 +12,32 @@ Antes de ejecutar cualquier accion, el agente debe:
 4. Seguir esa skill antes de modificar codigo, correr acciones destructivas, hacer deploy o declarar terminado.
 5. Si una skill mencionada no existe, no inventarla: usar la equivalente real o decir que no esta instalada.
 
+## Fuentes aprobadas para skills externas
+
+Fuente local primero. En esta workstation, las skills requeridas por la tabla de routing estan instaladas principalmente en `C:\Users\PC\.claude\skills`; `C:\Users\PC\.codex\skills` aporta skills complementarias de Codex.
+
+Si una skill necesaria no existe localmente, el agente debe:
+
+1. Buscar una equivalente instalada antes de proponer una externa.
+2. Consultar `docs/GITHUB_REPO_RESEARCH.md`.
+3. Preferir repos verificados en este orden:
+   - [anthropics/skills](https://github.com/anthropics/skills) y [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) para skills oficiales.
+   - [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) para Next.js, React, web, Vercel y frontend.
+   - [affaan-m/ECC](https://github.com/affaan-m/ECC) para engineering, QA, seguridad, migraciones y patrones; muchas skills locales vienen de esta fuente.
+   - [trailofbits/skills](https://github.com/trailofbits/skills) para seguridad, auditoria y vulnerabilidades.
+   - [SawyerHood/dev-browser](https://github.com/SawyerHood/dev-browser) solo si falta una capacidad de navegador/Playwright que no cubra el Browser plugin local.
+   - [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) solo como referencia para subagentes; adaptar roles a `docs/AGENT_WORK_ORDER.md`.
+4. Usar listas/marketplaces como [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills), [daymade/claude-code-skills](https://github.com/daymade/claude-code-skills), [Jeffallan/claude-skills](https://github.com/Jeffallan/claude-skills), [softaworks/agent-toolkit](https://github.com/softaworks/agent-toolkit) y [mxyhi/ok-skills](https://github.com/mxyhi/ok-skills) solo para descubrimiento.
+
+No instalar skills externas en bloque. Antes de instalar o copiar una skill:
+
+- leer el `SKILL.md` completo;
+- revisar scripts, hooks, comandos y permisos;
+- verificar que no contradiga `AGENTS.md`;
+- preferir skills Markdown-only cuando sea suficiente;
+- pedir confirmacion explicita si modifica configuracion global o ejecuta instaladores;
+- documentar la decision en `docs/GITHUB_REPO_RESEARCH.md` si queda como recomendacion permanente.
+
 ## Skills por tipo de tarea
 
 | Tarea | Skills a consultar antes |

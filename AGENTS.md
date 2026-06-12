@@ -5,6 +5,7 @@ Estas reglas aplican a cualquier agente que trabaje en este repo. Antes de actua
 - `docs/SKILLS_ROUTING.md`
 - `docs/AGENT_WORK_ORDER.md`
 - `docs/ORCHESTRATOR.md`
+- `docs/AGENT_RELEASE_PLAYBOOK.md`
 
 ## Regla base
 
@@ -34,6 +35,8 @@ Si algo no esta verificado:
 
 - Leer `docs/SKILLS_ROUTING.md` antes de modificar codigo, hacer deploy o cerrar una tarea.
 - Si una skill mencionada no existe, no inventarla: usar una equivalente real o declarar que no esta instalada.
+- Antes de instalar o copiar skills externas, revisar `docs/GITHUB_REPO_RESEARCH.md` y usar solo repos aprobados o documentar por que se propone uno nuevo.
+- No instalar colecciones completas de skills. Elegir skills puntuales, leer su `SKILL.md`, revisar scripts/hooks/permisos y pedir confirmacion antes de modificar `C:\Users\PC\.claude\skills`, `C:\Users\PC\.codex\skills` o cualquier configuracion global.
 - Antes de pedir trabajo manual al usuario, revisar si existe una herramienta/MCP que pueda hacerlo de forma segura.
 - Si una herramienta externa no esta disponible, decir exactamente cual falta y para que se necesita.
 - No asumir que existe un MCP, endpoint o permiso si no esta visible en la sesion.

@@ -2,12 +2,14 @@
 
 Estado: listo para piloto pago controlado.
 
-Fecha de contexto: 2026-06-01.
+Fecha de contexto: 2026-06-06.
+
+Ultima preparacion de deploy: 2026-06-12.
 
 ## Alcance aprobado para piloto
 
 - Backend P0 multi-tenant resuelto en pedidos, ordenes de compra y relaciones de productos.
-- Tests actualizados: `npm test` pasa con 404 tests.
+- Tests actualizados: `npm test` pasa con 408 tests.
 - Build local documentado como verde.
 - Import/export de plan piloto queda CSV-only.
 - Soporte XLSX removido del objetivo de esta release pilot; no se promete XLSX a clientes piloto.
@@ -20,15 +22,24 @@ Fecha de contexto: 2026-06-01.
 |---|---|---|
 | `npm run lint` | Verde requerido | Script endurecido con `--max-warnings=0`; cualquier warning bloquea cierre |
 | `npx tsc --noEmit` | Verde | Exit 0 |
-| `npm test` | Verde | 404 tests |
+| `npm test` | Verde | 408 tests |
 | `npm run build` | Verde | Next 16.2.6 |
 | `npm audit --audit-level=high` | Verde | Exit 0; quedan vulnerabilidades moderadas |
 | P0 backend/data | Resuelto | Ownership validado en pedidos, purchase orders y productos |
 | CSV import/export | Aprobado | Alcance CSV-only |
-| E2E Playwright | Verde solo lectura remoto | `PLAYWRIGHT_BASE_URL=https://gesti-os.vercel.app` dio 6 passed, 1 skipped; local requiere `DATABASE_URL` |
+| E2E Playwright | Verde solo lectura remoto | Ultima corrida documentada dio 6 passed, 1 skipped; repetir contra `PLAYWRIGHT_BASE_URL=https://gestioshq.app`; local requiere `DATABASE_URL` |
 | Cron endpoints | Endurecido en repo | Todos los cron routes validan `RATE_LIMITS.cron` antes de `CRON_SECRET` |
 | Variables externas | Check agregado | `npm run check:release-env` valida presencia/formato sin imprimir secretos |
 | Superadmin bootstrap | Endurecido en repo | Sin credencial hardcodeada; usa `SUPERADMIN_EMAIL`/`SUPERADMIN_PASSWORD` |
+
+## Evidencia de preparacion 2026-06-12
+
+- Skills e instrucciones de agente consolidadas en `docs/AGENT_RELEASE_PLAYBOOK.md`.
+- Fuentes aprobadas de repos y skills externas documentadas en `docs/GITHUB_REPO_RESEARCH.md`.
+- Accesibilidad/touch targets reforzados en tienda publica y clientes.
+- QR upload P1 verificado como resuelto en backlog: rate limit, magic bytes, rechazo SVG, nombres aleatorios y tests existentes.
+- Gates frescos ejecutados: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm test` con 411 tests, `npm run build`, `npm audit --audit-level=high` y E2E remoto readonly con 6 passed / 1 skipped.
+- Deploy productivo pendiente de confirmacion explicita de branch/commit, gates, URL objetivo y rollback.
 
 ## Listo para piloto pago
 
@@ -51,6 +62,7 @@ El release candidate puede avanzar a piloto pago con clientes controlados si el 
 - Definir cifrado/rotacion para secretos tenant-scoped guardados en DB antes de escalar integraciones reales.
 - Rotar credencial superadmin anterior si alguna vez fue usada en Supabase real.
 - Confirmar copy comercial sin promesas de SIAT/QR/WhatsApp/XLSX no habilitadas.
+- Ejecutar prueba real de Google OAuth en `gestioshq.app` con usuario existente y usuario nuevo; el repo ya rescata callbacks OAuth mal dirigidos a `/`.
 
 ## Decision
 
