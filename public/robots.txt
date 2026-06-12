@@ -19,4 +19,4 @@ Disallow: /api/
 Disallow: /setup
 Disallow: /plan-vencido
 
-Sitemap: https://gesti-os.vercel.app/sitemap.xml
+Sitemap: https://gestioshq.app/sitemap.xml

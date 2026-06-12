@@ -45,7 +45,7 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
 - ✅ Product detail page: `app/(dashboard)/inventory/[id]/page.tsx` + `GET /api/products/[id]` — precio/costo/margen, variantes, historial stock
 - ✅ Command palette Ctrl+K: `components/dashboard/CommandPalette.tsx` + `GET /api/search?q=` — busca productos, clientes, pedidos
 - ✅ Sidebar "Buscar..." button: dispara Ctrl+K
-- ✅ Tests: 313 pasando en 20 archivos (añadidos: search.test.ts, public-order.test.ts, customer-detail.test.ts, product-detail.test.ts)
+- ✅ Tests: 411 pasando
 
 **Últimas actualizaciones (2026-05-19 tarde):**
 - ✅ PostHog analytics: `components/PostHogProvider.tsx`, `components/PostHogPageview.tsx`, `/ingest` reverse proxy en `next.config.ts`
@@ -70,7 +70,7 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
 - ✅ Export contable mejorado: 4 tipos (ventas, resumen, clientes, inventario)
 - ✅ Purchase Orders: schema + API + UI completa
 - ✅ n8n workflows mejorados: Brevo webhook/polling + PO automation
-- ✅ Producción: https://gesti-os.vercel.app
+- ✅ Producción: https://gestioshq.app
 - ✅ Tests: 229 pasando (13 archivos)
 - ✅ Build exitoso: Next.js 16.2.3, 83 páginas, TypeScript OK, 44s
 

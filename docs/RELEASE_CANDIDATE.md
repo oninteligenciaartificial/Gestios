@@ -9,7 +9,7 @@ Ultima preparacion de deploy: 2026-06-12.
 ## Alcance aprobado para piloto
 
 - Backend P0 multi-tenant resuelto en pedidos, ordenes de compra y relaciones de productos.
-- Tests actualizados: `npm test` pasa con 408 tests.
+- Tests actualizados: `npm test` pasa con 411 tests.
 - Build local documentado como verde.
 - Import/export de plan piloto queda CSV-only.
 - Soporte XLSX removido del objetivo de esta release pilot; no se promete XLSX a clientes piloto.
@@ -22,7 +22,7 @@ Ultima preparacion de deploy: 2026-06-12.
 |---|---|---|
 | `npm run lint` | Verde requerido | Script endurecido con `--max-warnings=0`; cualquier warning bloquea cierre |
 | `npx tsc --noEmit` | Verde | Exit 0 |
-| `npm test` | Verde | 408 tests |
+| `npm test` | Verde | 411 tests |
 | `npm run build` | Verde | Next 16.2.6 |
 | `npm audit --audit-level=high` | Verde | Exit 0; quedan vulnerabilidades moderadas |
 | P0 backend/data | Resuelto | Ownership validado en pedidos, purchase orders y productos |
@@ -40,6 +40,16 @@ Ultima preparacion de deploy: 2026-06-12.
 - QR upload P1 verificado como resuelto en backlog: rate limit, magic bytes, rechazo SVG, nombres aleatorios y tests existentes.
 - Gates frescos ejecutados: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm test` con 411 tests, `npm run build`, `npm audit --audit-level=high` y E2E remoto readonly con 6 passed / 1 skipped.
 - Deploy productivo pendiente de confirmacion explicita de branch/commit, gates, URL objetivo y rollback.
+
+## Evidencia de preparacion OAuth/SEO 2026-06-12
+
+- Callback OAuth mal dirigido a `/` rescatado desde `proxy.ts` hacia `/auth/callback`.
+- Destino post-OAuth recordado con cookie temporal `gestios_oauth_next`, saneado por helper compartido y limpiado al cerrar callback.
+- Tests unitarios agregados para `sanitizeOauthNext()`, incluyendo rutas relativas seguras y destinos externos codificados.
+- Sitemap Next.js 16 agregado en `app/sitemap.ts`; `robots.txt` y enlace externo del dashboard apuntan a `gestioshq.app`.
+- Referencia de variables de entorno y auditoria de reutilizacion DentalGest documentadas sin secretos.
+- Fuente de video onboarding Remotion versionada; `node_modules` y renders MP4 quedan ignorados.
+- Gates frescos ejecutados: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm test` con 411 tests, `npm run build`, `npm audit --audit-level=high` y `npm --prefix remotion-video run build`.
 
 ## Listo para piloto pago
 

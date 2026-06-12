@@ -84,7 +84,7 @@ npm run dev
 |---|---|
 | `npm run dev` | Dev server en localhost:3000 |
 | `npm run build` | `prisma generate` + `next build` |
-| `npm run test` | Vitest (408 tests) |
+| `npm run test` | Vitest (411 tests) |
 | `npm run lint` | ESLint |
 
 ---
@@ -128,7 +128,7 @@ prisma/
 ├── schema.prisma   # Fuente de verdad DB
 └── migrations/     # SQL versionado
 docs/               # Documentación técnica completa
-tests/              # Vitest — 408 tests
+tests/              # Vitest — 411 tests
 ```
 
 ---

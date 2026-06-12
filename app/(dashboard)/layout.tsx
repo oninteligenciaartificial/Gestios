@@ -81,7 +81,7 @@ export default async function DashboardLayout({
   ];
 
   const externalLinks = [
-    { href: "https://gesti-os.vercel.app", label: "Ver Landing", external: true },
+    { href: "https://gestioshq.app", label: "Ver Landing", external: true },
   ];
 
   // Map feature keys to nav hrefs for lock detection

@@ -7,7 +7,7 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
 | Check | Estado |
 |---|---|
 | `npx tsc --noEmit` | Pasa |
-| `npm test` | Pasa: 30 archivos, 408 tests |
+| `npm test` | Pasa: 31 archivos, 411 tests |
 | `npm run build` | Pasa: Next 16.2.6, 106 rutas |
 | `npm run lint` | Pasa requerido: exit 0 con `--max-warnings=0` |
 | `npm audit --audit-level=high` | Pasa: exit 0, quedan moderadas |

@@ -72,8 +72,8 @@ export async function GET(request: Request) {
 
 ## Estado actual (2026-05-30)
 
-- **Deploy:** Vercel auto-deploy en rama `main` — https://gesti-os.vercel.app
-- **Tests:** 313 pasando (20 archivos)
+- **Deploy:** Vercel auto-deploy en rama `main` — https://gestioshq.app
+- **Tests:** 411 pasando
 - **Email:** Migrado Brevo → Resend, dominio `onia.com.bo` verificado
 - **Pagos:** Sistema BCP Bolivia (checkout + confirm + n8n auto-confirm WF-GS-05)
 - **n8n activos:** WF-GS-02 (plan expiry WA), WF-GS-03 (birthday WA), WF-GS-04 (weekly digest), WF-GS-05 (BCP auto-payment — pendiente activar credenciales)

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { BrandLogo } from "@/components/BrandLogo";
 import { PublicShell } from "@/components/PublicShell";
+import { OAUTH_NEXT_COOKIE } from "@/lib/oauth-redirect";
 import { createClient } from "@/lib/supabase/client";
 
 const PLAN_NAMES: Record<string, string> = {
@@ -14,6 +15,11 @@ const PLAN_NAMES: Record<string, string> = {
   pro: "Pro",
   empresarial: "Empresarial",
 };
+
+function rememberOauthNext(next: string) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${OAUTH_NEXT_COOKIE}=${encodeURIComponent(next)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
+}
 
 function SignupForm() {
   const searchParams = useSearchParams();
@@ -42,6 +48,7 @@ function SignupForm() {
     setError("");
     const supabase = createClient();
     const planQuery = planParam ? `&plan=${encodeURIComponent(planParam)}` : "";
+    rememberOauthNext(`/setup?from=google${planQuery}`);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -86,7 +93,7 @@ function SignupForm() {
           <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
           <h2 className="text-xl font-display font-bold text-slate-950">Revisa tu correo</h2>
           <p className="text-brand-muted text-sm leading-relaxed">
-            Te enviamos un enlace de confirmacion a <span className="font-medium text-slate-950">{email}</span>.
+            Te enviamos un enlace de confirmación a <span className="font-medium text-slate-950">{email}</span>.
             Haz clic en el enlace para activar tu cuenta y configurar tu tienda.
           </p>
           {selectedPlan && (
@@ -107,10 +114,10 @@ function SignupForm() {
       <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 space-y-6">
         <div className="text-center">
           <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
-          <p className="text-brand-muted mt-4 text-sm">Crea tu cuenta - 7 dias gratis, sin tarjeta</p>
+          <p className="text-brand-muted mt-4 text-sm">Crea tu cuenta - 7 días gratis, sin tarjeta</p>
           {selectedPlan && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-medium">
-              Plan {selectedPlan} seleccionado - 7 dias gratis
+              Plan {selectedPlan} seleccionado - 7 días gratis
             </div>
           )}
         </div>
@@ -125,6 +132,9 @@ function SignupForm() {
           </span>
           Continuar con Google
         </button>
+        <p className="text-xs leading-relaxed text-brand-muted">
+          Google puede mostrar Supabase como proveedor seguro de autenticación. Luego completarás los datos de tu negocio en GestiOS.
+        </p>
 
         <div className="flex items-center gap-3 text-xs text-slate-400">
           <span className="h-px flex-1 bg-slate-200" />
@@ -141,7 +151,7 @@ function SignupForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="signup-email" className="text-sm text-brand-muted">
-              Correo electronico
+              Correo electrónico
             </label>
             <input
               id="signup-email"
@@ -158,7 +168,7 @@ function SignupForm() {
           {!oauthUser && (
             <div className="space-y-1.5">
               <label htmlFor="signup-password" className="text-sm text-brand-muted">
-                Contrasena
+                Contraseña
               </label>
               <input
                 id="signup-password"
@@ -168,7 +178,7 @@ function SignupForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-                placeholder="Minimo 8 caracteres"
+                placeholder="Mínimo 8 caracteres"
               />
             </div>
           )}
@@ -193,9 +203,9 @@ function SignupForm() {
         </form>
 
         <p className="text-center text-sm text-brand-muted">
-          Ya tienes cuenta?{" "}
+          ¿Ya tienes cuenta?{" "}
           <Link href="/login" className="text-brand-kinetic-orange hover:underline">
-            Iniciar sesion
+            Iniciar sesión
           </Link>
         </p>
       </div>

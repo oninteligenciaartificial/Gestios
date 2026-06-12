@@ -6,12 +6,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BrandLogo } from "@/components/BrandLogo";
 import { PublicShell } from "@/components/PublicShell";
+import { OAUTH_NEXT_COOKIE, sanitizeOauthNext } from "@/lib/oauth-redirect";
 import { createClient } from "@/lib/supabase/client";
 import { loginAction } from "./actions";
 
-function getSafeNext(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
-  return value;
+function rememberOauthNext(next: string) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${OAUTH_NEXT_COOKIE}=${encodeURIComponent(next)}; Path=/; Max-Age=600; SameSite=Lax${secure}`;
 }
 
 function SubmitButton() {
@@ -30,7 +31,7 @@ function SubmitButton() {
 function LoginForm() {
   const searchParams = useSearchParams();
   const [state, formAction] = useActionState(loginAction, null);
-  const safeNext = getSafeNext(searchParams.get("next"));
+  const safeNext = sanitizeOauthNext(searchParams.get("next"));
   const oauthError = searchParams.get("error");
 
   useEffect(() => {
@@ -41,6 +42,7 @@ function LoginForm() {
 
   async function handleGoogleLogin() {
     const supabase = createClient();
+    rememberOauthNext(safeNext);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -71,6 +73,9 @@ function LoginForm() {
           </span>
           Continuar con Google
         </button>
+        <p className="text-xs leading-relaxed text-brand-muted">
+          Google puede mostrar Supabase como proveedor seguro de autenticación. Luego volverás a GestiOS.
+        </p>
 
         <div className="flex items-center gap-3 text-xs text-slate-400">
           <span className="h-px flex-1 bg-slate-200" />
@@ -97,10 +102,10 @@ function LoginForm() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-brand-muted">
-                Contrasena
+                Contraseña
               </label>
               <Link href="/forgot-password" className="text-xs text-brand-kinetic-orange hover:underline">
-                Olvide mi contrasena
+                Olvidé mi contraseña
               </Link>
             </div>
             <input
@@ -110,7 +115,7 @@ function LoginForm() {
               required
               autoComplete="current-password"
               className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
-              placeholder="Minimo 8 caracteres"
+              placeholder="Mínimo 8 caracteres"
             />
           </div>
 
@@ -134,7 +139,7 @@ function LoginForm() {
         </form>
 
         <p className="text-center text-sm text-brand-muted">
-          No tienes cuenta?{" "}
+          ¿No tienes cuenta?{" "}
           <Link href="/signup" className="text-brand-kinetic-orange hover:underline">
             Crear cuenta gratis
           </Link>

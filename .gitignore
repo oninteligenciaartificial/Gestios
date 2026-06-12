@@ -47,4 +47,6 @@ next-env.d.ts
 
 .obsidian/
 
+.claire/
 remotion-video/node_modules/
+remotion-video/out/
