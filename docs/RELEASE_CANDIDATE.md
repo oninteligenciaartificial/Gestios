@@ -65,7 +65,8 @@ Ultima preparacion de deploy: 2026-06-12.
 - `npm run check:release-env` falla localmente porque faltan `DATABASE_URL` y `CRON_SECRET` en el entorno local.
 - `npm run check:release-env -- --strict` falla localmente porque faltan `DATABASE_URL`, `CRON_SECRET`, Sentry y rate limiting distribuido en el entorno local.
 - `npm run check:monitoring-flow` pasa en dry-run con redaccion de datos sensibles; firma real queda omitida hasta tener `SENTRY_WEBHOOK_CLIENT_SECRET` y firma de prueba.
-- Supabase Auth settings publicos responden HTTP 200, pero `external.google` no aparece habilitado; proveedor visible actual: email.
+- Supabase Auth settings publicos responden HTTP 200 y muestran proveedores visibles: email, google.
+- Smoke OAuth Google sin login humano responde HTTP 302 hacia `accounts.google.com`.
 - E2E con creacion real de pedido sigue bloqueado por diseno en produccion sin `E2E_CREATE_ORDERS=true` y `E2E_ALLOW_PRODUCTION_ORDER=true`; no se ejecuto para no crear pedidos falsos en tienda real.
 
 ## Listo para piloto pago
