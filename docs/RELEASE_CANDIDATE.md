@@ -51,6 +51,14 @@ Ultima preparacion de deploy: 2026-06-12.
 - Fuente de video onboarding Remotion versionada; `node_modules` y renders MP4 quedan ignorados.
 - Gates frescos ejecutados: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm test` con 411 tests, `npm run build`, `npm audit --audit-level=high` y `npm --prefix remotion-video run build`.
 
+## Evidencia de hardening dependencias 2026-06-12
+
+- `npm audit fix` sin `--force` aplicado solo al lockfile.
+- Vulnerabilidades moderadas reducidas de 11 a 5.
+- Resuelto sin cambios de API directa: `brace-expansion`, `hono`, `resend`/`standardwebhooks` y `ws`.
+- Pendientes 5 moderadas porque `npm audit` solo ofrece `--force` con cambios incompatibles o downgrades: `prisma`/`@prisma/dev`/`@hono/node-server` y `next`/`postcss`.
+- Gates frescos ejecutados: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm test` con 411 tests, `npm run build` y `npm audit --audit-level=high`.
+
 ## Listo para piloto pago
 
 El release candidate puede avanzar a piloto pago con clientes controlados si el alcance comercial explicita estas condiciones:
