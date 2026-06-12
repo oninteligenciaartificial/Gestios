@@ -116,7 +116,7 @@ export function BrandLogo({
   href = "/",
   variant = "responsive",
   size = "nav",
-  tone = "light",
+  tone = "dark",
   className = "",
   priority,
 }: BrandLogoProps) {

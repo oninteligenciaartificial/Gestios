@@ -90,10 +90,10 @@ function SignupForm() {
     return (
       <PublicShell className="flex items-center justify-center px-4 py-10">
         <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 text-center space-y-4">
-          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
-          <h2 className="text-xl font-display font-bold text-slate-950">Revisa tu correo</h2>
+          <BrandLogo href="/" variant="full" size="auth" tone="dark" className="justify-center" priority />
+          <h2 className="text-xl font-display font-bold text-white">Revisa tu correo</h2>
           <p className="text-brand-muted text-sm leading-relaxed">
-            Te enviamos un enlace de confirmación a <span className="font-medium text-slate-950">{email}</span>.
+            Te enviamos un enlace de confirmación a <span className="font-medium text-white">{email}</span>.
             Haz clic en el enlace para activar tu cuenta y configurar tu tienda.
           </p>
           {selectedPlan && (
@@ -113,7 +113,7 @@ function SignupForm() {
     <PublicShell className="flex items-center justify-center px-4 py-10">
       <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 space-y-6">
         <div className="text-center">
-          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
+          <BrandLogo href="/" variant="full" size="auth" tone="dark" className="justify-center" priority />
           <p className="text-brand-muted mt-4 text-sm">Crea tu cuenta - 7 días gratis, sin tarjeta</p>
           {selectedPlan && (
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-kinetic-orange/10 border border-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-medium">
@@ -125,7 +125,7 @@ function SignupForm() {
         <button
           type="button"
           onClick={handleGoogleSignup}
-          className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+          className="w-full min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-white/20 hover:bg-white/10 active:scale-[0.99]"
         >
           <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-xs font-black text-[#4285F4]">
             G
@@ -137,9 +137,9 @@ function SignupForm() {
         </p>
 
         <div className="flex items-center gap-3 text-xs text-slate-400">
-          <span className="h-px flex-1 bg-slate-200" />
+          <span className="h-px flex-1 bg-white/10" />
           <span>{oauthUser ? "cuenta Google detectada" : "o con email"}</span>
-          <span className="h-px flex-1 bg-slate-200" />
+          <span className="h-px flex-1 bg-white/10" />
         </div>
 
         {message === "complete_profile" && (
@@ -160,7 +160,7 @@ function SignupForm() {
               value={email}
               readOnly={Boolean(oauthUser)}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors read-only:bg-slate-50 read-only:text-slate-500"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-kinetic-orange transition-colors read-only:bg-white/10 read-only:text-brand-muted"
               placeholder="tu@negocio.com"
             />
           </div>
@@ -177,7 +177,7 @@ function SignupForm() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
                 placeholder="Mínimo 8 caracteres"
               />
             </div>

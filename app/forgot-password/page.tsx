@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
     <PublicShell className="flex items-center justify-center px-4 py-10">
       <div className="glass-panel public-card rounded-3xl p-8 w-full max-w-md space-y-6">
         <div className="text-center">
-          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
+          <BrandLogo href="/" variant="full" size="auth" tone="dark" className="justify-center" priority />
           <p className="text-brand-muted mt-4">Recuperar contrasena</p>
         </div>
 

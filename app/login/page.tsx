@@ -59,14 +59,14 @@ function LoginForm() {
     <PublicShell className="flex items-center justify-center px-4 py-10">
       <div className="glass-panel public-card w-full max-w-md rounded-3xl p-8 space-y-6">
         <div className="text-center">
-          <BrandLogo href="/" variant="full" size="auth" className="justify-center" priority />
+          <BrandLogo href="/" variant="full" size="auth" tone="dark" className="justify-center" priority />
           <p className="text-brand-muted mt-4">Inicia sesion para continuar</p>
         </div>
 
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.99]"
+          className="w-full min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white shadow-sm transition-[background-color,border-color,transform] duration-200 hover:border-white/20 hover:bg-white/10 active:scale-[0.99]"
         >
           <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-xs font-black text-[#4285F4]">
             G
@@ -78,9 +78,9 @@ function LoginForm() {
         </p>
 
         <div className="flex items-center gap-3 text-xs text-slate-400">
-          <span className="h-px flex-1 bg-slate-200" />
+          <span className="h-px flex-1 bg-white/10" />
           <span>o con email</span>
-          <span className="h-px flex-1 bg-slate-200" />
+          <span className="h-px flex-1 bg-white/10" />
         </div>
 
         <form action={formAction} className="space-y-4">
@@ -94,7 +94,7 @@ function LoginForm() {
               type="email"
               required
               autoComplete="email"
-              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
               placeholder="admin@minegocio.com"
             />
           </div>
@@ -114,7 +114,7 @@ function LoginForm() {
               type="password"
               required
               autoComplete="current-password"
-              className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-kinetic-orange transition-colors"
               placeholder="Mínimo 8 caracteres"
             />
           </div>

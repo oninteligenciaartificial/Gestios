@@ -96,6 +96,53 @@
   backdrop-filter: blur(16px);
 }
 
+.public-dark .public-card {
+  background: rgba(18, 20, 24, 0.86) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+}
+
+.public-dark [class*="text-slate-950"],
+.public-dark [class*="text-slate-900"] {
+  color: #f8fafc !important;
+}
+
+.public-dark [class*="text-brand-muted"] {
+  color: #e2bfb0 !important;
+}
+
+.public-dark [class*="border-slate"] {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.public-dark .bg-white,
+.public-dark .bg-slate-50,
+.public-dark .bg-slate-100 {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.public-dark .bg-slate-300 {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.public-dark .bg-white.rounded-full {
+  background-color: #ffffff !important;
+}
+
+.public-dark input,
+.public-dark select,
+.public-dark textarea {
+  color-scheme: dark;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+.public-dark input::placeholder,
+.public-dark textarea::placeholder {
+  color: rgba(226, 191, 176, 0.62) !important;
+}
+
 html[data-dashboard-theme="light"] body {
   background: #f8fafc;
   color: #0f172a;

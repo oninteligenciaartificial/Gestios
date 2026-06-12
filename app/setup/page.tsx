@@ -41,7 +41,7 @@ const VARIANT_LABELS: Record<string, string> = {
 };
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-950 placeholder:text-slate-400 focus:outline-none focus:border-brand-kinetic-orange transition-colors";
+  "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-kinetic-orange transition-colors";
 
 function getVariantFields(type: BusinessType): string[] {
   const schema = BUSINESS_TYPE_SCHEMAS[type];
@@ -108,7 +108,7 @@ export default function SetupPage() {
     <PublicShell className="flex items-center justify-center p-6">
       <div className="w-full max-w-2xl space-y-8">
         <div className="text-center">
-          <BrandLogo href="/" variant="full" size="auth" className="justify-center mb-4" priority />
+          <BrandLogo href="/" variant="full" size="auth" tone="dark" className="justify-center mb-4" priority />
           <h1 className="text-2xl font-bold text-slate-950">Configura tu tienda</h1>
           <p className="text-brand-muted mt-2">Solo necesitas hacer esto una vez.</p>
         </div>

@@ -6,6 +6,6 @@ type PublicShellProps = {
   tone?: "light" | "dark";
 };
 
-export function PublicShell({ children, className = "", tone = "light" }: PublicShellProps) {
+export function PublicShell({ children, className = "", tone = "dark" }: PublicShellProps) {
   return <div className={`public-${tone} min-h-screen ${className}`}>{children}</div>;
 }
