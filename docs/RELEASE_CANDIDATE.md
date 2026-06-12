@@ -59,6 +59,15 @@ Ultima preparacion de deploy: 2026-06-12.
 - Pendientes 5 moderadas porque `npm audit` solo ofrece `--force` con cambios incompatibles o downgrades: `prisma`/`@prisma/dev`/`@hono/node-server` y `next`/`postcss`.
 - Gates frescos ejecutados: `git diff --check`, `npm run lint`, `npx tsc --noEmit`, `npm test` con 411 tests, `npm run build` y `npm audit --audit-level=high`.
 
+## Evidencia de checks externos 2026-06-12
+
+- `vercel env ls production` confirma variables productivas presentes para DB, Supabase, Sentry, Upstash/KV, Resend, PostHog, `CRON_SECRET` y `NEXT_PUBLIC_APP_URL`; no se imprimieron valores.
+- `npm run check:release-env` falla localmente porque faltan `DATABASE_URL` y `CRON_SECRET` en el entorno local.
+- `npm run check:release-env -- --strict` falla localmente porque faltan `DATABASE_URL`, `CRON_SECRET`, Sentry y rate limiting distribuido en el entorno local.
+- `npm run check:monitoring-flow` pasa en dry-run con redaccion de datos sensibles; firma real queda omitida hasta tener `SENTRY_WEBHOOK_CLIENT_SECRET` y firma de prueba.
+- Supabase Auth settings publicos responden HTTP 200, pero `external.google` no aparece habilitado; proveedor visible actual: email.
+- E2E con creacion real de pedido sigue bloqueado por diseno en produccion sin `E2E_CREATE_ORDERS=true` y `E2E_ALLOW_PRODUCTION_ORDER=true`; no se ejecuto para no crear pedidos falsos en tienda real.
+
 ## Listo para piloto pago
 
 El release candidate puede avanzar a piloto pago con clientes controlados si el alcance comercial explicita estas condiciones:
