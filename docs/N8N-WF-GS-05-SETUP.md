@@ -1,104 +1,100 @@
-# WF-GS-05: BCP Auto Payment Confirmation — Setup Guide
+# WF-GS-05: BCP Auto Payment Confirmation
 
-**Workflow URL**: https://n8n-sergio-n8n.hqdqgh.easypanel.host/workflow/jtLIb0i6jxAZOvwa
+**Workflow URL:** https://n8n-sergio-n8n.hqdqgh.easypanel.host/workflow/jtLIb0i6jxAZOvwa
 
-## Overview
+## Objetivo
 
-Polls `sergio.urcullo.m@gmail.com` every minute for BCP payment confirmation emails.
-When found, extracts the `PAGO-XXXXX-timestamp` reference, looks up the pending
-payment in Supabase, marks it CONFIRMADO, and activates the organization's plan.
+WF-GS-05 lee correos de confirmacion BCP, extrae una referencia `PAGO-...` y llama a GestiOS para confirmar el pago. GestiOS hace la actualizacion de DB; n8n ya no debe usar Supabase REST ni `SUPABASE_SERVICE_ROLE_KEY` para este flujo.
 
-## Flow
+## Flujo actual
 
-```
-Gmail Trigger (every 1 min, from BolBancaMov@bcp.com.bo)
-  → Extract Reference from Email   (regex PAGO-[A-Z0-9]+-\d+)
-  → Reference Found?
-      YES → Lookup Payment in Supabase  (GET payment_requests WHERE reference=X AND status=PENDIENTE)
-              → Payment Record Exists?
-                  YES → Mark Payment CONFIRMADO  (PATCH payment_requests)
-                          → Compute Plan Expiry  (adds months to today)
-                          → Activate Org Plan    (PATCH organizations)
-                  NO  → Skip (no matching payment)
-      NO  → Skip (reference not in email)
+```txt
+Gmail Trigger cada 1 min
+  -> filtra correos BCP / Interbancaria QR
+  -> extrae referencia con regex PAGO-[A-Z0-9]+-\d+
+  -> si hay referencia:
+       POST https://gestioshq.app/api/billing/n8n-confirm
+       Authorization: Bearer <GESTIOS_API_KEY>
+       body: { "reference": "<referencia>" }
+  -> 200: pago confirmado y plan activado
+  -> 404: referencia no existe o ya fue procesada; no reintentar como error critico
 ```
 
-## Step 1 — Configure Gmail Credential
+## Credenciales necesarias
 
-1. Go to n8n → Credentials → New
-2. Type: **Gmail OAuth2**
-3. Name: `Gmail sergio.urcullo`
-4. Authenticate with `sergio.urcullo.m@gmail.com`
-5. Grant access to read emails
-6. Save
+### Gmail
 
-> The workflow already has "Gmail account" auto-assigned. You may need to
-> reconnect it to `sergio.urcullo.m@gmail.com` if the auto-assigned credential
-> belongs to a different account.
+1. En n8n, crear o reconectar credencial **Gmail OAuth2**.
+2. Cuenta esperada: `sergio.urcullo.m@gmail.com`.
+3. Permiso minimo: lectura de correos.
 
-## Step 2 — Configure Supabase Credential
+### GestiOS API
 
-1. Go to n8n → Credentials → New
-2. Type: **Supabase**
-3. Name: `Supabase GestiOS`
-4. Host: `https://<SUPABASE_PROJECT_REF>.supabase.co`
-5. Service Role Key: `<SUPABASE_SERVICE_ROLE_KEY>`
-6. Save
+1. En Vercel, configurar `GESTIOS_API_KEY` con un secreto largo aleatorio.
+2. En n8n, crear credencial **Bearer Auth**.
+3. Token: el mismo valor de `GESTIOS_API_KEY`, sin escribir la palabra `Bearer`.
+4. Asignar esa credencial al nodo HTTP Request que llama GestiOS.
 
-Then assign this credential to these 3 HTTP Request nodes in the workflow:
-- **Lookup Payment in Supabase**
-- **Mark Payment CONFIRMADO**
-- **Activate Org Plan in Supabase**
+No usar `SUPABASE_SERVICE_ROLE_KEY` en este workflow.
 
-## Step 3 — Activate Workflow
+## Nodo HTTP Request final
 
-1. Open workflow: https://n8n-sergio-n8n.hqdqgh.easypanel.host/workflow/jtLIb0i6jxAZOvwa
-2. Verify all nodes show green credential badges
-3. Click **Activate** (top-right toggle)
+| Campo | Valor |
+|---|---|
+| Method | `POST` |
+| URL | `https://gestioshq.app/api/billing/n8n-confirm` |
+| Authentication | Bearer Auth |
+| Body Content Type | JSON |
+| Body | `{ "reference": "={{ $json.reference }}" }` |
 
-## Step 4 — Test
+Respuesta exitosa esperada:
 
-Send yourself a test email from any account with:
-- Subject containing `Interbancaria QR`
-- Body/snippet containing a reference like `PAGO-XXXXXXXX-1234567890`
-
-Verify the workflow execution appears in n8n executions log.
-
-For a real end-to-end test:
-1. Create a payment request from the billing UI (as a workspace admin)
-2. Get the reference code shown in the bank transfer modal
-3. Wait for a real BCP transfer, or manually trigger the workflow with test data
-
-## BCP Email Format Reference
-
+```json
+{
+  "success": true,
+  "paymentRequestId": "string",
+  "organizationId": "string",
+  "reference": "PAGO-...",
+  "plan": "CRECER",
+  "months": 1,
+  "confirmedAt": "ISO date",
+  "planExpiresAt": "ISO date"
+}
 ```
+
+## Formato BCP esperado
+
+```txt
 From: BolBancaMov@bcp.com.bo
-Subject: Interbancaria QR - Banca Móvil
+Subject: Interbancaria QR - Banca Movil
 
-Estimado cliente, se realizó la siguiente operación:
-...
 Glosa: PAGO-A1B2C3D4-1716900000000
 Monto: Bs. 150.00
-...
 ```
 
-The regex `PAGO-[A-Z0-9]+-\d+` extracts the reference from anywhere in the body or snippet.
+Regex:
 
-## Database Tables Used
+```txt
+PAGO-[A-Z0-9]+-\d+
+```
 
-| Table | Operation | Condition |
-|-------|-----------|-----------|
-| `payment_requests` | SELECT | reference=X AND status=PENDIENTE |
-| `payment_requests` | PATCH | SET status=CONFIRMADO, confirmedAt=now(), confirmedBy=n8n-auto |
-| `organizations` | PATCH | SET plan=X, planExpiresAt=Y |
+## Prueba recomendada
+
+1. Crear una solicitud desde `/billing`.
+2. Copiar la referencia `PAGO-...`.
+3. Ejecutar el workflow manualmente con un input que tenga esa referencia o esperar el correo real de BCP.
+4. Confirmar que el nodo GestiOS devuelve `200`.
+5. Verificar en GestiOS:
+   - `payment_requests.status = CONFIRMADO`
+   - `payment_requests.confirmedBy = n8n-auto`
+   - `organizations.plan` actualizado
+   - `organizations.planExpiresAt` actualizado
 
 ## Troubleshooting
 
-**Workflow not triggering**: Check Gmail credential is connected to `sergio.urcullo.m@gmail.com`.
-The filter matches emails with `readStatus: unread` — BCP emails must be unread to trigger.
-
-**Payment not found**: Verify the workspace admin completed the checkout flow and a
-`payment_requests` record with status=PENDIENTE exists in Supabase.
-
-**Supabase 401**: Regenerate the service role key in Supabase → Settings → API and
-update the `Supabase GestiOS` credential.
+| Sintoma | Causa probable | Fix |
+|---|---|---|
+| `401` desde GestiOS | Bearer token no coincide con `GESTIOS_API_KEY` | Actualizar credencial Bearer en n8n o Vercel env |
+| `404` desde GestiOS | Referencia no existe, no esta pendiente o ya fue procesada | Revisar `/superadmin/payments` |
+| No dispara Gmail | Credencial Gmail desconectada, filtro muy estricto o correo ya leido | Reautorizar Gmail y revisar filtro del trigger |
+| Pago queda pendiente | n8n no llamo el endpoint o recibio 401/404 | Revisar executions de WF-GS-05 |

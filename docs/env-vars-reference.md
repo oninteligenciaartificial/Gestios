@@ -58,6 +58,14 @@ Sin Redis/KV, el repo puede caer a fallback en memoria; eso sirve para desarroll
 |---|---|---|
 | `CRON_SECRET` | autoriza endpoints cron | Generar secreto aleatorio y cargarlo en Vercel |
 
+## n8n / automatizaciones server-to-server
+
+| Variable | Uso | Donde obtenerla |
+|---|---|---|
+| `GESTIOS_API_KEY` | autoriza llamadas de n8n a endpoints internos de GestiOS, como confirmacion BCP | Generar secreto aleatorio largo; guardar el mismo valor en Vercel y en credenciales de n8n |
+
+No usar `SUPABASE_SERVICE_ROLE_KEY` dentro de workflows n8n si existe un endpoint interno de GestiOS para la accion. Para pagos BCP, n8n debe llamar `POST /api/billing/n8n-confirm`.
+
 ## Superadmin bootstrap
 
 | Variable | Uso |

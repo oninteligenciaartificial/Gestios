@@ -361,6 +361,45 @@ Crea solicitud de pago manual (QR boliviano). Gestionada desde superadmin.
 
 ---
 
+## /api/billing/n8n-confirm
+
+### POST
+Endpoint server-to-server para que n8n confirme pagos BCP por referencia.
+
+**Auth:** `Authorization: Bearer <GESTIOS_API_KEY>` o header `x-gestios-api-key`.
+
+**Body:**
+```json
+{
+  "reference": "PAGO-ABC12345-1781380000000"
+}
+```
+
+**Efectos secundarios:**
+- Busca `PaymentRequest` con `reference` y `status=PENDIENTE`.
+- Marca el pago como `CONFIRMADO`, `confirmedBy=n8n-auto`.
+- Actualiza la organizacion al plan pagado.
+- Extiende `planExpiresAt` desde la fecha actual o desde el vencimiento vigente si aun esta activo.
+- Limpia `trialEndsAt`.
+
+**Response OK:**
+```json
+{
+  "success": true,
+  "paymentRequestId": "string",
+  "organizationId": "string",
+  "reference": "PAGO-...",
+  "plan": "CRECER",
+  "months": 1,
+  "confirmedAt": "ISO date",
+  "planExpiresAt": "ISO date"
+}
+```
+
+**Errores:** `401` key invalida, `404` referencia inexistente o ya procesada, `503` falta `GESTIOS_API_KEY`.
+
+---
+
 ## /api/activity-log
 
 ### GET /api/activity-log
@@ -611,6 +650,7 @@ Actualiza el `EmailLog` correspondiente con el nuevo status.
 | `EMAIL_FROM_NAME` | Sender name (default: GestiOS) | Production |
 | `SENTRY_AUTH_TOKEN` | Source map uploads en build | Production |
 | `BREVO_WEBHOOK_KEY` | Signing webhooks de email | Production |
+| `GESTIOS_API_KEY` | Auth de n8n hacia endpoints internos | Production |
 
 Ver `docs/ARCHITECTURE.md` para lista completa.
 

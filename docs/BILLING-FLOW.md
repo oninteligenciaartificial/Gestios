@@ -2,6 +2,8 @@
 
 ## Resumen
 
+**Nota vigente para WF-GS-05:** n8n debe confirmar pagos llamando `POST /api/billing/n8n-confirm` con `Authorization: Bearer <GESTIOS_API_KEY>`. No debe escribir directo en Supabase REST con `SUPABASE_SERVICE_ROLE_KEY`.
+
 GestiOS opera en Bolivia. No usa Stripe ni pasarelas internacionales.
 El flujo es 100% manual: transferencia bancaria BCP + confirmación automática vía n8n.
 
@@ -77,6 +79,12 @@ QR estático: `/public/QR-BCP-GESTIOS.png`
 ---
 
 ## API Endpoints
+
+### POST /api/billing/n8n-confirm
+- Auth: `Authorization: Bearer <GESTIOS_API_KEY>` o `x-gestios-api-key`
+- Body: `{ reference: "PAGO-..." }`
+- Accion: confirma solo solicitudes `PENDIENTE`, marca `confirmedBy=n8n-auto` y activa/extiende el plan.
+- Uso: n8n WF-GS-05. Reemplaza acceso directo de n8n a Supabase REST.
 
 ### POST /api/billing/checkout
 - Auth: role=ADMIN del workspace

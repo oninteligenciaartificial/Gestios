@@ -197,7 +197,7 @@ Add the following to your Vercel project environment variables:
 | Variable | Description |
 |---|---|
 | `BREVO_WEBHOOK_KEY` | Secret used to verify requests from n8n to `/api/webhooks/brevo`. Must match the value configured in n8n. |
-| `GESTIOS_API_KEY` | Secret used by the Purchase Order workflow to authenticate requests from n8n to GestiOS API routes. |
+| `GESTIOS_API_KEY` | Secret used by n8n to authenticate requests to GestiOS API routes, including purchase order automation and BCP payment confirmation. |
 
 To add them: Vercel Dashboard → Your Project → Settings → Environment Variables → Add.
 
