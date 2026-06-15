@@ -22,7 +22,6 @@
 - Panel superadmin con impersonation
 - Permisos por roles (5 roles)
 - Audit logging (EMPRESARIAL)
-- Schema SIAT + lib (falta intermediario real)
 - Schema QR payments + lib (falta proveedor real)
 - Sentry monitoring
 - Security headers
@@ -30,9 +29,8 @@
 ### ❌ Lo que BLOQUEA ventas
 1. **Sin billing automatizado** — No hay Paddle/Stripe. Los planes se gestionan manualmente con `PaymentRequest`. No se puede cobrar automáticamente.
 2. **QR Bolivia es stub** — `qr-providers/AggregatorProvider` tiene `BASE_URL` y `API_KEY` vacíos. No acepta pagos reales.
-3. **SIAT es stub** — `lib/siat.ts` apunta a `api.facturapi.bo/v1` (placeholder). Sin contrato con intermediario, no se pueden emitir facturas legales.
-4. **WhatsApp no es multi-tenant** — Usa un solo `WA_PHONE_NUMBER_ID`. No rutea por tenant vía `OrgAddon.phoneNumberId`.
-5. **Rate limiter es in-memory** — No funciona correctamente en serverless distribuido de Vercel.
+3. **WhatsApp no es multi-tenant** — Usa un solo `WA_PHONE_NUMBER_ID`. No rutea por tenant vía `OrgAddon.phoneNumberId`.
+4. **Rate limiter es in-memory** — No funciona correctamente en serverless distribuido de Vercel.
 
 ### ⚠️ Implementaciones parciales
 - E-commerce addon — API `/api/tienda` existe, no hay UI storefront
@@ -48,7 +46,7 @@
 | Feature | GestiOS | Alegra | Odoo | Lightspeed |
 |---------|---------|--------|------|------------|
 | Catálogo de productos | ✅ | ✅ | ✅ | ✅ |
-| Facturación | ⚠️ (SIAT pending) | ✅ | ✅ | ✅ |
+| Comprobantes internos | ✅ | ✅ | ✅ | ✅ |
 | Gestión de clientes | ✅ | ✅ | ✅ | ✅ |
 | Inventario básico | ✅ | ✅ | ✅ | ✅ |
 | Dashboard/reportes | ✅ | ✅ | ✅ | ✅ |
@@ -67,7 +65,7 @@
 ### Diferenciadores únicos de GestiOS
 1. **UI adaptativa por tipo de negocio** — Ningún competidor cambia labels, atributos, y secciones según vertical (ropa=tallas/colores, farmacia=vencimientos, electrónica=garantías).
 2. **Precio plano sin per-user tax** — Odoo cobra $8.95/user, Holded €7.50-49.50 + add-ons. GestiOS cobra por plan, no por usuario.
-3. **QR Bolivia + SIAT Bolivia** — Integración local que competidores globales no tienen.
+3. **QR Bolivia + BCP/n8n** — Cobro local y activacion operativa sin depender de tarjetas internacionales.
 4. **WhatsApp nativo como feature core** — No un módulo separado.
 
 ---
@@ -80,8 +78,8 @@
 **Flujo actual (ya funciona):**
 1. Usuario elige plan + meses en `/billing`
 2. Click "Solicitar por WhatsApp" → mensaje pre-armado a `59175470140`
-3. Escanea QR Banco Ganadero (`/QR GANADERO GESTIOS.jpeg`) o transfiere a cuenta `1311455296`
-4. Manda comprobante por WhatsApp → admin activa plan manualmente
+3. Escanea el QR BCP (`/QR-BCP-GESTIOS.png`) o transfiere a la cuenta BCP mostrada en `/billing`
+4. Incluye la referencia `PAGO-...` en la glosa; n8n/GestiOS puede confirmar automaticamente si el email BCP llega al workflow
 
 **Mejoras necesarias:**
 
@@ -96,20 +94,18 @@
 
 ---
 
-### Fase 2: "Cobra de verdad" — QR Bolivia + SIAT (3 semanas)
-**Objetivo:** Habilitar pagos QR reales y facturación electrónica legal en Bolivia.
+### Fase 2: "Cobra de verdad" — QR Bolivia + automatizacion BCP (2 semanas)
+**Objetivo:** Consolidar pagos QR/personales y confirmacion automatica de suscripcion sin facturacion electronica.
 
 | Paso | Descripción | Archivos | Dependencias |
 |------|-------------|----------|-------------|
 | 2.1 | Integrar proveedor QR real (QR Switch / Tigo / BiPago) | `lib/qr-providers/qr-switch.ts`, `lib/qr-providers/tigo.ts`, `lib/qr-providers/bipago.ts` | — |
 | 2.2 | Actualizar `qr-providers/index.ts` con factory real | `lib/qr-providers/index.ts` | 2.1 |
 | 2.3 | Webhook de confirmación de pago QR | `app/api/qr-payments/webhook/route.ts` (actualizar) | 2.1 |
-| 2.4 | Integrar intermediario SIAT real (FacturAPI.bo o similar) | `lib/siat.ts` | — |
-| 2.5 | Flujo completo de emisión de factura electrónica | `app/api/invoices/route.ts` (actualizar) | 2.4 |
-| 2.6 | PDF de factura para descarga/impresión | `app/print/factura/` | 2.5 |
-| 2.7 | Renovación automática de CUFD vía cron | `app/api/cron/siat-cufd/route.ts` (actualizar) | 2.4 |
+| 2.4 | Prueba real email BCP -> n8n -> `/api/billing/n8n-confirm` | n8n WF-GS-05, `app/api/billing/n8n-confirm` | — |
+| 2.5 | Smoke test de activacion de plan con referencia real | `/billing`, superadmin, n8n | 2.4 |
 
-**Criterio de éxito:** Un cliente PRO puede generar un QR de pago → el cliente paga → el sistema confirma → se emite factura electrónica con CUFE válido.
+**Criterio de éxito:** Un cliente elige plan -> paga por BCP/QR personal -> n8n o soporte confirma -> el plan se activa sin intervención tecnica.
 
 ---
 
@@ -168,7 +164,7 @@
 - ❌ QR payments
 - ❌ Tienda online
 - ❌ Sucursales
-- ❌ Facturación SIAT
+- ❌ Facturacion electronica (fuera de alcance)
 
 ### CRECER — $530 BOB/mes (~$76 USD)
 **Para:** Negocio en crecimiento que necesita control
@@ -186,7 +182,7 @@
 - ❌ Tienda online
 - ❌ QR payments
 - ❌ Sucursales
-- ❌ Facturación SIAT
+- ❌ Facturacion electronica (fuera de alcance)
 
 ### PRO — $800 BOB/mes (~$114 USD)
 **Para:** Negocio establecido que quiere vender más
@@ -200,7 +196,7 @@
 - ✅ Email marketing básico
 - ✅ Garantías (Electrónica)
 - ❌ Sucursales múltiples
-- ❌ Facturación SIAT
+- ❌ Facturacion electronica (fuera de alcance)
 - ❌ Audit log completo
 
 ### EMPRESARIAL — $1,250 BOB/mes (~$179 USD)
@@ -209,7 +205,6 @@
 - ✅ Usuarios ilimitados
 - ✅ Sucursales múltiples
 - ✅ Audit log completo
-- ✅ Facturación SIAT Bolivia
 - ✅ Roles avanzados
 - ✅ Email avanzado
 - ✅ Export contable
@@ -219,7 +214,6 @@
 | Addon | Precio | Descripción |
 |-------|--------|-------------|
 | WhatsApp Business | $40/mes | 300 conversaciones incluidas, excedente $0.08 c/u |
-| Facturación SIAT | $25/mes | Incluido en EMPRESARIAL, addon para PRO |
 | Pagos QR Bolivia | $15/mes | Incluido en PRO+, addon para CRECER |
 | E-commerce | $20/mes | Incluido en PRO |
 | Export Contable | $18/mes | Incluido en EMPRESARIAL |
@@ -232,7 +226,6 @@
 |---------|-------------|-----------------|-------------|-----------|
 | Paddle billing | 5 | 5 | 3 | **8.3** |
 | QR Bolivia real | 5 | 4 | 4 | **5.0** |
-| SIAT real | 5 | 4 | 4 | **5.0** |
 | Rate limiter Redis | 4 | 5 | 2 | **10.0** |
 | WhatsApp multi-tenant | 4 | 4 | 3 | **5.3** |
 | Offline POS | 3 | 3 | 5 | **1.8** |
@@ -252,10 +245,9 @@
 6. Tests de integración (confianza)
 7. WhatsApp multi-tenant
 8. QR Bolivia real
-9. SIAT real
-10. Purchase orders
-11. E-commerce storefront
-12. Offline POS (nice-to-have, mayor effort)
+9. Purchase orders
+10. E-commerce storefront
+11. Offline POS (nice-to-have, mayor effort)
 
 ---
 
@@ -265,7 +257,6 @@
 |--------|-------------|---------|------------|
 | Paddle/LemonSqueezy fees altos (5%) | Media | Medio | Absorber en pricing o usar Stripe Atlas si escala |
 | Proveedor QR Bolivia no responde | Media | Alto | Tener fallback a QR manual + webhook polling |
-| Intermediario SIAT caro o inestable | Media | Alto | Evaluar 2+ proveedores, tener modo manual |
 | WhatsApp API costoso | Media | Medio | Limitar conversaciones, cobrar excedente |
 | Competidor lanza feature similar | Baja | Medio | La personalización por vertical es difícil de copiar |
 | Clientes bolivianos sin tarjeta internacional | Alta | Alto | Mantener PaymentRequest manual como fallback + QR Bolivia para cobros |
@@ -279,7 +270,7 @@
 | 1 | Fase 1 | Landing page + pricing + onboarding sample data |
 | 1 | Fase 3 | Rate limiter Redis/Upstash |
 | 1 | Fase 4 | WhatsApp multi-tenant routing |
-| 2-3 | Fase 2 | QR Bolivia real + SIAT real |
+| 2-3 | Fase 2 | QR Bolivia real + BCP/n8n validado |
 | 4 | Fase 3 | Features missing (purchase orders, export contable, e-commerce) |
 | 5 | Fase 4 | UX polish + tests + launch ready |
 
@@ -299,7 +290,6 @@
 
 ### ⏳ Pendiente (requiere proveedores externos)
 - QR Bolivia real — necesita contrato con proveedor (QR Switch, Tigo, BiPago)
-- SIAT Bolivia real — necesita intermediario (FacturAPI.bo o similar)
 - Purchase orders — schema + API + UI
 - Export contable — CSV/Excel para contador
 - E-commerce storefront — tienda online sincronizada

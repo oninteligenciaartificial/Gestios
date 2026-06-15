@@ -1,86 +1,23 @@
-# SIAT Bolivia — Facturación Electrónica
+# SIAT Bolivia - Archivo historico
 
-## Estado
+Estado: retirado del alcance comercial actual de GestiOS.
 
-Scaffold completo implementado. **Requiere credenciales externas para activar.**
+GestiOS no vende, no activa y no configura SIAT/facturacion electronica para clientes en esta etapa. El producto vendible se enfoca en:
 
-## Variables de entorno requeridas
+- POS, inventario, clientes y reportes.
+- Tienda online y registro publico.
+- Pagos de suscripcion por BCP con referencia y automatizacion n8n.
+- QR personal para cobros del comercio.
+- WhatsApp Business solo cuando existan credenciales Meta reales.
 
-```env
-SIAT_API_KEY=...          # API key del intermediario (Nube Fiscal o FacturAPI Bolivia)
-SIAT_API_URL=https://api.facturapi.bo/v1   # URL del intermediario elegido
-```
+## Decisiones vigentes
 
-## Credenciales por tenant (en Organization)
+- `facturacion_siat` permanece deshabilitado en `lib/plans.ts`.
+- `FACTURACION` queda solo como valor historico del enum/add-on para no requerir migracion destructiva.
+- `/api/invoices/[orderId]` responde `410 Gone`.
+- `/api/cron/siat-cufd` responde `410 Gone` y no esta programado en `vercel.json`.
+- `lib/siat.ts` queda aislado como scaffold historico sin imports activos.
 
-| Campo | Descripción |
-|---|---|
-| `nitEmisor` | NIT de la empresa (9 dígitos) — ingresar en Settings |
-| `razonSocial` | Nombre legal para facturas |
-| `siatCuis` | Código mensual del SIN — se renueva automático |
-| `siatCufd` | Código diario del SIN — cron a las 06:00 diario |
-| `siatNroFactura` | Secuencia incremental de facturas |
-| `siatCertExpiry` | Fecha de vencimiento del certificado digital |
+## Para futuras revisiones
 
-## Flujo de facturación
-
-```
-1. Org configura NIT + razonSocial en Settings
-2. Superadmin activa addon FACTURACION para la org
-3. Sistema obtiene CUIS (mensual) y CUFD (diario) del SIN vía intermediario
-4. En cada pedido: POST /api/invoices/[orderId] → genera factura → retorna CUFE
-5. CUFE se imprime como QR en la factura PDF
-6. Si hay error: DELETE /api/invoices/[orderId] → anula en el SIN
-```
-
-## API Endpoints
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| POST | `/api/invoices/[orderId]` | Genera factura SIAT para un pedido |
-| GET | `/api/invoices/[orderId]` | Consulta estado de la factura |
-| DELETE | `/api/invoices/[orderId]` | Anula la factura en el SIN |
-
-### Body POST
-
-```json
-{
-  "razonReceptor": "Juan Pérez",
-  "nitReceptor": "12345678"  // opcional — "99999999" si consumidor final
-}
-```
-
-## Cron jobs
-
-| Cron | Horario | Función |
-|---|---|---|
-| `/api/cron/siat-cufd` | 06:00 diario | Renueva CUFD para todas las orgs con addon FACTURACION activo |
-
-## Intermediarios compatibles
-
-| Intermediario | URL | Notas |
-|---|---|---|
-| **FacturAPI Bolivia** | https://facturapi.bo | REST, sandbox disponible, recomendado |
-| **Nube Fiscal** | https://nubefiscal.com.bo | REST + SOAP |
-| **Directo SIN** | https://siat.impuestos.gob.bo | SOAP, requiere certificado propio, complejo |
-
-## Para activar en producción
-
-1. Contratar intermediario (FacturAPI Bolivia recomendado)
-2. Obtener `SIAT_API_KEY` y `SIAT_API_URL` del intermediario
-3. Agregar a Vercel → Environment Variables
-4. El tenant ingresa su NIT y razón social en Settings → Facturación
-5. Superadmin activa addon `FACTURACION` para la org
-6. Sistema auto-obtiene CUIS/CUFD al primer uso
-
-## Plan requerido
-
-`EMPRESARIAL` — feature gate `facturacion_siat` en `lib/plans.ts`
-
-## Archivos implementados
-
-- `lib/siat.ts` — `refreshCUIS`, `refreshCUFD`, `generateInvoice`, `voidInvoice`
-- `app/api/invoices/[orderId]/route.ts` — GET / POST / DELETE
-- `app/api/cron/siat-cufd/route.ts` — cron diario CUFD
-- `prisma/schema.prisma` — modelo `Invoice` + campos SIAT en `Organization`
-- `prisma/migrations/20260430000000_siat_invoice/migration.sql`
+No reactivar SIAT sin una decision explicita de producto, contrato con proveedor real, documentacion oficial revisada, credenciales reales, migracion revisada y gates completos.

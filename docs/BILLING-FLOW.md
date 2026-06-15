@@ -32,11 +32,8 @@ El flujo es 100% manual: transferencia bancaria BCP + confirmación automática 
 7. BCP envía email de confirmación a sergio.urcullo.m@gmail.com
 8. n8n WF-GS-05 detecta el email (polling cada 1 min)
 9. n8n extrae referencia con regex /PAGO-[A-Z0-9]+-\d+/
-10. n8n busca en Supabase: payment_requests WHERE reference=X AND status=PENDIENTE
-11. Si encontrado:
-    - PATCH payment_requests → status=CONFIRMADO, confirmedAt=now(), confirmedBy=n8n-auto
-    - Calcula planExpiresAt = hoy + meses
-    - PATCH organizations → plan=X, planExpiresAt=Y
+10. n8n llama `POST /api/billing/n8n-confirm` con `GESTIOS_API_KEY`
+11. GestiOS busca la solicitud pendiente, confirma el pago y actualiza el plan en una transaccion
 12. Plan activo — workspace desbloqueado
 ```
 
@@ -57,10 +54,10 @@ El flujo es 100% manual: transferencia bancaria BCP + confirmación automática 
 
 | Plan | Mensual |
 |---|---|
-| BASICO | Bs. 0 (gratis) |
-| CRECER | Bs. 150 |
-| PRO | Bs. 300 |
-| EMPRESARIAL | Bs. 500 |
+| BASICO | Bs. 350 |
+| CRECER | Bs. 530 |
+| PRO | Bs. 800 |
+| EMPRESARIAL | Bs. 1.250 |
 
 Definidos en `lib/plans.ts` → `PLAN_PRICES_BOB`.
 
@@ -97,7 +94,7 @@ QR estático: `/public/QR-BCP-GESTIOS.png`
 - Auth: role=SUPERADMIN (via `getSuperAdmin()`)
 - Body: `{ reference: "PAGO-...", organizationId: "..." }`
 - Acción: transacción atómica — PaymentRequest → CONFIRMADO + Organization → plan actualizado
-- Usado por: n8n WF-GS-05 (actualmente vía Supabase REST directo)
+- Usado por: superadmin. n8n debe usar `/api/billing/n8n-confirm`.
 
 ---
 
@@ -156,4 +153,4 @@ model PaymentRequest {
 → Supabase devuelve array vacío → n8n skip
 
 **Plan ya activo**
-→ PATCH organizations actualiza normalmente (extiende o cambia plan)
+→ GestiOS actualiza normalmente la organizacion (extiende o cambia plan)

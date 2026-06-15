@@ -60,7 +60,7 @@ lib/
 ├── monitoring.ts         # reportAsyncError() + Sentry integration
 ├── superadmin.ts         # getSuperAdmin() helper
 ├── qr-bolivia.ts         # Generación y tracking de pagos QR
-├── siat.ts               # Facturación electrónica SIAT
+├── siat.ts               # Scaffold historico retirado; no se usa comercialmente
 ├── sample-data.ts        # Generación de datos de ejemplo para onboarding
 ├── accounting-export.ts   # Exportación de datos contables
 └── supabase/             # Clientes server/client/admin/middleware
@@ -134,7 +134,6 @@ PLAN_LIMITS[plan].maxProducts        // 150 / 500 / ∞ / ∞
 | `/api/cron/inactive-customers` | Email a clientes sin compras en 30+ días | 0 10 * * * |
 | `/api/cron/plan-expiry` | Alerta y suspensión de planes vencidos | 0 7 * * * |
 | `/api/cron/low-stock` | Alerta de stock bajo a admins (CRECER+) | 0 30 8 * * * |
-| `/api/cron/siat-cufd` | Renueva CUFD para facturación SIAT | 0 6 * * * |
 | `/api/cron/expire-qr` | Expira QRs de pago pendientes vencidos | 0 0 * * * |
 
 ## Variables de entorno requeridas

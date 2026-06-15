@@ -73,7 +73,6 @@ Esto permite rastrear errores por usuario y organizacion sin poner secretos en l
 
 - `lib/auth.ts`: user context en cada request autenticado.
 - `app/api/orders/route.ts`: errores de stock decrement.
-- `app/api/cron/siat-cufd/route.ts`: errores de refresh CUFD.
 - `app/api/qr-payments/webhook/route.ts`: errores de webhook QR.
 - `lib/qr-bolivia.ts`: errores de webhook event handling.
 - `lib/email.ts`: errores de envio de email (fire-and-forget).

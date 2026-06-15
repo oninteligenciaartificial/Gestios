@@ -40,14 +40,14 @@ const PLAN_FEATURES: Record<PlanType, Array<{ label: string; included: boolean }
     { label: "Todo lo del plan Crecer", included: true },
     { label: "Productos y clientes ilimitados", included: true },
     { label: "Tienda online y registro publico", included: true },
-    { label: "Pagos QR Bolivia", included: true },
+    { label: "QR personal para pagos", included: true },
     { label: "Sucursales multiples", included: false },
   ],
   EMPRESARIAL: [
     { label: "Todo lo del plan Pro", included: true },
     { label: "Sucursales ilimitadas", included: true },
     { label: "Roles, auditoria y permisos", included: true },
-    { label: "Facturacion SIAT", included: true },
+    { label: "Equipo ilimitado", included: true },
     { label: "Soporte prioritario", included: true },
   ],
 };
@@ -81,13 +81,7 @@ const PUBLIC_ADDONS = [
     key: "qr",
     label: "Pagos QR Bolivia",
     price: ADDON_META.QR_BOLIVIA.price,
-    description: "Pagos con QR bancario y confirmacion operativa cuando el proveedor este configurado.",
-  },
-  {
-    key: "siat",
-    label: "Facturacion SIAT",
-    price: ADDON_META.FACTURACION.price,
-    description: "Facturacion electronica para negocios que requieren integracion con SIN Bolivia.",
+    description: "QR personal disponible para comercios sin NIT; PSP bancario requiere proveedor configurado.",
   },
 ];
 
@@ -282,7 +276,7 @@ export default function PricingPage() {
                   ["Reportes", false, true, true, true],
                   ["Tienda online", false, false, true, true],
                   ["Sucursales", false, false, false, true],
-                  ["Facturacion SIAT", false, false, false, true],
+                  ["Roles y auditoria", false, false, false, true],
                 ].map((row) => (
                   <tr key={String(row[0])} className="border-b border-white/8">
                     <td className="py-3 px-4 text-white/85">{row[0]}</td>

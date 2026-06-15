@@ -140,9 +140,10 @@ No usar `prisma db push` contra produccion. `db push` queda limitado a entornos 
 - Usar `isPlanAtLeast(plan, required)` y `canUseFeature(plan, feature)` desde `lib/plans.ts`.
 - Planes: `BASICO`, `CRECER`, `PRO`, `EMPRESARIAL`.
 - `tienda_online`, `registro_publico` y `pagos_qr` requieren PRO+.
-- `sucursales`, `audit_log`, `roles_avanzados` y `facturacion_siat` requieren EMPRESARIAL+.
+- `sucursales`, `audit_log` y `roles_avanzados` requieren EMPRESARIAL+.
+- `facturacion_siat` esta retirado del alcance comercial y debe permanecer deshabilitado.
 - Moneda principal: BOB.
-- SIAT, QR Bolivia y WhatsApp requieren credenciales/proveedores reales; si faltan, documentarlo como gate externo.
+- QR Bolivia con PSP y WhatsApp requieren credenciales/proveedores reales; si faltan, documentarlo como gate externo.
 
 ## Implementacion
 

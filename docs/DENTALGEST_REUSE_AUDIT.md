@@ -64,7 +64,7 @@ No se agregaron dependencias nuevas. Para `sitemap.ts` se consulto la documentac
   - dominio `gestioshq.app`;
   - callback Supabase real;
   - nota sobre `supabase.co` hasta tener custom auth domain.
-- Actualizar copy de pricing para indicar explicitamente que SIAT/QR/WhatsApp dependen de configuracion externa real.
+- Actualizar copy de pricing para indicar explicitamente que QR/WhatsApp dependen de configuracion externa real. SIAT queda fuera de alcance.
 
 ### P1 - Seguridad y operacion
 
@@ -90,9 +90,8 @@ No se agregaron dependencias nuevas. Para `sitemap.ts` se consulto la documentac
   - WhatsApp operativo;
   - usuario extra;
   - onboarding/migracion de datos;
-  - SIAT;
   - QR Bolivia.
-- Mantener como "configuracion requerida" cualquier add-on que dependa de Meta, SIAT, PSP externo o credenciales no validadas.
+- Mantener como "configuracion requerida" cualquier add-on que dependa de Meta, PSP externo o credenciales no validadas.
 
 ## Criterio de cierre
 

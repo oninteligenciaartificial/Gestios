@@ -125,5 +125,5 @@ No ejecutar E2E con creacion real en produccion salvo tienda sandbox, aprobacion
 - [ ] `CRON_SECRET` es aleatorio y esta cargado.
 - [ ] Redis/KV esta configurado para rate limiting distribuido antes de release masivo.
 - [ ] Sentry DSN y sourcemaps estan configurados.
-- [ ] Variables de WhatsApp/SIAT/QR solo se cargan si el proveedor esta listo.
+- [ ] Variables de WhatsApp/QR solo se cargan si el proveedor esta listo. SIAT esta retirado del alcance comercial.
 - [ ] `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build` pasan antes de deploy.

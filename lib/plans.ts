@@ -24,14 +24,15 @@ export const PLAN_LIMITS: Record<PlanType, { maxProducts: number; maxCustomers: 
 
 export const ADDON_META: Record<AddonType, { label: string; price: string; description: string; comingSoon?: boolean }> = {
   WHATSAPP:    { label: "WhatsApp Business",    price: "Bs. 280/mes",  description: "300 conversaciones incluidas, excedente Bs. 0.55 c/u" },
-  FACTURACION: { label: "Facturación SIAT",    price: "Bs. 175/mes",  description: "Facturas electrónicas oficiales según el SIN Bolivia",                              comingSoon: true },
-  QR_BOLIVIA:  { label: "Pagos QR Bolivia",    price: "Bs. 105/mes",  description: "Acepta pagos con QR bancario, Tigo Money y BiPago",                                 comingSoon: true },
+  FACTURACION: { label: "Facturación electrónica", price: "No disponible", description: "Fuera del alcance comercial actual de GestiOS", comingSoon: true },
+  QR_BOLIVIA:  { label: "Pagos QR Bolivia",    price: "Bs. 105/mes",  description: "QR personal disponible; PSP bancario requiere proveedor configurado",                  comingSoon: true },
   ECOMMERCE:   { label: "E-commerce",          price: "Bs. 140/mes",  description: "Conecta tu tienda online y sincroniza inventario automáticamente",                   comingSoon: true },
   CONTABILIDAD:        { label: "Exportación Contable",    price: "Bs. 126/mes", description: "Exporta ventas y gastos en CSV/Excel para tu contador", comingSoon: true },
   INVENTARIO_AVANZADO: { label: "Inventario Avanzado",     price: "Bs. 120/mes", description: "Stock multi-ubicación, puntos de reorden automático y trazabilidad por lote/serie" },
 };
 
 const PLAN_ORDER: Record<PlanType, number> = { BASICO: 0, CRECER: 1, PRO: 2, EMPRESARIAL: 3 };
+const DISABLED_FEATURES = new Set(["facturacion_siat"]);
 
 export function isPlanAtLeast(plan: PlanType, required: PlanType): boolean {
   return PLAN_ORDER[plan] >= PLAN_ORDER[required];
@@ -62,6 +63,7 @@ export const FEATURE_PLAN: Record<string, PlanType> = {
 };
 
 export function canUseFeature(plan: PlanType, feature: string): boolean {
+  if (DISABLED_FEATURES.has(feature)) return false;
   const required = FEATURE_PLAN[feature];
   if (!required) return true;
   return isPlanAtLeast(plan, required);
@@ -74,6 +76,9 @@ export function canUseAddon(activeAddons: AddonType[], addon: AddonType): boolea
 export function planGateError(feature: string): { error: string; upgrade: true; requiredPlan: PlanType } {
   const required = FEATURE_PLAN[feature] ?? "CRECER";
   const label = PLAN_META[required].label;
+  if (DISABLED_FEATURES.has(feature)) {
+    return { error: "Esta función no está disponible en GestiOS.", upgrade: true, requiredPlan: required };
+  }
   return { error: `Esta función requiere el plan ${label} o superior.`, upgrade: true, requiredPlan: required };
 }
 
@@ -132,9 +137,9 @@ export const PLAN_FEATURES: Record<PlanType, string[]> = {
     "Todo lo del plan Pro",
     "Sucursales multiples",
     "Auditoría completa (Audit Log)",
-    "Facturación SIAT Bolivia",
     "Roles avanzados",
     "Equipo ilimitado",
     "Email avanzado",
+    "Soporte prioritario",
   ],
 };

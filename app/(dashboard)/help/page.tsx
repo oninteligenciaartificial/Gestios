@@ -104,14 +104,13 @@ const modules = [
 const plans = [
   { name: "Básico", color: "text-brand-muted", features: ["150 productos", "50 clientes", "1 staff", "POS + inventario"] },
   { name: "Crecer", color: "text-blue-400", features: ["Productos ilimitados", "Reportes", "Importación CSV", "Descuentos"] },
-  { name: "Pro", color: "text-brand-growth-neon", features: ["Tienda online", "Pagos QR", "WhatsApp", "Sucursales"] },
-  { name: "Empresarial", color: "text-brand-kinetic-orange", features: ["Facturación SIAT", "Audit log", "Roles avanzados", "Soporte prioritario"] },
+  { name: "Pro", color: "text-brand-growth-neon", features: ["Tienda online", "QR personal", "Registro publico", "10 usuarios"] },
+  { name: "Empresarial", color: "text-brand-kinetic-orange", features: ["Sucursales", "Audit log", "Roles avanzados", "Soporte prioritario"] },
 ];
 
 const addons = [
   { name: "WhatsApp Business", desc: "Atención al cliente y notificaciones por WhatsApp. Requiere Meta Business Account.", icon: MessageCircle, color: "text-green-400" },
-  { name: "Facturación SIAT", desc: "Emisión de facturas electrónicas para el SIN Bolivia. Requiere NIT y credenciales SIAT.", icon: CreditCard, color: "text-brand-kinetic-orange" },
-  { name: "QR Bolivia", desc: "Pagos vía QR bancario, Tigo Money y BiPago. Integración con bancos bolivianos.", icon: Store, color: "text-blue-400" },
+  { name: "QR Bolivia", desc: "QR personal disponible para cobros. PSP bancario, Tigo Money o BiPago requieren proveedor y credenciales reales.", icon: Store, color: "text-blue-400" },
 ];
 
 const faqs = [
@@ -243,7 +242,7 @@ export default function HelpPage() {
 
           <div className="pt-2 border-t border-white/5">
             <h3 className="font-bold text-white mb-3">Add-ons disponibles</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {addons.map((addon) => (
                 <div key={addon.name} className="bg-white/5 rounded-xl p-4 flex gap-3">
                   <div className="flex-shrink-0 pt-0.5">

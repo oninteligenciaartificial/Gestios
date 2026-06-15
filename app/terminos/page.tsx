@@ -64,7 +64,7 @@ export default function TerminosPage() {
             <ul className="list-disc list-inside space-y-2 text-white/70">
               <li><strong className="text-white/90">Moneda:</strong> todos los precios están expresados en Bolivianos (BOB).</li>
               <li><strong className="text-white/90">Facturación:</strong> mensual o anual según el plan seleccionado. El pago es anticipado.</li>
-              <li><strong className="text-white/90">Métodos de pago:</strong> transferencia bancaria (Banco Ganadero), QR bancario, Tigo Money o pagos internacionales según disponibilidad.</li>
+              <li><strong className="text-white/90">Métodos de pago:</strong> transferencia bancaria BCP con referencia de pago. QR bancario, PSP externos o pagos internacionales pueden habilitarse según disponibilidad y configuración real.</li>
               <li><strong className="text-white/90">Cambio de plan:</strong> podés cambiar de plan en cualquier momento. El cambio aplica de inmediato.</li>
               <li><strong className="text-white/90">Reembolsos:</strong> no ofrecemos reembolsos por períodos parciales. En caso de error de cobro, contactanos dentro de los 5 días hábiles.</li>
             </ul>

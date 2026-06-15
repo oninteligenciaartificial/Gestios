@@ -69,7 +69,7 @@ From: BolBancaMov@bcp.com.bo
 Subject: Interbancaria QR - Banca Movil
 
 Glosa: PAGO-A1B2C3D4-1716900000000
-Monto: Bs. 150.00
+Monto: Bs. 350.00
 ```
 
 Regex:

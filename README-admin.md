@@ -64,8 +64,7 @@ Para cambiar de plan: `Configuración > Facturación > Gestionar` o contactar so
 ## Add-ons Disponibles
 
 - **WhatsApp Business** — Atención y notificaciones por WhatsApp. Requiere Meta Business Account.
-- **Facturación SIAT** — Facturas electrónicas para el SIN Bolivia. Requiere NIT y credenciales SIAT.
-- **QR Bolivia** — Pagos vía QR bancario, Tigo Money y BiPago.
+- **QR Bolivia** — QR personal disponible para cobros; PSP bancario, Tigo Money o BiPago requieren proveedor y credenciales reales.
 
 Activar add-ons: `Configuración > Facturación > Add-ons`.
 
@@ -90,9 +89,6 @@ Serás redirigido a una pantalla de renovación. Tus datos se conservan. Contact
 
 **¿Es segura mi información?**
 Sí. Los datos se almacenan en Supabase (cifrado en reposo y en tránsito). Cada organización está completamente aislada. El acceso requiere autenticación vía Supabase Auth.
-
-**¿Cómo configuro la facturación electrónica SIAT?**
-Activa el add-on SIAT desde Configuración. Necesitas tu NIT, CUIS y CUFD obtenidos del Sistema de Impuestos Nacionales (SIN). El soporte de GestiOS puede guiarte en el proceso.
 
 **¿Cómo veo los dispositivos con sesión activa?**
 Ve a `Configuración > Sesiones activas` (`/settings/sessions`). Desde allí puedes cerrar sesiones de dispositivos que no reconozcas.

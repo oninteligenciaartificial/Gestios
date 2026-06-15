@@ -13,9 +13,9 @@ const FEATURES = [
   { icon: Zap, label: "POS ultrarrápido", desc: "Vendé en segundos con carrito, variantes y descuentos" },
   { icon: Shield, label: "Inventario inteligente", desc: "Stock automático, alertas, variantes por tipo de negocio" },
   { icon: Clock, label: "Pedidos con tracking", desc: "Seguimiento de estados y emails automáticos" },
-  { icon: Users, label: "CRM integrado", desc: "Historial de compras, puntos de lealtad, segmentación" },
+  { icon: Users, label: "CRM integrado", desc: "Historial de compras, puntos de lealtad y datos de contacto" },
   { icon: TrendingUp, label: "Reportes en tiempo real", desc: "Ventas, margen, productos top, corte de caja" },
-  { icon: Mail, label: "Emails automáticos", desc: "Confirmaciones, cumpleaños, stock bajo, re-engagement" },
+  { icon: Mail, label: "Emails automáticos", desc: "Confirmaciones, avisos de plan y alertas según el plan" },
 ];
 
 const BUSINESS_TYPES = [
@@ -34,16 +34,16 @@ const STEPS = [
   { step: "4", title: "Empezá a vender", desc: "POS rápido, gestión de pedidos y reportes en tiempo real." },
 ];
 
-const TESTIMONIALS = [
-  { name: "María López", role: "Dueña de farmacia", quote: "Por fin un sistema que entiende que una farmacia no es igual a una ferretería. Los vencimientos me salvan.", initials: "ML", color: "bg-[#FF6B00]" },
-  { name: "Carlos Rojas", role: "Tienda de ropa", quote: "Las variantes de talla y color funcionan perfecto. Antes usaba 3 hojas de cálculo.", initials: "CR", color: "bg-[#00af74]" },
-  { name: "Ana Gutiérrez", role: "Distribuidora de suplementos", quote: "El POS es rapidísimo y los emails automáticos a clientes hicieron que vuelvan más.", initials: "AG", color: "bg-[#ffb693]" },
+const USE_CASES = [
+  { name: "Farmacia", role: "Vencimientos y lotes", quote: "Controla stock, productos por vencer, clientes y ventas sin mezclar tu operación con una tienda genérica.", initials: "FX", color: "bg-[#FF6B00]" },
+  { name: "Ropa y retail", role: "Variantes por talla y color", quote: "Vende rápido en POS, ordena variantes y conserva historial de compras para atender mejor.", initials: "RT", color: "bg-[#00af74]" },
+  { name: "Suplementos", role: "Sabores, vencimientos y reposición", quote: "Organiza presentaciones, revisa stock bajo y toma decisiones con reportes claros.", initials: "SP", color: "bg-[#ffb693]" },
 ];
 
 const FAQ = [
   { q: "¿Necesito tarjeta de crédito para probar?", a: "No. 7 días gratis sin pedir tarjeta. Después elegís el plan que mejor te convenga." },
   { q: "¿Puedo cambiar de plan en cualquier momento?", a: "Sí. Subís o bajás de plan cuando quieras. El cambio se aplica inmediatamente." },
-  { q: "¿Cómo pago?", a: "Transferencia bancaria (Banco Ganadero), QR bancario, o Tigo Money. También aceptamos pagos internacionales." },
+  { q: "¿Cómo pago?", a: "Transferencia bancaria BCP con referencia de pago. Los pagos QR y otros proveedores se activan según configuración disponible." },
   { q: "¿Mis datos están seguros?", a: "Sí. Base de datos PostgreSQL en Supabase con RLS habilitado. Cada organización solo ve sus propios datos." },
   { q: "¿Funciona en celular?", a: "Sí. La interfaz es 100% responsive. El POS funciona en cualquier dispositivo con navegador." },
   { q: "¿Qué pasa si me quedo sin internet en el POS?", a: "Estamos trabajando en modo offline. Por ahora necesitás conexión para procesar ventas." },
@@ -208,14 +208,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Use cases */}
       <section className="max-w-4xl mx-auto px-6 pb-20">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-display font-bold mb-2">Lo que dicen nuestros clientes</h2>
-          <p className="text-brand-muted text-sm">Negocios reales que ya usan GestiOS</p>
+          <h2 className="text-2xl font-display font-bold mb-2">Casos de uso por rubro</h2>
+          <p className="text-brand-muted text-sm">Listo para operar pilotos pagados con negocios reales</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t) => (
+          {USE_CASES.map((t) => (
             <div key={t.name} className="glass-panel rounded-2xl p-6 space-y-3 border border-white/8 hover:border-white/15 transition-colors duration-200">
               <div className="text-white/80 text-sm italic leading-relaxed">&quot;{t.quote}&quot;</div>
               <div className="border-t border-white/5 pt-3 flex items-center gap-3">

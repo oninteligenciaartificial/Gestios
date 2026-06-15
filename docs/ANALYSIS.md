@@ -180,7 +180,7 @@ Estas rutas no usan `getTenantProfile` por diseño:
 | Add-on | Estado |
 |---|---|
 | WhatsApp Business | ✅ Backend listo — falta config Vercel + Meta |
-| Facturación SIAT Bolivia | ⚠️ Scaffold completo — requiere intermediario |
+| Facturacion electronica | ⛔ Fuera de alcance comercial |
 | Pagos QR Bolivia (PSP) | ⚠️ Upload personal implementado — PSP pendiente |
 | E-commerce storefront | ✅ Implementado — `/{slug}/tienda` |
 
@@ -217,6 +217,6 @@ Estas rutas no usan `getTenantProfile` por diseño:
 6. Foto de producto (upload + storage)
 7. Barcode scanner en POS
 8. Filtro por sucursal en reportes
-9. Facturación SIAT Bolivia
+9. Facturacion electronica retirada del alcance
 10. Pagos QR Bolivia
 11. E-commerce storefront

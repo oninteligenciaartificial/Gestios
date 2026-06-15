@@ -608,7 +608,6 @@ Endpoints internos para Vercel Cron. No requieren sesión de usuario pero verifi
 | `GET /api/cron/inactive-customers` | Emails a clientes inactivos 30+ días |
 | `GET /api/cron/plan-expiry` | Alerta y suspensión de planes vencidos |
 | `GET /api/cron/low-stock` | Alertas de stock bajo |
-| `GET /api/cron/siat-cufd` | Renueva CUFD para facturación SIAT |
 | `GET /api/cron/expire-qr` | Expira QRs de pago vencidos |
 
 ---

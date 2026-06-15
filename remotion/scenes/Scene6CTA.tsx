@@ -4,7 +4,7 @@ const FEATURES = [
   { icon: '📦', label: 'Inventario ilimitado' },
   { icon: '🛒', label: 'POS en la nube' },
   { icon: '📊', label: 'Reportes en tiempo real' },
-  { icon: '🧾', label: 'Facturación SIAT' },
+  { icon: '🏦', label: 'Pagos BCP' },
   { icon: '📱', label: 'WhatsApp integrado' },
   { icon: '🔒', label: 'Multi-usuario seguro' },
 ];

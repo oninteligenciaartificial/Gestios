@@ -25,14 +25,14 @@ Generado: 2026-05-06. Actualizado: 2026-05-13. Basado en análisis completo del 
 | Clientes | ✅ Completo | CRM, loyalty, CSV import/export |
 | Reportes | ✅ Completo | Ventas, margen, caja, CSV |
 | Staff | ✅ Completo | CRUD, roles, permisos |
-| Cron Jobs | ✅ 7 jobs | Birthday, expiry, inactive, plan, low-stock, CUFD, QR |
+| Cron Jobs | ✅ 6 jobs | Birthday, expiry, inactive, plan, low-stock, QR |
 | Sentry | ✅ Activo | Error monitoring en producción |
 | Tests | ✅ 229 pasando | 12 test files con Vitest |
 | Rate Limiting | ✅ Distribuido | Upstash Redis + in-memory fallback |
 | Email System | ✅ Completo | Brevo con logging, rate limiting, webhook, dashboard |
 | QR Bolivia | ✅ Parcial | Upload personal implementado, PSP pendiente |
 | WhatsApp | ⚠️ Backend listo | Falta config externa |
-| SIAT | ⚠️ Scaffold | Requiere intermediario externo |
+| Facturacion electronica | ⛔ Fuera de alcance | No se vende en GestiOS |
 | E-commerce | ✅ Implementado | /{slug}/tienda |
 | Deploy | ✅ Todos los cambios desplegados | 67 archivos, 2026-05-13 |
 
@@ -190,18 +190,11 @@ Generado: 2026-05-06. Actualizado: 2026-05-13. Basado en análisis completo del 
 
 ---
 
-### 4.2 SIAT Bolivia
+### 4.2 Facturacion electronica
 
-**Estado:** Scaffold completo, requiere intermediario.
+**Estado:** Retirada del alcance comercial actual.
 
-**Pasos para activar:**
-1. Contratar FacturAPI Bolivia
-2. Obtener `SIAT_API_KEY` y `SIAT_API_URL`
-3. Configurar en Vercel
-4. Tenant ingresa NIT en Settings
-5. Superadmin activa addon FACTURACION
-
-**Documentación:** `docs/SIAT-BOLIVIA.md`
+No activar SIAT, no ofrecerlo como add-on y no incluirlo en propuestas comerciales. `docs/SIAT-BOLIVIA.md` queda solo como archivo historico.
 
 ---
 
@@ -270,7 +263,7 @@ Generado: 2026-05-06. Actualizado: 2026-05-13. Basado en análisis completo del 
 - `docs/EMAIL-MIGRATION-GUIDE.md` — Migrar a dominio propio
 - `docs/EMAILS.md` — Emails automáticos
 - `docs/QR-BOLIVIA.md` — Pagos QR
-- `docs/SIAT-BOLIVIA.md` — Facturación electrónica
+- `docs/SIAT-BOLIVIA.md` — Archivo historico; SIAT retirado
 - `docs/SECURITY_REPORT.md` — Reporte de seguridad
 - `docs/SENTRY.md` — Error monitoring
 - `docs/ONBOARDING_FLOW.md` — Flujo de onboarding

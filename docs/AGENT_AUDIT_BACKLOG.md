@@ -85,9 +85,9 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
   - `app/api/pedido/[id]/route.ts`
   - Evaluar token publico no adivinable para evitar exposicion si se filtra un ID.
 
-- SIAT sin URL por defecto inventada.
-  - `lib/siat.ts`
-  - Requerir `SIAT_API_URL` explicita antes de enviar datos fiscales.
+- Facturacion electronica retirada.
+  - `lib/siat.ts` queda como scaffold historico.
+  - Mantener rutas SIAT deshabilitadas y fuera de cron productivo.
 
 - Verificar RLS real en Supabase.
   - Confirmar `profiles` con RLS y policies.
@@ -118,7 +118,7 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
   - Reemplazar `$` por `Bs.` o helper de moneda en inventario y superficies comerciales.
 
 - Revisar copy de pagos.
-  - No prometer Tigo Money, BiPago, QR Switch, SIAT o WhatsApp real si faltan credenciales/proveedor.
+  - No prometer Tigo Money, BiPago, QR Switch o WhatsApp real si faltan credenciales/proveedor. SIAT no se vende.
 
 ### Docs/Release
 
@@ -127,7 +127,7 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
   - Build local: pasa.
   - Lint/audit high/build/E2E readonly: pasan para piloto; quedan warnings lint y audit moderado.
   - Email actual: Resend; Brevo queda como historico/integracion legacy si aplica.
-  - SIAT/PSP QR/WhatsApp: configuracion externa pendiente.
+  - PSP QR/WhatsApp: configuracion externa pendiente. SIAT retirado.
 
 - Checklist unico de release candidate creado/actualizado.
   - `docs/RELEASE_CANDIDATE.md`.
@@ -151,7 +151,7 @@ Generado por auditoria paralela de agentes Backend/Data, Frontend/UX, Security/R
 1. P0 backend/security en pedidos, purchase orders y productos: resuelto para piloto pago.
 2. P0 dependencias: CSV-only y audit high resuelto para piloto.
 3. P0 lint verde: resuelto para piloto.
-4. P1 tracking publico de pedidos, SIAT explicito, RLS real y E2E sandbox.
+4. P1 tracking publico de pedidos, SIAT retirado, RLS real y E2E sandbox.
 5. P1 a11y/touch targets/moneda/copy.
 6. P1 docs release candidate.
 7. Gates completos.

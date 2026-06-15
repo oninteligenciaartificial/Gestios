@@ -66,17 +66,15 @@ Reemplazar hojas de cálculo y sistemas fragmentados con una sola plataforma: pu
 | Sucursales | EMPRESARIAL |
 | Roles avanzados | EMPRESARIAL |
 | Audit log | EMPRESARIAL |
-| Facturación SIAT | EMPRESARIAL |
 
-## Add-ons (todos próximamente)
+## Add-ons
 
 | Add-on | Precio |
 |---|---|
-| WhatsApp Business | $40/mes — 300 conversaciones |
-| Facturación SIAT | $25/mes — facturas electrónicas Bolivia |
-| Pagos QR Bolivia | $15/mes — Tigo Money, BiPago, QR SWITCH |
-| E-commerce | $20/mes — tienda online sincronizada |
-| Exportación Contable | $18/mes — CSV/Excel para contador |
+| WhatsApp Business | Bs. 280/mes — requiere Meta Business configurado |
+| Pagos QR Bolivia | Bs. 105/mes — QR personal disponible; PSP externo requiere proveedor |
+| E-commerce | Bs. 140/mes — tienda online sincronizada |
+| Exportación Contable | Bs. 126/mes — CSV/Excel para contador |
 
 ## Roles
 

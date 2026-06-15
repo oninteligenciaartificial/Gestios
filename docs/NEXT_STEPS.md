@@ -21,8 +21,8 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
   - QR: `/public/QR-BCP-GESTIOS.png` (BCP, cuenta 701-51726678-3-55)
 - ✅ n8n WF-GS-05 BCP Auto Payment: detecta email BCP → activa plan automáticamente
   - Gmail OAuth2 polling `sergio.urcullo.m@gmail.com` cada 1 min
-  - Regex extrae referencia → Supabase lookup → PATCH payment + org
-  - ID: `jtLIb0i6jxAZOvwa` — pendiente activar (asignar credenciales Gmail + Supabase)
+  - Regex extrae referencia → `POST /api/billing/n8n-confirm` con `GESTIOS_API_KEY`
+  - ID: `jtLIb0i6jxAZOvwa` — credenciales conectadas; pendiente prueba real con correo BCP productivo
 - ✅ Sessions API: DELETE /api/sessions revoca sesión por sessionId
 - ✅ Notifications API hardening: try/catch, Promise.all, param ?unread=true
 - ✅ Autodeploy Vercel configurado: rama `main` → deploy automático
@@ -179,8 +179,8 @@ Solo falta configurar en Vercel:
 2. Registrar `https://gestios.app/api/webhooks/whatsapp` en Meta Business Dashboard
 3. Al activar el addon para un tenant: guardar su `phoneNumberId` en `OrgAddon.phoneNumberId`
 
-### Facturación SIAT Bolivia
-Integración con el SIN Bolivia. Requiere investigar intermediario (Nube Fiscal, FacturAPI) o API directa del SIN.
+### Facturacion electronica
+Retirada del alcance comercial actual. No exponer SIAT como plan, add-on ni promesa de venta.
 
 ### Pagos QR Bolivia ✅ Upload personal implementado — requiere PSP para QR automático
 Dos modos:
@@ -199,7 +199,7 @@ Storefront público en `/{slug}/tienda`. La DB ya soporta productos con variante
 
 - [x] **Tests** — 284 tests passing. 15 test files: `rate-limit.test.ts`, `monitoring.test.ts`, `plans.test.ts`, `plans-addons.test.ts`, `permissions.test.ts`, `currency.test.ts`, `staff.test.ts`, `orders-logic.test.ts`, `products-customers.test.ts`, `audit.test.ts`, `tienda-security.test.ts`, `email.test.ts`, `billing-qr.test.ts`, `purchase-orders.test.ts` (28 tests), `accounting-export.test.ts` (27 tests).
 - [x] **Tests completados** — `purchase-orders.test.ts` (28 tests), `accounting-export.test.ts` (27 tests) — suma 55 nuevos tests
-- [x] **Cron jobs en Vercel** — confirmado en `vercel.json` (7 jobs).
+- [x] **Cron jobs en Vercel** — confirmado en `vercel.json` (6 jobs; SIAT retirado).
 - [x] **Rate limiting** — aplicado en 7 endpoints: `/api/setup`, `/api/team`, `/api/payments`, `/api/products`, `/api/orders`, `/api/registro`, `/api/tienda/checkout`. Cleanup automático cada 60s.
 - [x] **Transacciones atómicas en órdenes** — `prisma.$transaction([create, ...decrements])`.
 - [x] **Error monitoring (fase 1)** — `reportAsyncError()` en rutas críticas.
@@ -225,8 +225,8 @@ Storefront público en `/{slug}/tienda`. La DB ya soporta productos con variante
    ⚠ Requiere bucket `product-images` en Supabase Storage (crear en dashboard, visibility: public)
 7. ✅ Barcode scanner en POS — input de escaneo, busca por barcode o SKU, agrega al carrito directamente (2026-04-29)
 8. ✅ Filtro por sucursal en reportes — param branchId en backend + selector de sucursal en UI (2026-04-29)
-9. ✅ Facturación SIAT Bolivia — scaffold completo (schema, lib, API, cron). Requiere NIT del cliente + intermediario (FacturAPI Bolivia recomendado). Ver `docs/SIAT-BOLIVIA.md`
-10. ✅ Pagos QR Bolivia — scaffold completo (schema, lib, API, cron). Requiere PSP externo + env vars. Ver `docs/QR-BOLIVIA.md`
+9. ⛔ Facturacion electronica/SIAT — retirado del alcance comercial; rutas devuelven 410 y no hay cron productivo.
+10. ✅ Pagos QR Bolivia — QR personal implementado; PSP externo queda opcional si se contrata proveedor.
 11. ✅ E-commerce storefront — `/{slug}/tienda` catálogo público + carrito + checkout (2026-04-29)
 12. ✅ Emails automáticos — Brevo configurado, 12 tipos de email, logging en DB, rate limiting 280/día (2026-05-11)
     - Remitente: `oninteligenciaartificial@gmail.com` (verificado en Brevo)

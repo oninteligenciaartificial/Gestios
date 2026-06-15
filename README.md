@@ -153,7 +153,7 @@ tests/              # Vitest — 411 tests
 | `docs/env-vars-reference.md` | Variables de entorno y donde configurarlas sin exponer secretos |
 | `docs/DENTALGEST_REUSE_AUDIT.md` | Auditoria de funciones utiles portadas desde DentalGest |
 | `docs/QR-BOLIVIA.md` | Pagos QR Bolivia |
-| `docs/SIAT-BOLIVIA.md` | Facturación electrónica SIAT |
+| `docs/SIAT-BOLIVIA.md` | Archivo histórico; SIAT no se vende en el alcance actual |
 | `docs/N8N-SETUP.md` | Workflows n8n |
 | `docs/MONITORING_REPAIR_FLOW.md` | Flujo Sentry/n8n/GitHub Issue/Codex para errores de produccion |
 | `docs/SECURITY_REPORT.md` | Reporte de seguridad |
@@ -198,5 +198,4 @@ const data = await prisma.model.findMany({
 | `/api/cron/inactive-customers` | `0 10 * * *` | Email clientes inactivos (30+ días) |
 | `/api/cron/plan-expiry` | `0 7 * * *` | Alerta y suspensión de planes |
 | `/api/cron/low-stock` | `30 8 * * *` | Alerta stock bajo a admins |
-| `/api/cron/siat-cufd` | `0 6 * * *` | Renueva CUFD para facturación |
 | `/api/cron/expire-qr` | `0 0 * * *` | Expira QRs de pago vencidos |

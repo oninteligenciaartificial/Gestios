@@ -79,7 +79,6 @@ WHERE id = '<organizationId>';
 | Email marketing (12 tipos) | — | — | ✅ | ✅ |
 | Sucursales múltiples | — | — | — | ✅ |
 | Audit Log | — | — | — | ✅ |
-| Facturación SIAT | — | — | — | ✅ |
 | Roles avanzados | — | — | — | ✅ |
 | Export contable | — | — | — | ✅ |
 
@@ -127,13 +126,9 @@ Pasos para activar para un cliente:
 - `WHATSAPP_APP_SECRET` / `WA_APP_SECRET`
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN` / `WA_VERIFY_TOKEN`
 
-### Facturación SIAT Bolivia
+### Facturacion electronica
 
-**Estado**: Scaffold completo. Requiere contrato con intermediario.
-
-- Requiere NIT del cliente
-- Requiere contratar intermediario: FacturAPI Bolivia o Nube Fiscal
-- Ver `docs/SIAT-BOLIVIA.md` para detalles
+**Estado**: Fuera de alcance para pilotos pagos. No ofrecer SIAT ni facturacion electronica.
 
 ### Pagos QR Bolivia (upload personal)
 
@@ -219,7 +214,7 @@ Para confirmar que el cliente está operativo:
 ## 8. Restricciones del piloto
 
 - Import/export: **solo CSV** (no XLSX)
-- Integraciones externas activas solo con credenciales reales: SIAT, QR PSP y WhatsApp Business API
+- Integraciones externas activas solo con credenciales reales: QR PSP y WhatsApp Business API
 - Upstash Redis no configurado: rate limiting en memoria (suficiente para piloto, no para escala)
 - E2E con creación de pedidos reales requiere `E2E_CREATE_ORDERS=true` — no correr en producción por defecto
 

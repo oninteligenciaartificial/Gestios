@@ -146,7 +146,7 @@ export const Scene1Welcome: React.FC = () => {
           justifyContent: 'center',
         }}
       >
-        {['Inventario', 'Ventas POS', 'Reportes', 'Facturación SIAT'].map((label) => (
+        {['Inventario', 'Ventas POS', 'Reportes', 'Pagos BCP'].map((label) => (
           <div
             key={label}
             style={{

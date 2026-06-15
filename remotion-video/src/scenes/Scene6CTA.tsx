@@ -9,7 +9,7 @@ const features = [
   "CRM de clientes",
   "Reportes avanzados",
   "WhatsApp integrado",
-  "Facturación SIAT",
+  "Pagos BCP",
 ];
 
 export const Scene6CTA = () => {

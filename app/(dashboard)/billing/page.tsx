@@ -5,7 +5,7 @@ import { PLAN_META, PLAN_PRICES_BOB, ADDON_META, type PlanType } from "@/lib/pla
 import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2, Zap, X, Building2 } from "lucide-react";
 
 const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
-const ALL_ADDONS = ["WHATSAPP", "FACTURACION", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"] as const;
+const ALL_ADDONS = ["WHATSAPP", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"] as const;
 type AddonType = typeof ALL_ADDONS[number];
 const WA_NUMBER = "59175470140";
 const BANK_DATA = {
@@ -29,12 +29,11 @@ const ALL_FEATURES: Feat[] = [
   { label: "Tienda Online", plans: C }, { label: "Registro Público", plans: C },
   { label: "Pagos QR Bolivia", plans: C }, { label: "Email marketing", plans: C }, { label: "Garantías", plans: C },
   { label: "Sucursales múltiples", plans: D }, { label: "Auditoría (Audit Log)", plans: D },
-  { label: "Facturación SIAT", plans: D }, { label: "Roles avanzados", plans: D },
+  { label: "Roles avanzados", plans: D },
 ];
 
 const ADDON_WA_MSG: Record<AddonType, string> = {
   WHATSAPP:    `Hola! Me interesa activar el add-on *WhatsApp Business* (${ADDON_META.WHATSAPP.price}) en GestiOS. ¿Cómo procedo?`,
-  FACTURACION: "Hola! Me interesa el add-on de *Facturación SIAT* para Bolivia en GestiOS. ¿Cuándo estará disponible?",
   QR_BOLIVIA:  `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
   ECOMMERCE:   `Hola! Me interesa el add-on de *E-commerce* (${ADDON_META.ECOMMERCE.price}) en GestiOS. ¿Cómo procedo?`,
   CONTABILIDAD:`Hola! Quiero activar la *Exportación Contable* (${ADDON_META.CONTABILIDAD.price}) en GestiOS. ¿Cómo procedo?`,
@@ -244,7 +243,7 @@ export default function BillingPage() {
       <header className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Facturación y Plan</h1>
-          <p className="text-brand-muted mt-1 text-sm">Elige tu plan y coordina el pago por WhatsApp</p>
+          <p className="text-brand-muted mt-1 text-sm">Elige tu plan y paga por transferencia BCP con referencia</p>
         </div>
       </header>
 
@@ -328,21 +327,21 @@ export default function BillingPage() {
               onClick={openWhatsApp}
               className="w-full py-3 rounded-xl bg-[#25D366] hover:bg-[#20b858] text-white font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(37,211,102,0.25)] hover:shadow-[0_0_30px_rgba(37,211,102,0.4)]"
             >
-              <MessageCircle size={18} /> Solicitar Plan {PLAN_META[selectedPlan].label} por WhatsApp
+              <MessageCircle size={18} /> Consultar Plan {PLAN_META[selectedPlan].label} por WhatsApp
             </button>
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-white/10" />
-              <span className="text-xs text-brand-muted">o paga con QR</span>
+              <span className="text-xs text-brand-muted">QR automatico con PSP</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
             <button
               onClick={generateQrPayment}
-              disabled={generatingQr}
-              className="w-full py-3 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] disabled:opacity-50"
+              disabled={true || generatingQr}
+              className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-brand-muted font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-not-allowed"
             >
-              <QrCode size={18} /> {generatingQr ? "Generando QR..." : `Pagar Bs. ${total.toLocaleString("es-BO")} con QR`}
+              <QrCode size={18} /> QR automatico requiere proveedor configurado
             </button>
 
             <div className="flex items-center gap-3">
@@ -360,7 +359,7 @@ export default function BillingPage() {
               {transferLoading ? "Generando referencia..." : `Pagar Bs. ${total.toLocaleString("es-BO")} por transferencia`}
             </button>
             <p className="text-xs text-brand-muted text-center">
-              Transferencia interbancaria · activación en 24-48h
+              Transferencia BCP con referencia · activacion automatica si llega la confirmacion bancaria
             </p>
           </div>
 
@@ -403,7 +402,7 @@ export default function BillingPage() {
             <div className="glass-panel rounded-2xl p-5 text-center space-y-2">
               <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center mx-auto"><X size={24} className="text-red-400" /></div>
               <h3 className="text-lg font-bold text-white">Error al generar QR</h3>
-              <p className="text-sm text-brand-muted">No se pudo generar el QR. Usa WhatsApp para coordinar el pago.</p>
+              <p className="text-sm text-brand-muted">No se pudo generar el QR. Usa transferencia BCP con referencia.</p>
               <button onClick={() => setQrStatus("pending")} className="text-brand-kinetic-orange text-sm font-bold">Intentar nuevamente</button>
             </div>
           )}
@@ -459,7 +458,7 @@ export default function BillingPage() {
           <ol className="space-y-3 text-sm text-white/80">
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-              <span>Haz clic en &quot;Solicitar por WhatsApp&quot; — el mensaje ya viene listo con tu plan y monto.</span>
+              <span>Genera la referencia de transferencia BCP desde el boton de pago bancario.</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
@@ -467,7 +466,7 @@ export default function BillingPage() {
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-              <span>Mándanos el comprobante por WhatsApp. Activamos tu plan en menos de 24 horas.</span>
+              <span>Incluye la referencia exacta en la glosa. Si BCP envia la confirmacion, n8n activa el plan automaticamente; si no, soporte puede revisarlo.</span>
             </li>
           </ol>
 
@@ -643,8 +642,8 @@ export default function BillingPage() {
                           <div>
                             <p className="text-sm text-white font-medium">QR Bolivia con NIT</p>
                             <p className="text-xs text-brand-muted mt-1">
-                              Si tu negocio tiene NIT, podemos conectarte con los mejores proveedores de QR en Bolivia
-                              (QR Switch, Tigo Money, BiPago). Te guiamos en todo el proceso.
+                              Si tu negocio tiene NIT, podemos ayudarte a evaluar proveedores QR disponibles en Bolivia.
+                              La activacion depende del contrato, API y credenciales del proveedor elegido.
                             </p>
                             <button
                               onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hola! Tengo NIT y quiero activar el addon de Pagos QR Bolivia en GestiOS. ¿Me pueden guiar con las opciones disponibles?")}`, "_blank")}

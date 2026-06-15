@@ -100,7 +100,7 @@ Para el batch actual no se requieren migraciones ni cambios de variables. Rollba
 ### Corto plazo
 
 - Agregar token de tracking no secuencial a `/api/pedido/[id]`.
-- Validar URL explicita para SIAT y documentar proveedor real.
+- Mantener SIAT/facturacion electronica fuera del producto vendible.
 - Revisar RLS/policies reales en Supabase fuera del repo.
 - Completar auditoria de accesibilidad/touch targets en modulos POS, tienda, clientes y checkout.
 - Ejecutar E2E con creacion real de pedido solo contra tienda sandbox y con rollback definido.
@@ -117,5 +117,5 @@ Para el batch actual no se requieren migraciones ni cambios de variables. Rollba
 
 - Supabase real: policies/RLS y datos productivos no se validan desde el repo.
 - Upstash/Sentry/n8n: requieren credenciales y paneles reales.
-- WhatsApp, SIAT y QR Bolivia: dependen de proveedores y credenciales reales.
+- WhatsApp y QR Bolivia con PSP: dependen de proveedores y credenciales reales.
 - E2E con escritura real: requiere sandbox y plan de limpieza.

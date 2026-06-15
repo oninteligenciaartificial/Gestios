@@ -90,8 +90,9 @@ describe("ADDON_META", () => {
     expect(ADDON_META.WHATSAPP.comingSoon).toBeUndefined();
   });
 
-  it("FACTURACION is comingSoon", () => {
+  it("FACTURACION is retired from the commercial product", () => {
     expect(ADDON_META.FACTURACION.comingSoon).toBe(true);
+    expect(ADDON_META.FACTURACION.price).toBe("No disponible");
   });
 
   it("QR_BOLIVIA is comingSoon", () => {
@@ -128,6 +129,13 @@ describe("canUseFeature â€” extended", () => {
   it("PRO can use pagos_qr", () => {
     expect(canUseFeature("CRECER", "pagos_qr")).toBe(false);
     expect(canUseFeature("PRO", "pagos_qr")).toBe(true);
+  });
+
+  it("facturacion_siat is disabled for every plan", () => {
+    expect(canUseFeature("BASICO", "facturacion_siat")).toBe(false);
+    expect(canUseFeature("CRECER", "facturacion_siat")).toBe(false);
+    expect(canUseFeature("PRO", "facturacion_siat")).toBe(false);
+    expect(canUseFeature("EMPRESARIAL", "facturacion_siat")).toBe(false);
   });
 });
 

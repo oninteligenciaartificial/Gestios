@@ -100,7 +100,7 @@ Ver carpeta `docs/`:
 - `BREVO-SETUP.md` — configuración de Brevo
 - `EMAIL-MIGRATION-GUIDE.md` — migrar a dominio propio
 - `QR-BOLIVIA.md` — pagos QR Bolivia
-- `SIAT-BOLIVIA.md` — facturación electrónica
+- `SIAT-BOLIVIA.md` — archivo historico; SIAT retirado
 - `ONBOARDING_FLOW.md` — flujo de registro
 - `NEXT_STEPS.md` — tareas pendientes
 - `PLAN.md` — plan de trabajo

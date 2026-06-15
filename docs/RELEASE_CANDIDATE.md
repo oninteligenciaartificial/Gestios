@@ -13,7 +13,7 @@ Ultima preparacion de deploy: 2026-06-12.
 - Build local documentado como verde.
 - Import/export de plan piloto queda CSV-only.
 - Soporte XLSX removido del objetivo de esta release pilot; no se promete XLSX a clientes piloto.
-- SIAT, QR Bolivia/PSP externo y WhatsApp quedan condicionados a credenciales/proveedor reales.
+- SIAT/facturacion electronica queda fuera del alcance comercial; QR Bolivia/PSP externo y WhatsApp quedan condicionados a credenciales/proveedor reales.
 - Hardening P1 aplicado en import legacy, import/export CSV, QR upload, batch inventory y checkout publico.
 
 ## Estado de gates
@@ -75,7 +75,7 @@ El release candidate puede avanzar a piloto pago con clientes controlados si el 
 
 - Importaciones y exportaciones solo CSV.
 - Sin promesa de XLSX durante el piloto.
-- Integraciones externas dependen de configuracion real: SIAT, proveedor QR/PSP y WhatsApp Business API.
+- Integraciones externas dependen de configuracion real: proveedor QR/PSP y WhatsApp Business API.
 - Monitoreo activo de errores y feedback durante onboarding.
 
 ## Bloqueos para release publico masivo
@@ -89,7 +89,7 @@ El release candidate puede avanzar a piloto pago con clientes controlados si el 
 - Validar Upstash/Redis para rate limiting distribuido; sin eso el fallback en memoria no es suficiente para release masivo.
 - Definir cifrado/rotacion para secretos tenant-scoped guardados en DB antes de escalar integraciones reales.
 - Rotar credencial superadmin anterior si alguna vez fue usada en Supabase real.
-- Confirmar copy comercial sin promesas de SIAT/QR/WhatsApp/XLSX no habilitadas.
+- Confirmar copy comercial sin promesas de QR/WhatsApp/XLSX no habilitadas; SIAT no se vende.
 - Ejecutar prueba real de Google OAuth en `gestioshq.app` con usuario existente y usuario nuevo; el repo ya rescata callbacks OAuth mal dirigidos a `/`.
 
 ## Decision

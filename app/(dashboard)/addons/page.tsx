@@ -7,21 +7,20 @@ import { ADDON_META } from "@/lib/plans";
 
 const WA_NUMBER = "59175470140";
 const ADDON_WA_MSG: Record<string, string> = {
-  WHATSAPP:    "Hola! Me interesa activar el add-on *WhatsApp Business* ($40/mes) en GestiOS. ¿Cómo procedo?",
-  FACTURACION: "Hola! Me interesa el add-on de *Facturación SIAT* para Bolivia en GestiOS. ¿Cuándo estará disponible?",
-  QR_BOLIVIA: "Hola! Quiero activar el add-on de *Pagos QR Bolivia* ($15/mes) en GestiOS. ¿Cómo procedo?",
-  ECOMMERCE:   "Hola! Me interesa el add-on de *E-commerce* ($20/mes) en GestiOS para conectar mi tienda online. ¿Cómo procedo?",
-  CONTABILIDAD:"Hola! Quiero activar la *Exportación Contable* ($18/mes) en GestiOS. ¿Cómo procedo?",
+  WHATSAPP:    `Hola! Me interesa activar el add-on *WhatsApp Business* (${ADDON_META.WHATSAPP.price}) en GestiOS. ¿Cómo procedo?`,
+  QR_BOLIVIA: `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
+  ECOMMERCE:   `Hola! Me interesa el add-on de *E-commerce* (${ADDON_META.ECOMMERCE.price}) en GestiOS para conectar mi tienda online. ¿Cómo procedo?`,
+  CONTABILIDAD:`Hola! Quiero activar la *Exportación Contable* (${ADDON_META.CONTABILIDAD.price}) en GestiOS. ¿Cómo procedo?`,
 };
 
-type AddonType = "WHATSAPP" | "FACTURACION" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD";
+type AddonType = "WHATSAPP" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD";
 
 interface OrgAddon {
   addon: AddonType;
   active: boolean;
 }
 
-const ALL_ADDONS: AddonType[] = ["WHATSAPP", "FACTURACION", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"];
+const ALL_ADDONS: AddonType[] = ["WHATSAPP", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"];
 
 export default function AddonsPage() {
   const [addons, setAddons] = useState<OrgAddon[]>([]);
@@ -59,7 +58,7 @@ export default function AddonsPage() {
       {upgradeMsg && (
         <div className="glass-panel border border-brand-kinetic-orange/30 rounded-2xl p-4">
           <p className="text-brand-kinetic-orange text-sm font-medium">{upgradeMsg}</p>
-          <p className="text-brand-muted text-xs mt-1">Los add-ons están disponibles desde el plan Crecer ($59/mes).</p>
+          <p className="text-brand-muted text-xs mt-1">Los add-ons están disponibles desde el plan Crecer (Bs. 530/mes).</p>
         </div>
       )}
 

@@ -10,7 +10,7 @@ Sentry es muy util para GestiOS porque el producto ya esta en piloto pago y tien
 
 - checkout publico, pedidos, POS y stock;
 - auth, impersonation y multi-tenant;
-- QR Bolivia, SIAT, WhatsApp, cron jobs y emails;
+- QR Bolivia, WhatsApp, cron jobs y emails;
 - errores de navegador que el cliente no sabe describir;
 - errores server-side en API routes y server components;
 - regresiones por release, porque el SDK usa `VERCEL_GIT_COMMIT_SHA` como release.
@@ -65,7 +65,7 @@ Crear alertas:
 | Frecuencia alta | mismo issue `>= 5` veces en 10 min | Email + GitHub issue |
 | Usuarios afectados | `>= 2` usuarios en 30 min | Email + GitHub issue |
 | Checkout/POS | tag/scope contiene `checkout`, `orders`, `pos`, `billing`, `qr` | Email inmediato |
-| Cron/webhook | scope contiene `cron`, `webhook`, `siat`, `whatsapp` | Email inmediato |
+| Cron/webhook | scope contiene `cron`, `webhook`, `whatsapp` | Email inmediato |
 
 Configurar acciones:
 

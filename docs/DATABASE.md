@@ -186,7 +186,7 @@ Items dentro de una orden de compra.
 ---
 
 ### Invoice (`invoices`)
-Facturas electrónicas SIAT (plan EMPRESARIAL con addon FACTURACION).
+Modelo historico de facturacion electronica. SIAT esta retirado del alcance comercial actual.
 
 | Campo | Tipo | Notas |
 |---|---|---|

@@ -117,7 +117,8 @@ Si un comando falla, no se declara terminado. Se registra:
 - Emails siempre fire-and-forget con `.catch(() => {})`.
 - Zod 4: `z.record(z.string(), valueType)`.
 - Next.js 16: leer `node_modules/next/dist/docs/` antes de cambiar routing, config, server/client boundaries, `Link`, build o Turbopack.
-- SIAT, PSP QR Bolivia y WhatsApp Business requieren credenciales/proveedores reales; si faltan, se documenta como configuracion pendiente.
+- PSP QR Bolivia y WhatsApp Business requieren credenciales/proveedores reales; si faltan, se documenta como configuracion pendiente.
+- SIAT/facturacion electronica esta fuera del alcance comercial actual y no debe exponerse como feature vendible.
 
 ## Formato de reporte de cada agente
 
