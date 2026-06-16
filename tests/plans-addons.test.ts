@@ -90,6 +90,11 @@ describe("ADDON_META", () => {
     expect(ADDON_META.WHATSAPP.comingSoon).toBeUndefined();
   });
 
+  it("INVENTARIO_AVANZADO is commercially available", () => {
+    expect(ADDON_META.INVENTARIO_AVANZADO.price).toBe("Bs. 120/mes");
+    expect(ADDON_META.INVENTARIO_AVANZADO.comingSoon).toBeUndefined();
+  });
+
   it("FACTURACION is retired from the commercial product", () => {
     expect(ADDON_META.FACTURACION.comingSoon).toBe(true);
     expect(ADDON_META.FACTURACION.price).toBe("No disponible");

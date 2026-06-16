@@ -83,6 +83,18 @@ const PUBLIC_ADDONS = [
     price: ADDON_META.QR_BOLIVIA.price,
     description: "QR personal disponible para comercios sin NIT; PSP bancario requiere proveedor configurado.",
   },
+  {
+    key: "inventory-advanced",
+    label: ADDON_META.INVENTARIO_AVANZADO.label,
+    price: ADDON_META.INVENTARIO_AVANZADO.price,
+    description: "Stock multi-ubicacion, reposicion y trazabilidad para negocios con mas rotacion.",
+  },
+  {
+    key: "reports",
+    label: "Reportes gerenciales",
+    price: "A medida",
+    description: "Tableros de ventas, margen y compras adaptados a la operacion del negocio.",
+  },
 ];
 
 function formatPrice(price: number): string {

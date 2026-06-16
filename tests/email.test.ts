@@ -238,6 +238,33 @@ describe("email types", () => {
     );
   });
 
+  it("order emails should render totals in BOB", async () => {
+    const { sendOrderConfirmation, sendNewOrderAlert } = await import("@/lib/email");
+
+    await sendOrderConfirmation({
+      to: "customer@example.com",
+      customerName: "Customer",
+      orgName: "Test Org",
+      orderId: "cm1234567890",
+      items: [{ name: "Product", quantity: 1, unitPrice: 100 }],
+      total: 100,
+      paymentMethod: "EFECTIVO",
+    });
+    await sendNewOrderAlert({
+      to: "admin@example.com",
+      orgName: "Test Org",
+      orderId: "cm1234567890",
+      customerName: "Customer",
+      total: 150,
+      items: [{ name: "Product", quantity: 3, unitPrice: 50 }],
+      paymentMethod: "EFECTIVO",
+    });
+
+    const htmlPayloads = mockResendSend.mock.calls.map(([payload]) => payload.html).join("\n");
+    expect(htmlPayloads).toContain("Bs.");
+    expect(htmlPayloads).not.toMatch(/\$[0-9]/);
+  });
+
   it("sendOrderStatusUpdate should log with type 'order_status_update'", async () => {
     const { sendOrderStatusUpdate } = await import("@/lib/email");
     await sendOrderStatusUpdate({ to: "customer@example.com", customerName: "Customer", orgName: "Test Org", orderId: "cm1234567890", status: "ENTREGADO" });

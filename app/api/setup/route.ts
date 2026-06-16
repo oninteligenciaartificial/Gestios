@@ -3,12 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { sendWelcomeEmail } from "@/lib/email";
+import { BUSINESS_TYPES } from "@/lib/business-types";
 import { z } from "zod";
 
 const schema = z.object({
   organizationName: z.string().min(1).max(100),
   userName: z.string().min(1).max(100),
-  businessType: z.enum(["GENERAL", "ROPA", "SUPLEMENTOS", "ELECTRONICA", "FARMACIA", "FERRETERIA"]).optional(),
+  businessType: z.enum(BUSINESS_TYPES).optional(),
   authUserId: z.string().optional(),
   email: z.string().email().optional(),
 });

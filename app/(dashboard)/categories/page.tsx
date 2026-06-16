@@ -21,6 +21,7 @@ const btColors: Record<string, string> = {
   SUPLEMENTOS: "bg-green-500/15 text-green-400",
   ELECTRONICA: "bg-blue-500/15 text-blue-400",
   FARMACIA: "bg-red-500/15 text-red-400",
+  DENTAL: "bg-cyan-500/15 text-cyan-300",
   FERRETERIA: "bg-yellow-500/15 text-yellow-400",
 };
 

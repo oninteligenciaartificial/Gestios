@@ -4,6 +4,7 @@ import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canUseFeature, planGateError } from "@/lib/plans";
 import { sendLowStockAlert } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST() {
@@ -35,6 +36,15 @@ export async function POST() {
     to: user.email!,
     orgName: org?.name ?? "Tu Tienda",
     products: lowStock,
+  });
+
+  await createNotification({
+    organizationId: profile.organizationId,
+    type: "stock_bajo",
+    title: "Alerta de stock bajo enviada",
+    body: `${lowStock.length} producto(s) necesitan reabastecimiento`,
+    link: "/inventory",
+    userId: user.id,
   });
 
   return NextResponse.json({ sent: true, count: lowStock.length });

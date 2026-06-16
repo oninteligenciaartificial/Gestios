@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmation, sendNewOrderAlert } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasPermission } from "@/lib/permissions";
 import { checkOrgRateLimit } from "@/lib/rate-limit";
@@ -222,6 +223,23 @@ export async function POST(request: Request) {
   const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
   const orgName = org?.name ?? "Tu Tienda";
   const orderItems = order.items.map(i => ({ name: i.product.name, quantity: i.quantity, unitPrice: Number(i.unitPrice) }));
+  const formattedTotal = Number(order.total).toLocaleString("es-BO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  createNotification({
+    organizationId: profile.organizationId,
+    type: "nuevo_pedido",
+    title: "Nuevo pedido recibido",
+    body: `${order.customerName} - Bs. ${formattedTotal}`,
+    link: `/ventas/${order.id}`,
+  }).catch((error) => {
+    reportAsyncError("api.orders.createNotification", error, {
+      orderId: order.id,
+      organizationId: profile.organizationId,
+    });
+  });
 
   // Confirmation email to customer
   const customerEmail = order.customer?.email;

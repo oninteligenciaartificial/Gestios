@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { Pill, Shirt, ShoppingBag, Store, Wrench, Zap } from "lucide-react";
+import { HeartPulse, Pill, Shirt, ShoppingBag, Store, Wrench, Zap } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { PublicShell } from "@/components/PublicShell";
 import { createClient } from "@/lib/supabase/client";
@@ -16,6 +16,7 @@ const BUSINESS_ICONS: Record<BusinessType, React.ReactNode> = {
   SUPLEMENTOS: <ShoppingBag size={28} />,
   ELECTRONICA: <Zap size={28} />,
   FARMACIA: <Pill size={28} />,
+  DENTAL: <HeartPulse size={28} />,
   FERRETERIA: <Wrench size={28} />,
 };
 
@@ -25,6 +26,7 @@ const BUSINESS_DESCRIPTIONS: Record<BusinessType, string> = {
   SUPLEMENTOS: "Sabores y pesos para suplementos deportivos.",
   ELECTRONICA: "Capacidad y color para dispositivos y accesorios.",
   FARMACIA: "Presentaciones y dosis para medicamentos.",
+  DENTAL: "Insumos, materiales y stock operativo para clinicas dentales.",
   FERRETERIA: "Medidas y materiales para herramientas.",
 };
 
@@ -36,6 +38,7 @@ const VARIANT_LABELS: Record<string, string> = {
   capacidad: "Capacidades",
   presentacion: "Presentaciones",
   dosis: "Dosis",
+  area: "Areas",
   medida: "Medidas",
   material: "Materiales",
 };

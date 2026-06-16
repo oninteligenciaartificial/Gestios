@@ -42,6 +42,13 @@ const PRODUCT_TEMPLATES: Record<BusinessType, Array<{ name: string; price: numbe
     { name: "Omeprazol 20mg x14", price: 28, cost: 12, stock: 50, minStock: 10, sku: "OME-001", unit: "caja" },
     { name: "Vitamina C 1000mg x30", price: 45, cost: 20, stock: 3, minStock: 8, sku: "VIT-001", unit: "frasco" },
   ],
+  DENTAL: [
+    { name: "Guantes de Nitrilo x100", price: 65, cost: 42, stock: 18, minStock: 6, sku: "DEN-GUA-001", unit: "caja" },
+    { name: "Resina Compuesta A2 4g", price: 95, cost: 58, stock: 10, minStock: 3, sku: "DEN-RES-001", unit: "jeringa" },
+    { name: "Anestesia Lidocaina Cartucho", price: 8, cost: 4, stock: 80, minStock: 20, sku: "DEN-ANE-001", unit: "cartucho" },
+    { name: "Mascarillas Quirurgicas x50", price: 38, cost: 22, stock: 25, minStock: 8, sku: "DEN-MAS-001", unit: "caja" },
+    { name: "Acido Fosforico Gel 37%", price: 42, cost: 24, stock: 2, minStock: 5, sku: "DEN-ACI-001", unit: "jeringa" },
+  ],
   FERRETERIA: [
     { name: "Tornillo 3/8\" x100", price: 25, cost: 10, stock: 60, minStock: 15, sku: "TOR-001", unit: "caja" },
     { name: "Cable Electrico 2.5mm 100m", price: 180, cost: 90, stock: 12, minStock: 3, sku: "CAB-001", unit: "rollo" },
@@ -74,6 +81,7 @@ export async function generateSampleData({ organizationId, businessType }: Sampl
     SUPLEMENTOS: ["Proteinas", "Vitaminas", "Pre-Entreno"],
     ELECTRONICA: ["Audio", "Cables", "Accesorios"],
     FARMACIA: ["Analgésicos", "Antibióticos", "Vitaminas"],
+    DENTAL: ["Bioseguridad", "Operatoria", "Anestesia", "Ortodoncia"],
     FERRETERIA: ["Tornilleria", "Electricidad", "Herramientas"],
   };
 

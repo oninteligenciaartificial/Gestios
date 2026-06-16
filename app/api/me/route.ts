@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { BUSINESS_TYPES } from "@/lib/business-types";
 import { z } from "zod";
 
 export async function GET() {
@@ -44,7 +45,7 @@ const patchSchema = z.object({
   orgRfc: z.string().optional(),
   orgLogoUrl: z.string().optional(),
   orgCurrency: z.string().optional(),
-  orgBusinessType: z.enum(["GENERAL", "ROPA", "SUPLEMENTOS", "ELECTRONICA", "FARMACIA", "FERRETERIA"] as const).optional(),
+  orgBusinessType: z.enum(BUSINESS_TYPES).optional(),
 });
 
 export async function PATCH(request: Request) {

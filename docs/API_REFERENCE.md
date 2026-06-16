@@ -30,7 +30,7 @@ Actualiza perfil y/o organización.
   "orgRfc": "string",
   "orgLogoUrl": "string",
   "orgCurrency": "string",
-  "orgBusinessType": "GENERAL|ROPA|SUPLEMENTOS|ELECTRONICA|FARMACIA|FERRETERIA"
+  "orgBusinessType": "GENERAL|ROPA|SUPLEMENTOS|ELECTRONICA|FARMACIA|DENTAL|FERRETERIA"
 }
 ```
 

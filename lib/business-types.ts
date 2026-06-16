@@ -4,6 +4,7 @@ export const BUSINESS_TYPES = [
   "SUPLEMENTOS",
   "ELECTRONICA",
   "FARMACIA",
+  "DENTAL",
   "FERRETERIA",
 ] as const;
 
@@ -15,6 +16,7 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   SUPLEMENTOS: "Suplementos Deportivos",
   ELECTRONICA: "Electrónica",
   FARMACIA:    "Farmacia / Salud",
+  DENTAL:       "Clinica Dental / Consultorio",
   FERRETERIA:  "Ferretería / Construcción",
 };
 
@@ -27,6 +29,7 @@ export const BUSINESS_TYPE_SCHEMAS: Record<BusinessType, AttributeSchema> = {
   SUPLEMENTOS: { sabor: [], peso: ["1lb", "2lb", "5lb", "10lb", "15lb"] },
   ELECTRONICA: { capacidad: [], color: [] },
   FARMACIA:    { presentacion: ["Caja", "Frasco", "Blíster", "Ampolla", "Sobre"], dosis: [] },
+  DENTAL:       { presentacion: ["Caja", "Frasco", "Unidad", "Kit", "Paquete"], area: ["Bioseguridad", "Operatoria", "Ortodoncia", "Endodoncia", "Limpieza"] },
   FERRETERIA:  { medida: [], material: [] },
 };
 

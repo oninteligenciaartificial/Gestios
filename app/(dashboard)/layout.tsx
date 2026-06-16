@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -8,6 +9,7 @@ import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { OnboardingTour } from "@/components/dashboard/OnboardingTour";
 import { DashboardThemeProvider } from "@/components/dashboard/DashboardThemeProvider";
+import { SuiteBridgeBanner } from "@/components/dashboard/SuiteBridgeBanner";
 import { canUseFeature, isPlanAtLeast, FEATURE_PLAN, type PlanType } from "@/lib/plans";
 import { getBusinessUI, type BusinessUIConfig } from "@/lib/business-ui";
 import type { BusinessType } from "@/lib/business-types";
@@ -106,6 +108,7 @@ export default async function DashboardLayout({
 
   const tenantLinks = [
     { href: "/dashboard", label: "Dashboard" },
+    { href: "/notifications", label: "Notificaciones" },
     { href: "/pos", label: "Punto de Venta" },
     { href: "/ventas", label: "Ventas" },
     { href: "/inventory", label: ui.sidebarLabels.inventory },
@@ -127,6 +130,7 @@ export default async function DashboardLayout({
     : []),
     ...(!isImpersonating ? [{ href: "/settings", label: "Configuracion" }] : []),
     ...(!isImpersonating ? [{ href: "/help", label: "Ayuda" }] : []),
+    ...(!isImpersonating ? [{ href: "/support", label: "Soporte" }] : []),
   ];
 
   const navLinks = isSuperAdmin ? [...superAdminLinks, ...externalLinks] : tenantLinks;
@@ -168,6 +172,11 @@ export default async function DashboardLayout({
         )}
         {isImpersonating && impersonateOrgName && (
           <ImpersonationBanner orgName={impersonateOrgName} />
+        )}
+        {!isSuperAdmin && (
+          <Suspense fallback={null}>
+            <SuiteBridgeBanner />
+          </Suspense>
         )}
         <CommandPalette />
         {!isSuperAdmin && <OnboardingTour />}

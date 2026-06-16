@@ -123,6 +123,13 @@ const PAYMENT_LABELS: Record<string, string> = {
   TRANSFERENCIA: "Transferencia",
 };
 
+function formatBob(amount: number) {
+  return `Bs. ${Number(amount).toLocaleString("es-BO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 // =============================================
 // Core email functions with logging
 // =============================================
@@ -260,7 +267,7 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
     `<tr>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${i.quantity}</td>
-      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">$${Number(i.unitPrice).toLocaleString("es-MX")}</td>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">${formatBob(i.unitPrice)}</td>
     </tr>`
   ).join("");
 
@@ -276,7 +283,7 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
       ${itemsHtml}
       <tr>
         <td colspan="2" style="padding-top:16px;font-weight:700;color:#fff;">Total</td>
-        <td style="padding-top:16px;text-align:right;font-size:18px;font-weight:800;color:#ff6b00;">$${Number(args.total).toLocaleString("es-MX")}</td>
+        <td style="padding-top:16px;text-align:right;font-size:18px;font-weight:800;color:#ff6b00;">${formatBob(args.total)}</td>
       </tr>
     </table>
     <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px 18px;margin-bottom:8px;">
@@ -390,7 +397,7 @@ export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
     `<tr>
       <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
       <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${i.quantity}</td>
-      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">$${Number(i.unitPrice).toLocaleString("es-MX")}</td>
+      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">${formatBob(i.unitPrice)}</td>
     </tr>`
   ).join("");
 
@@ -406,7 +413,7 @@ export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
       ${itemsHtml}
       <tr>
         <td colspan="2" style="padding-top:14px;font-weight:700;color:#fff;">Total</td>
-        <td style="padding-top:14px;text-align:right;font-size:18px;font-weight:800;color:#ff6b00;">$${Number(args.total).toLocaleString("es-MX")}</td>
+        <td style="padding-top:14px;text-align:right;font-size:18px;font-weight:800;color:#ff6b00;">${formatBob(args.total)}</td>
       </tr>
     </table>
     <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px 18px;margin-bottom:8px;">

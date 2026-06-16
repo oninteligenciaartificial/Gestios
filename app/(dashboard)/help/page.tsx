@@ -109,6 +109,8 @@ const plans = [
 ];
 
 const addons = [
+  { name: "Inventario Avanzado", desc: "Stock por ubicacion, reposicion y trazabilidad por lote/serie para operaciones con mas rotacion.", icon: Package, color: "text-brand-kinetic-orange" },
+  { name: "Reportes gerenciales", desc: "Tableros a medida para margen, compras, ventas y control operativo.", icon: BarChart2, color: "text-yellow-400" },
   { name: "WhatsApp Business", desc: "Atención al cliente y notificaciones por WhatsApp. Requiere Meta Business Account.", icon: MessageCircle, color: "text-green-400" },
   { name: "QR Bolivia", desc: "QR personal disponible para cobros. PSP bancario, Tigo Money o BiPago requieren proveedor y credenciales reales.", icon: Store, color: "text-blue-400" },
 ];

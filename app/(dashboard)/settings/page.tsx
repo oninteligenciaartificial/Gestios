@@ -7,7 +7,7 @@ import { User, Building2, Lock, Save, Activity, Link, Copy, Check, CreditCard, R
 import NextLink from "next/link";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 import { BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BUSINESS_TYPE_SCHEMAS } from "@/lib/business-types";
-import { Shirt, Pill, ShoppingBag, Wrench, Zap, Store } from "lucide-react";
+import { HeartPulse, Shirt, Pill, ShoppingBag, Wrench, Zap, Store } from "lucide-react";
 import type { BusinessType } from "@/lib/business-types";
 
 interface Profile {
@@ -46,6 +46,7 @@ const BUSINESS_ICONS: Record<BusinessType, React.ReactNode> = {
   SUPLEMENTOS: <ShoppingBag size={18} />,
   ELECTRONICA: <Zap size={18} />,
   FARMACIA:    <Pill size={18} />,
+  DENTAL:       <HeartPulse size={18} />,
   FERRETERIA:  <Wrench size={18} />,
 };
 

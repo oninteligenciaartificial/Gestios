@@ -15,6 +15,7 @@ Archivo: `lib/business-types.ts`
 | `SUPLEMENTOS` | Suplementos Deportivos |
 | `ELECTRONICA` | Electrónica |
 | `FARMACIA` | Farmacia / Salud |
+| `DENTAL` | Clinica Dental / Consultorio |
 | `FERRETERIA` | Ferretería / Construcción |
 
 ## Schemas de variantes
@@ -47,6 +48,14 @@ color:     []  ← texto libre
 presentacion: [Caja, Frasco, Blíster, Ampolla, Sobre]
 dosis:        []  ← texto libre
 ```
+
+### DENTAL
+```
+presentacion: [Caja, Frasco, Unidad, Kit, Paquete]
+area:         [Bioseguridad, Operatoria, Ortodoncia, Endodoncia, Limpieza]
+```
+
+Uso previsto: modulo operativo complementario de DentalGest. GestiOS controla insumos, stock, compras, proveedores, vencimientos y costos. DentalGest sigue siendo el sistema principal para pacientes, agenda, tratamientos e historia clinica.
 
 ### FERRETERIA
 ```

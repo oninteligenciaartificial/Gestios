@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendOrderStatusUpdate, sendLoyaltyPointsEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 import { hasPermission } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { reportAsyncError } from "@/lib/monitoring";
@@ -12,6 +13,14 @@ const updateSchema = z.object({
   status: z.enum(["PENDIENTE", "CONFIRMADO", "ENVIADO", "ENTREGADO", "CANCELADO"]),
   notes: z.string().optional(),
 });
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDIENTE: "pendiente",
+  CONFIRMADO: "confirmado",
+  ENVIADO: "enviado",
+  ENTREGADO: "entregado",
+  CANCELADO: "cancelado",
+};
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
@@ -110,6 +119,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (statusChanged) {
     const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
     const orgName = org?.name ?? "Tu Tienda";
+    const statusLabel = STATUS_LABELS[result.data.status] ?? result.data.status.toLowerCase();
+
+    createNotification({
+      organizationId: profile.organizationId,
+      type: "pedido_actualizado",
+      title: "Pedido actualizado",
+      body: `${order.customerName} ahora esta ${statusLabel}`,
+      link: `/ventas/${order.id}`,
+    }).catch((error) => {
+      reportAsyncError("api.ordersById.createNotification", error, {
+        orderId: order.id,
+        organizationId: profile.organizationId,
+      });
+    });
 
     if (customerEmail) {
       sendOrderStatusUpdate({

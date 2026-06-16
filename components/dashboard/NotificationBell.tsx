@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Bell, X, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, X } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -32,23 +33,51 @@ function timeAgo(iso: string): string {
 }
 
 const TYPE_COLORS: Record<string, string> = {
+  nuevo_pedido: "text-brand-kinetic-orange",
   stock_bajo: "text-red-400",
   pedido_actualizado: "text-blue-400",
   plan_vence: "text-yellow-400",
   custom: "text-brand-muted",
 };
 
+const PANEL_GAP = 8;
+const PANEL_MARGIN = 8;
+const PANEL_MAX_WIDTH = 352;
+const PANEL_MIN_WIDTH = 288;
+
 export function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<NotifResponse>({ notifications: [], unreadCount: 0 });
+  const [panelPosition, setPanelPosition] = useState({ top: 56, left: 8, width: PANEL_MIN_WIDTH });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const updatePanelPosition = useCallback(() => {
+    const button = buttonRef.current;
+    if (!button || typeof window === "undefined") return;
+
+    const rect = button.getBoundingClientRect();
+    const width = Math.min(PANEL_MAX_WIDTH, Math.max(PANEL_MIN_WIDTH, window.innerWidth - PANEL_MARGIN * 2));
+    const left = Math.min(
+      Math.max(PANEL_MARGIN, rect.right - width),
+      Math.max(PANEL_MARGIN, window.innerWidth - width - PANEL_MARGIN)
+    );
+    const top = Math.min(
+      rect.bottom + PANEL_GAP,
+      Math.max(PANEL_MARGIN, window.innerHeight - PANEL_MARGIN)
+    );
+
+    setPanelPosition({ top, left, width });
+  }, []);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications?limit=10");
       if (res.ok) setData(await res.json() as NotifResponse);
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   }, []);
 
   // Initial fetch + polling every 30s (paused while tab hidden)
@@ -70,12 +99,24 @@ export function NotificationBell() {
     };
   }, [fetchNotifs]);
 
-  // Close on outside click or Escape
+  useEffect(() => {
+    if (!open) return;
+    updatePanelPosition();
+    window.addEventListener("resize", updatePanelPosition);
+    window.addEventListener("scroll", updatePanelPosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePanelPosition);
+      window.removeEventListener("scroll", updatePanelPosition, true);
+    };
+  }, [open, updatePanelPosition]);
+
+  // Close on outside click or Escape.
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      const clickedPanel = panelRef.current?.contains(target);
+      const clickedButton = buttonRef.current?.contains(target);
+      if (!clickedPanel && !clickedButton) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -118,27 +159,20 @@ export function NotificationBell() {
     }));
   }
 
-  return (
-    <div className="relative" ref={panelRef}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="relative w-9 h-9 flex items-center justify-center rounded-xl text-brand-muted hover:text-white hover:bg-white/10 transition-colors"
-        aria-label="Notificaciones"
-        title="Notificaciones"
-        aria-expanded={open}
-        aria-haspopup="true"
-      >
-        <Bell size={18} />
-        {data.unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-kinetic-orange text-black text-[10px] font-bold flex items-center justify-center leading-none">
-            {data.unreadCount > 9 ? "9+" : data.unreadCount}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-11 w-80 bg-[#111] border border-white/10 rounded-2xl shadow-2xl z-[60] overflow-hidden" role="menu" aria-label="Lista de notificaciones">
-          {/* Header */}
+  const notificationPanel = open && typeof document !== "undefined"
+    ? createPortal(
+        <div
+          ref={panelRef}
+          className="fixed bg-[#111] border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden"
+          style={{
+            top: panelPosition.top,
+            left: panelPosition.left,
+            width: panelPosition.width,
+            maxHeight: `calc(100vh - ${panelPosition.top + PANEL_MARGIN}px)`,
+          }}
+          role="menu"
+          aria-label="Lista de notificaciones"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
             <span className="text-sm font-bold text-white">Notificaciones</span>
             <div className="flex items-center gap-2">
@@ -146,9 +180,9 @@ export function NotificationBell() {
                 <button
                   onClick={markAllRead}
                   className="flex items-center gap-1 text-xs text-brand-muted hover:text-white transition-colors"
-                  title="Marcar todas como leídas"
+                  title="Marcar todas como leidas"
                 >
-                  <CheckCheck size={13} /> Todo leído
+                  <CheckCheck size={13} /> Todo leido
                 </button>
               )}
               <button
@@ -162,12 +196,14 @@ export function NotificationBell() {
             </div>
           </div>
 
-          {/* List */}
           <div className="max-h-80 overflow-y-auto">
             {data.notifications.length === 0 ? (
               <div className="py-8 text-center">
                 <Bell size={24} className="text-brand-muted/40 mx-auto mb-2" />
-                <p className="text-sm text-brand-muted">Sin notificaciones nuevas</p>
+                <p className="text-sm text-brand-muted">No tienes notificaciones todavia</p>
+                <p className="text-xs text-brand-muted/60 mt-1 px-6">
+                  Aqui apareceran pedidos, stock bajo y cambios importantes.
+                </p>
               </div>
             ) : (
               data.notifications.slice(0, 10).map((n) => (
@@ -196,9 +232,30 @@ export function NotificationBell() {
               ))
             )}
           </div>
+        </div>,
+        document.body
+      )
+    : null;
 
-        </div>
-      )}
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setOpen((v) => !v)}
+        className="relative w-9 h-9 flex items-center justify-center rounded-xl text-brand-muted hover:text-white hover:bg-white/10 transition-colors"
+        aria-label="Notificaciones"
+        title="Notificaciones"
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        <Bell size={18} />
+        {data.unreadCount > 0 && (
+          <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-brand-kinetic-orange text-black text-[10px] font-bold flex items-center justify-center leading-none">
+            {data.unreadCount > 9 ? "9+" : data.unreadCount}
+          </span>
+        )}
+      </button>
+      {notificationPanel}
     </div>
   );
 }

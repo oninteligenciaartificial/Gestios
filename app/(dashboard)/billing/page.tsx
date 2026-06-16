@@ -5,7 +5,7 @@ import { PLAN_META, PLAN_PRICES_BOB, ADDON_META, type PlanType } from "@/lib/pla
 import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2, Zap, X, Building2 } from "lucide-react";
 
 const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
-const ALL_ADDONS = ["WHATSAPP", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"] as const;
+const ALL_ADDONS = ["WHATSAPP", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD", "INVENTARIO_AVANZADO"] as const;
 type AddonType = typeof ALL_ADDONS[number];
 const WA_NUMBER = "59175470140";
 const BANK_DATA = {
@@ -37,6 +37,7 @@ const ADDON_WA_MSG: Record<AddonType, string> = {
   QR_BOLIVIA:  `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
   ECOMMERCE:   `Hola! Me interesa el add-on de *E-commerce* (${ADDON_META.ECOMMERCE.price}) en GestiOS. ¿Cómo procedo?`,
   CONTABILIDAD:`Hola! Quiero activar la *Exportación Contable* (${ADDON_META.CONTABILIDAD.price}) en GestiOS. ¿Cómo procedo?`,
+  INVENTARIO_AVANZADO:`Hola! Quiero activar *Inventario Avanzado* (${ADDON_META.INVENTARIO_AVANZADO.price}) en GestiOS. Como procedo?`,
 };
 
 const MONTH_DISCOUNT: Record<number, number> = { 1: 0, 3: 5, 6: 10, 12: 15 };
@@ -73,6 +74,8 @@ export default function BillingPage() {
   const [transferModal, setTransferModal] = useState(false);
   const [transferData, setTransferData] = useState<TransferData | null>(null);
   const [transferLoading, setTransferLoading] = useState(false);
+  const [referenceLoading, setReferenceLoading] = useState(false);
+  const [paymentNoticeLoading, setPaymentNoticeLoading] = useState(false);
   const [transferSent, setTransferSent] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -197,7 +200,11 @@ export default function BillingPage() {
 
   async function startBankTransfer() {
     if (pending) {
-      setTransferData(null);
+      setTransferData({
+        reference: pending.reference ?? "",
+        amount: Number(pending.amountBOB),
+        instructions: BANK_DATA,
+      });
       setTransferSent(false);
       setTransferModal(true);
       return;
@@ -232,11 +239,65 @@ export default function BillingPage() {
     }
   }
 
+  async function generatePendingReference() {
+    if (!pending) return;
+    setReferenceLoading(true);
+    try {
+      const res = await fetch("/api/payments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: pending.id }),
+      });
+      const data = await res.json() as PaymentRequest | { error?: string };
+      if (!res.ok || !("reference" in data)) {
+        alert("No se pudo generar la referencia. Intenta nuevamente.");
+        return;
+      }
+
+      setTransferData({
+        reference: data.reference ?? "",
+        amount: Number(data.amountBOB),
+        instructions: BANK_DATA,
+      });
+      const updated = await fetch("/api/payments").then(r => r.json()) as unknown;
+      setRequests(Array.isArray(updated) ? (updated as PaymentRequest[]) : []);
+    } catch {
+      alert("Error de conexión. Intenta nuevamente.");
+    } finally {
+      setReferenceLoading(false);
+    }
+  }
+
+  async function confirmTransferPayment() {
+    if (!pending || !transferReference) return;
+    setPaymentNoticeLoading(true);
+    try {
+      const res = await fetch("/api/payments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: pending.id, action: "notify_paid" }),
+      });
+      if (!res.ok) {
+        alert("No se pudo enviar el aviso de pago. Intenta nuevamente.");
+        return;
+      }
+      setTransferSent(true);
+    } catch {
+      alert("Error de conexión. Intenta nuevamente.");
+    } finally {
+      setPaymentNoticeLoading(false);
+    }
+  }
+
   function copyField(value: string, key: string) {
     navigator.clipboard.writeText(value).catch(() => {});
     setCopiedField(key);
     setTimeout(() => setCopiedField(null), 2000);
   }
+
+  const transferInstructions = transferData?.instructions ?? BANK_DATA;
+  const transferReference = transferData?.reference?.trim() ?? "";
+  const canConfirmTransfer = Boolean(transferReference);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
@@ -249,11 +310,19 @@ export default function BillingPage() {
 
       {/* Pending payment alert */}
       {pending && (
-        <div className="glass-panel rounded-2xl px-5 py-3 flex items-center gap-3 border border-yellow-500/20 bg-yellow-500/5">
-          <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />
-          <span className="text-sm text-yellow-300">
-            Tienes una solicitud de pago pendiente de verificación.
-          </span>
+        <div className="glass-panel rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-3 border border-yellow-500/20 bg-yellow-500/5">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />
+            <span className="text-sm text-yellow-300">
+              Tienes una solicitud de pago pendiente de verificación.
+            </span>
+          </div>
+          <button
+            onClick={startBankTransfer}
+            className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-xs font-bold hover:bg-yellow-500/20 transition-colors"
+          >
+            Ver datos para pagar
+          </button>
         </div>
       )}
 
@@ -448,70 +517,7 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {/* Row 2: Payment info — steps + static QR card */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel rounded-2xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <QrCode size={18} className="text-brand-kinetic-orange" />
-            <h2 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Cómo pagar</h2>
-          </div>
-          <ol className="space-y-3 text-sm text-white/80">
-            <li className="flex gap-3">
-              <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-              <span>Genera la referencia de transferencia BCP desde el boton de pago bancario.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-              <span>Escanea el QR o transfiere a la cuenta de abajo exactamente <strong className="text-brand-kinetic-orange">Bs. {total.toLocaleString("es-BO")}</strong>.</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-              <span>Incluye la referencia exacta en la glosa. Si BCP envia la confirmacion, n8n activa el plan automaticamente; si no, soporte puede revisarlo.</span>
-            </li>
-          </ol>
-
-          <div className="bg-white/5 rounded-xl p-3 flex items-center justify-between">
-            <div>
-              <div className="text-xs text-brand-muted mb-0.5">N° de cuenta · {BANK_DATA.bank}</div>
-              <div className="text-white font-mono font-bold">{BANK_DATA.account}</div>
-              <div className="text-xs text-brand-muted">{BANK_DATA.owner}</div>
-            </div>
-            <button
-              onClick={() => copyField(BANK_DATA.account, "bank-account")}
-              className="text-brand-kinetic-orange text-xs flex items-center gap-1 hover:underline"
-            >
-              <Copy size={12} /> {copiedField === "bank-account" ? "¡Copiado!" : "Copiar"}
-            </button>
-          </div>
-        </div>
-
-        {/* Static QR card */}
-        <div className="rounded-2xl overflow-hidden border border-white/10 bg-white">
-          <div className="bg-white px-5 py-4 flex items-center justify-between border-b border-gray-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/LOGO ONIA.jpeg" alt="OnIA" className="h-8 object-contain" />
-            <span className="text-xs text-gray-400 font-medium">{BANK_DATA.bank}</span>
-          </div>
-          <div className="bg-white flex items-center justify-center px-6 py-2 overflow-hidden">
-            <div className="relative w-56 overflow-hidden" style={{ height: "224px" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/QR-BCP-GESTIOS.png"
-                alt="QR de pago"
-                className="absolute w-full"
-                style={{ top: "-18%", transform: "scale(1.05)" }}
-              />
-            </div>
-          </div>
-          <div className="bg-white px-5 py-4 border-t border-gray-100 space-y-1 text-center">
-            <p className="text-gray-800 font-bold text-sm">{BANK_DATA.owner}</p>
-            <p className="text-gray-500 text-xs">Cuenta <span className="font-mono font-bold text-gray-700">{BANK_DATA.account}</span></p>
-            <p className="text-gray-400 text-xs">GestiOS Suscripción · QR Interbancario Bolivia</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 3: Payment history */}
+      {/* Row 2: Payment history */}
       {requests.length > 0 && (
         <section className="glass-panel rounded-2xl overflow-hidden">
           <button
@@ -743,11 +749,26 @@ export default function BillingPage() {
                   </span>
                 </div>
 
+                <ol className="space-y-2 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/80">
+                  <li className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                    <span>Copia el monto exacto y transfiere a la cuenta BCP.</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                    <span>Copia la referencia y pegala completa en la glosa o detalle de la transferencia.</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-brand-kinetic-orange/20 text-brand-kinetic-orange text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                    <span>Si la referencia llega exacta, el plan se activa automaticamente. Si falta o esta distinta, lo revisamos manualmente y puede tardar mas.</span>
+                  </li>
+                </ol>
+
                 <div className="space-y-3">
-                  {([["Banco","bank",transferData?.instructions.bank],["Nro. de cuenta","account",transferData?.instructions.account],["Titular","owner",transferData?.instructions.owner]] as [string,string,string|undefined][]).map(([label,key,value]) => (
+                  {([["Banco","bank",transferInstructions.bank],["Nro. de cuenta","account",transferInstructions.account],["Titular","owner",transferInstructions.owner]] as [string,string,string][]).map(([label,key,value]) => (
                     <div key={key} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">
-                      <div><p className="text-xs text-brand-muted">{label}</p><p className="text-white font-medium text-sm">{value ?? "—"}</p></div>
-                      <button onClick={() => copyField(value ?? "", key)} className="ml-3 text-brand-muted hover:text-white transition-colors flex-shrink-0" title="Copiar">
+                      <div><p className="text-xs text-brand-muted">{label}</p><p className="text-white font-medium text-sm">{value}</p></div>
+                      <button onClick={() => copyField(value, key)} className="ml-3 text-brand-muted hover:text-white transition-colors flex-shrink-0" title="Copiar">
                         {copiedField === key ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
                       </button>
                     </div>
@@ -757,27 +778,46 @@ export default function BillingPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs text-yellow-400/70 font-medium uppercase tracking-wider">Referencia (obligatoria)</p>
-                        <p className="text-yellow-300 font-mono font-bold text-sm mt-0.5">{transferData?.reference ?? "—"}</p>
+                        {transferReference ? (
+                          <p className="text-yellow-300 font-mono font-bold text-sm mt-0.5">{transferReference}</p>
+                        ) : (
+                          <p className="text-yellow-300/70 text-sm mt-0.5">Genera tu referencia antes de pagar.</p>
+                        )}
                       </div>
-                      <button
-                        onClick={() => copyField(transferData?.reference ?? "", "reference")}
-                        className="ml-3 text-yellow-400/70 hover:text-yellow-300 transition-colors flex-shrink-0"
-                        title="Copiar referencia"
-                      >
-                        {copiedField === "reference" ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-                      </button>
+                      {transferReference ? (
+                        <button
+                          onClick={() => copyField(transferReference, "reference")}
+                          className="ml-3 text-yellow-400/70 hover:text-yellow-300 transition-colors flex-shrink-0"
+                          title="Copiar referencia"
+                        >
+                          {copiedField === "reference" ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={generatePendingReference}
+                          disabled={referenceLoading || !pending}
+                          className="ml-3 px-3 py-1.5 rounded-lg bg-yellow-400/15 border border-yellow-400/30 text-yellow-300 text-xs font-bold hover:bg-yellow-400/25 disabled:opacity-50 transition-colors"
+                        >
+                          {referenceLoading ? "Generando..." : "Generar"}
+                        </button>
+                      )}
                     </div>
                     <p className="text-xs text-yellow-400/60 mt-2">
-                      Incluye esta referencia exacta en el detalle de tu transferencia.
+                      Esta referencia es obligatoria para la activacion automatica.
                     </p>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => setTransferSent(true)}
-                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold transition-all"
+                  onClick={confirmTransferPayment}
+                  disabled={!canConfirmTransfer || paymentNoticeLoading}
+                  className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Ya realicé el pago
+                  {!canConfirmTransfer
+                    ? "Genera la referencia primero"
+                    : paymentNoticeLoading
+                    ? "Enviando aviso..."
+                    : "Ya realicé el pago"}
                 </button>
               </>
             ) : (

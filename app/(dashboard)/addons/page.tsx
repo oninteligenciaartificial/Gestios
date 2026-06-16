@@ -11,16 +11,40 @@ const ADDON_WA_MSG: Record<string, string> = {
   QR_BOLIVIA: `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
   ECOMMERCE:   `Hola! Me interesa el add-on de *E-commerce* (${ADDON_META.ECOMMERCE.price}) en GestiOS para conectar mi tienda online. ¿Cómo procedo?`,
   CONTABILIDAD:`Hola! Quiero activar la *Exportación Contable* (${ADDON_META.CONTABILIDAD.price}) en GestiOS. ¿Cómo procedo?`,
+  INVENTARIO_AVANZADO:`Hola! Quiero activar *Inventario Avanzado* (${ADDON_META.INVENTARIO_AVANZADO.price}) en GestiOS. Como procedo?`,
 };
 
-type AddonType = "WHATSAPP" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD";
+type AddonType = "WHATSAPP" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD" | "INVENTARIO_AVANZADO";
 
 interface OrgAddon {
   addon: AddonType;
   active: boolean;
 }
 
-const ALL_ADDONS: AddonType[] = ["WHATSAPP", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD"];
+const ALL_ADDONS: AddonType[] = ["WHATSAPP", "QR_BOLIVIA", "ECOMMERCE", "CONTABILIDAD", "INVENTARIO_AVANZADO"];
+
+const REQUESTABLE_ADDONS = [
+  {
+    name: "Asistente IA operativo",
+    price: "A medida",
+    description: "Resumen de ventas, sugerencias de reposicion y respuestas internas usando datos del negocio.",
+  },
+  {
+    name: "Backups y continuidad",
+    price: "A medida",
+    description: "Rutina operativa de respaldo, monitoreo y checklist de recuperacion ante incidentes.",
+  },
+  {
+    name: "Migracion asistida",
+    price: "A medida",
+    description: "Carga inicial de productos, clientes y proveedores desde hojas de calculo o sistema anterior.",
+  },
+  {
+    name: "Reportes gerenciales",
+    price: "A medida",
+    description: "Tableros personalizados para margen, rotacion, compras, ventas por sucursal y decisiones de gerencia.",
+  },
+] as const;
 
 export default function AddonsPage() {
   const [addons, setAddons] = useState<OrgAddon[]>([]);
@@ -130,6 +154,37 @@ export default function AddonsPage() {
           })}
         </div>
       )}
+
+      <section className="glass-panel rounded-3xl p-5 space-y-4">
+        <div>
+          <h2 className="text-lg font-display font-bold text-white">Add-ons a medida</h2>
+          <p className="text-brand-muted text-sm mt-1">
+            Servicios utiles para dejar la operacion lista sin inflar el sistema base.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {REQUESTABLE_ADDONS.map((addon) => (
+            <div key={addon.name} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-bold text-white text-sm">{addon.name}</h3>
+                  <p className="text-brand-kinetic-orange text-xs font-semibold mt-0.5">{addon.price}</p>
+                </div>
+                <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-bold text-brand-muted">
+                  Solicitable
+                </span>
+              </div>
+              <p className="text-xs text-brand-muted leading-relaxed">{addon.description}</p>
+              <button
+                onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero consultar el add-on *${addon.name}* para GestiOS.`)}`, "_blank")}
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-xs font-bold hover:bg-[#25D366]/20 transition-all"
+              >
+                <MessageCircle size={13} /> Solicitar evaluacion
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
