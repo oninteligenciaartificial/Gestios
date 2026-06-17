@@ -22,8 +22,8 @@ test.describe("Tienda - checkout publico", () => {
 
   test("carga la tienda y muestra productos", async ({ page }) => {
     await page.goto(`/${STORE_SLUG}/tienda`);
-    await expect(page.getByTestId("cart-button")).toBeVisible();
     await expect(page.getByTestId("product-card").first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("cart-button")).toBeVisible();
   });
 
   test("agrega al carrito y completa el pedido", async ({ page }) => {

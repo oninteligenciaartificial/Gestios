@@ -1,81 +1,176 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
   Bell,
-  ChevronRight,
+  Building2,
+  ClipboardList,
+  FolderTree,
+  Headphones,
+  HelpCircle,
+  MessageCircle,
   Package,
+  Percent,
+  Receipt,
   Settings,
   ShoppingCart,
   Sparkles,
+  Store,
+  Truck,
   Users,
-  X,
 } from "lucide-react";
+import { PLAN_META, type PlanType } from "@/lib/plans";
 
-const STORAGE_KEY = "gestios_onboarding_v2";
+const STORAGE_PREFIX = "gestios_onboarding_v3";
 
-interface Step {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
+interface FeatureLink {
   href: string;
+  label: string;
+}
+
+interface Props {
+  plan: PlanType;
+  orgName: string;
+  storageKeyScope: string;
+  features: FeatureLink[];
+}
+
+interface StepContent {
+  icon: React.ReactNode;
+  description: string;
   cta: string;
   color: string;
 }
 
-const STEPS: Step[] = [
-  {
-    icon: <Settings size={24} />,
-    title: "Configura tu tienda",
-    description: "Completa datos del negocio, horarios, equipo y preferencias antes de vender.",
-    href: "/settings",
-    cta: "Abrir configuracion",
+const STEP_CONTENT: Record<string, StepContent> = {
+  "/dashboard": {
+    icon: <BarChart3 size={24} />,
+    description: "Menu izquierdo > Dashboard. Aqui revisas ventas, pedidos recientes, stock bajo y notificaciones del negocio.",
+    cta: "Abrir dashboard",
     color: "text-sky-400",
   },
-  {
-    icon: <Package size={24} />,
-    title: "Carga inventario",
-    description: "Agrega productos, precios, stock minimo y variantes para activar alertas reales.",
-    href: "/inventory",
-    cta: "Ver inventario",
-    color: "text-blue-400",
-  },
-  {
-    icon: <ShoppingCart size={24} />,
-    title: "Vende y crea pedidos",
-    description: "Usa el POS o pedidos para registrar ventas; GestiOS descuenta stock y calcula totales.",
-    href: "/pos",
-    cta: "Ir al POS",
-    color: "text-brand-kinetic-orange",
-  },
-  {
+  "/notifications": {
     icon: <Bell size={24} />,
-    title: "Notificaciones y emails",
-    description: "Los pedidos, cambios de estado y stock bajo quedan visibles en la campana y disparan correos cuando el email esta configurado.",
-    href: "/dashboard",
-    cta: "Ver dashboard",
+    description: "Menu izquierdo > Notificaciones. Aqui quedan alertas de pedidos, stock, pagos y eventos importantes.",
+    cta: "Abrir notificaciones",
     color: "text-yellow-400",
   },
-  {
+  "/pos": {
+    icon: <ShoppingCart size={24} />,
+    description: "Menu izquierdo > Punto de Venta. Usa este modulo para vender rapido en mostrador y descontar inventario.",
+    cta: "Abrir POS",
+    color: "text-brand-kinetic-orange",
+  },
+  "/ventas": {
+    icon: <Receipt size={24} />,
+    description: "Menu izquierdo > Ventas. Aqui revisas ventas registradas, estados, recibos y detalle de cada operacion.",
+    cta: "Abrir ventas",
+    color: "text-orange-300",
+  },
+  "/inventory": {
+    icon: <Package size={24} />,
+    description: "Menu izquierdo > Inventario. Carga productos, precios, stock minimo, variantes y alertas.",
+    cta: "Abrir inventario",
+    color: "text-blue-400",
+  },
+  "/orders": {
+    icon: <ClipboardList size={24} />,
+    description: "Menu izquierdo > Pedidos. Gestiona solicitudes, confirma entregas y cambia estados.",
+    cta: "Abrir pedidos",
+    color: "text-amber-300",
+  },
+  "/customers": {
     icon: <Users size={24} />,
-    title: "Clientes y fidelidad",
-    description: "Guarda datos de clientes, email, cumpleanos e historial para automatizaciones comerciales.",
-    href: "/customers",
-    cta: "Ver clientes",
+    description: "Menu izquierdo > Clientes. Guarda datos, historial, cumpleanos y contactos para seguimiento.",
+    cta: "Abrir clientes",
     color: "text-green-400",
   },
-  {
+  "/reports": {
     icon: <BarChart3 size={24} />,
-    title: "Reportes",
-    description: "Controla ventas, margenes y productos con mejor rotacion desde reportes exportables.",
-    href: "/reports",
-    cta: "Ver reportes",
+    description: "Menu izquierdo > Reportes. Analiza ventas, margen, productos y exporta datos cuando el plan lo permite.",
+    cta: "Abrir reportes",
     color: "text-purple-400",
   },
-];
+  "/caja": {
+    icon: <Receipt size={24} />,
+    description: "Menu izquierdo > Corte de Caja. Cierra turnos, compara efectivo esperado y registra diferencias.",
+    cta: "Abrir caja",
+    color: "text-lime-300",
+  },
+  "/tienda": {
+    icon: <Store size={24} />,
+    description: "Menu izquierdo > Tienda Online. Configura el link publico, productos visibles y pedidos web.",
+    cta: "Abrir tienda online",
+    color: "text-pink-300",
+  },
+  "/suppliers": {
+    icon: <Truck size={24} />,
+    description: "Menu izquierdo > Proveedores. Registra proveedores para compras, reposicion y control de abastecimiento.",
+    cta: "Abrir proveedores",
+    color: "text-cyan-300",
+  },
+  "/purchase-orders": {
+    icon: <ClipboardList size={24} />,
+    description: "Menu izquierdo > Ordenes de Compra. Planea reposicion y controla compras pendientes.",
+    cta: "Abrir ordenes",
+    color: "text-indigo-300",
+  },
+  "/discounts": {
+    icon: <Percent size={24} />,
+    description: "Menu izquierdo > Descuentos. Crea descuentos por monto o porcentaje segun los limites del plan.",
+    cta: "Abrir descuentos",
+    color: "text-rose-300",
+  },
+  "/categories": {
+    icon: <FolderTree size={24} />,
+    description: "Menu izquierdo > Categorias. Organiza productos para buscar, vender y reportar mejor.",
+    cta: "Abrir categorias",
+    color: "text-teal-300",
+  },
+  "/branches": {
+    icon: <Building2 size={24} />,
+    description: "Menu izquierdo > Sucursales. Administra ubicaciones, stock y operacion multi-sucursal.",
+    cta: "Abrir sucursales",
+    color: "text-violet-300",
+  },
+  "/conversations": {
+    icon: <MessageCircle size={24} />,
+    description: "Menu izquierdo > WhatsApp. Atiende conversaciones si el add-on esta activo.",
+    cta: "Abrir WhatsApp",
+    color: "text-green-300",
+  },
+  "/staff": {
+    icon: <Users size={24} />,
+    description: "Menu izquierdo > Equipo. Invita usuarios, asigna roles y controla permisos.",
+    cta: "Abrir equipo",
+    color: "text-blue-300",
+  },
+  "/settings": {
+    icon: <Settings size={24} />,
+    description: "Parte inferior del menu > Configuracion. Edita datos de la tienda, tipo de negocio y ajustes avanzados.",
+    cta: "Abrir configuracion",
+    color: "text-slate-300",
+  },
+  "/help": {
+    icon: <HelpCircle size={24} />,
+    description: "Menu izquierdo > Ayuda. Consulta guias rapidas para operar el sistema.",
+    cta: "Abrir ayuda",
+    color: "text-sky-300",
+  },
+  "/support": {
+    icon: <Headphones size={24} />,
+    description: "Menu izquierdo > Soporte. Contacta a ONIA cuando necesites asistencia operativa.",
+    cta: "Abrir soporte",
+    color: "text-orange-300",
+  },
+};
+
+function storageKey(scope: string, plan: PlanType) {
+  return `${STORAGE_PREFIX}:${scope}:${plan}`;
+}
 
 function subscribeToOnboarding(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -86,59 +181,73 @@ function subscribeToOnboarding(callback: () => void) {
   };
 }
 
-function shouldShowOnboarding() {
+function shouldShowOnboarding(key: string) {
   try {
-    return !localStorage.getItem(STORAGE_KEY);
+    return !localStorage.getItem(key);
   } catch {
     return false;
   }
 }
 
-function dismissOnboarding() {
+function dismissOnboarding(key: string) {
   try {
-    localStorage.setItem(STORAGE_KEY, "1");
+    localStorage.setItem(key, "1");
   } catch {
     /* ignore */
   }
   window.dispatchEvent(new Event("gestios-onboarding-dismissed"));
 }
 
-export function OnboardingTour() {
-  const router = useRouter();
-  const visible = useSyncExternalStore(subscribeToOnboarding, shouldShowOnboarding, () => false);
-  const [step, setStep] = useState(0); // 0 = welcome, 1..n = feature steps
+function buildSteps(features: FeatureLink[]) {
+  const seen = new Set<string>();
+  return features
+    .filter((feature) => feature.href.startsWith("/") && !seen.has(feature.href) && seen.add(feature.href))
+    .map((feature) => ({
+      ...feature,
+      ...(STEP_CONTENT[feature.href] ?? {
+        icon: <Sparkles size={24} />,
+        description: `Menu izquierdo > ${feature.label}. Esta funcion esta incluida en tu plan actual.`,
+        cta: `Abrir ${feature.label}`,
+        color: "text-brand-kinetic-orange",
+      }),
+    }));
+}
 
-  useEffect(() => {
-    if (!visible) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") dismissOnboarding();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [visible]);
+export function OnboardingTour({ plan, orgName, storageKeyScope, features }: Props) {
+  const router = useRouter();
+  const key = storageKey(storageKeyScope, plan);
+  const visible = useSyncExternalStore(
+    subscribeToOnboarding,
+    () => shouldShowOnboarding(key),
+    () => false,
+  );
+  const [step, setStep] = useState(0); // 0 = welcome, 1..n = feature steps
+  const steps = buildSteps(features);
+  const totalSteps = steps.length;
 
   function dismiss() {
-    dismissOnboarding();
+    dismissOnboarding(key);
   }
 
   function goToFeature(href: string) {
-    dismiss();
     router.push(href);
+    if (step < totalSteps) setStep((s) => s + 1);
+    else dismiss();
   }
 
   function next() {
-    if (step < STEPS.length) {
+    if (step < totalSteps) {
       setStep((s) => s + 1);
     } else {
       dismiss();
     }
   }
 
-  if (!visible) return null;
+  if (!visible || totalSteps === 0) return null;
 
   const isWelcome = step === 0;
-  const currentStep = isWelcome ? null : STEPS[step - 1];
-  const totalSteps = STEPS.length;
+  const currentStep = isWelcome ? null : steps[step - 1];
+  const planLabel = PLAN_META[plan].label;
 
   return (
     <>
@@ -161,9 +270,9 @@ export function OnboardingTour() {
               </div>
             ) : (
               <div className="flex items-center gap-1.5" aria-label={`Paso ${step} de ${totalSteps}`}>
-                {STEPS.map((_, i) => (
+                {steps.map((feature, i) => (
                   <div
-                    key={i}
+                    key={feature.href}
                     className={`h-1 rounded-full transition-all duration-300 ${
                       i < step ? "bg-brand-kinetic-orange w-6" : "bg-white/15 w-3"
                     }`}
@@ -171,14 +280,9 @@ export function OnboardingTour() {
                 ))}
               </div>
             )}
-            <button
-              onClick={dismiss}
-              className="text-brand-muted hover:text-white transition-colors"
-              aria-label="Cerrar tour"
-              title="Cerrar tour"
-            >
-              <X size={18} />
-            </button>
+            <span className="text-xs text-brand-muted">
+              Plan {planLabel}
+            </span>
           </div>
 
           <div className="px-6 pt-4 pb-6 space-y-5">
@@ -189,22 +293,21 @@ export function OnboardingTour() {
                     GestiOS.
                   </div>
                   <h2 className="text-xl font-bold text-white">
-                    Deja tu operacion lista para vender
+                    Recorrido obligatorio de inicio
                   </h2>
                   <p className="text-sm text-brand-muted leading-relaxed">
-                    Este recorrido aparece al iniciar sesion y te lleva por lo esencial:
-                    inventario, ventas, clientes, notificaciones y correos.
+                    {orgName} tiene el plan {planLabel}. Te mostraremos las funciones incluidas y donde encontrarlas. El tour no se cierra solo: finalizalo o pulsa Saltar tour.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {STEPS.map((s) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                  {steps.map((s) => (
                     <div
-                      key={s.title}
+                      key={s.href}
                       className="p-3 rounded-xl bg-white/5 border border-white/8 flex items-center gap-2.5 min-w-0"
                     >
                       <span className={`${s.color} flex-shrink-0`}>{s.icon}</span>
-                      <span className="text-sm font-medium text-white truncate">{s.title}</span>
+                      <span className="text-sm font-medium text-white truncate">{s.label}</span>
                     </div>
                   ))}
                 </div>
@@ -221,7 +324,7 @@ export function OnboardingTour() {
                     className="flex-1 py-2.5 rounded-xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold text-sm flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-shadow"
                   >
                     Empezar tour
-                    <ChevronRight size={16} />
+                    <ArrowRight size={16} />
                   </button>
                 </div>
               </>
@@ -232,7 +335,10 @@ export function OnboardingTour() {
                     {currentStep.icon}
                   </div>
                   <div className="space-y-1.5 pt-0.5">
-                    <h3 className="text-lg font-bold text-white">{currentStep.title}</h3>
+                    <p className="text-xs text-brand-muted">
+                      Funcion incluida en tu plan
+                    </p>
+                    <h3 className="text-lg font-bold text-white">{currentStep.label}</h3>
                     <p className="text-sm text-brand-muted leading-relaxed">
                       {currentStep.description}
                     </p>
@@ -240,6 +346,12 @@ export function OnboardingTour() {
                 </div>
 
                 <div className="flex gap-3">
+                  <button
+                    onClick={dismiss}
+                    className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm text-brand-muted hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    Saltar tour
+                  </button>
                   <button
                     onClick={next}
                     className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm text-brand-muted hover:text-white hover:border-white/30 transition-colors"

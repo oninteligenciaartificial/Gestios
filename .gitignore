@@ -50,3 +50,5 @@ next-env.d.ts
 .claire/
 remotion-video/node_modules/
 remotion-video/out/
+
+.env*.local

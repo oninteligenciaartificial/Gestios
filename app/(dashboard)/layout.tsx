@@ -63,14 +63,33 @@ export default async function DashboardLayout({
   // Resolve the active plan (impersonating superadmin gets impersonated org's plan)
   let activePlan: PlanType = (profile.organization?.plan ?? "BASICO") as PlanType;
   let activeAddons = profile.organization?.addons ?? [];
+  let activeBusinessType = (profile.organization?.businessType ?? "GENERAL") as BusinessType;
+  let activePlanExpiresAt = profile.organization?.planExpiresAt ?? null;
+  let activeTrialEndsAt = profile.organization?.trialEndsAt ?? null;
+  let impersonatedAdminName: string | null = null;
 
   if (isImpersonating && impersonateOrgId) {
     const impersonatedOrg = await prisma.organization.findUnique({
       where: { id: impersonateOrgId },
-      select: { plan: true, addons: { select: { addon: true, active: true } } },
+      select: {
+        plan: true,
+        businessType: true,
+        planExpiresAt: true,
+        trialEndsAt: true,
+        addons: { select: { addon: true, active: true } },
+        profiles: {
+          where: { role: "ADMIN" },
+          select: { name: true },
+          take: 1,
+        },
+      },
     });
     activePlan = (impersonatedOrg?.plan ?? "BASICO") as PlanType;
     activeAddons = impersonatedOrg?.addons ?? [];
+    activeBusinessType = (impersonatedOrg?.businessType ?? "GENERAL") as BusinessType;
+    activePlanExpiresAt = impersonatedOrg?.planExpiresAt ?? null;
+    activeTrialEndsAt = impersonatedOrg?.trialEndsAt ?? null;
+    impersonatedAdminName = impersonatedOrg?.profiles[0]?.name ?? null;
   }
 
   const hasWhatsApp = activeAddons.some(a => a.addon === "WHATSAPP" && a.active);
@@ -103,8 +122,7 @@ export default async function DashboardLayout({
   const showBranches = canUseFeature(activePlan, "sucursales");
 
   // Resolve business type for dynamic sidebar labels
-  const businessType = (profile.organization?.businessType ?? "GENERAL") as BusinessType;
-  const ui: BusinessUIConfig = getBusinessUI(businessType);
+  const ui: BusinessUIConfig = getBusinessUI(activeBusinessType);
 
   const tenantLinks = [
     { href: "/dashboard", label: "Dashboard" },
@@ -150,6 +168,14 @@ export default async function DashboardLayout({
       .map(([feature, href]) => [href, FEATURE_PLAN[feature]])
   ) as Record<string, PlanType>;
 
+  const sidebarName = isImpersonating ? (impersonatedAdminName ?? "Admin de la tienda") : profile.name;
+  const sidebarEmail = isImpersonating ? `Vista cliente - ${orgDisplayName}` : (user.email ?? "");
+  const sidebarRole = isImpersonating ? "ADMIN" : profile.role;
+  const tourLinks = isSuperAdmin ? [] : [
+    ...tenantLinks.filter(link => !lockedHrefs.has(link.href)),
+    ...(!tenantLinks.some(link => link.href === "/settings") ? [{ href: "/settings", label: "Configuracion" }] : []),
+  ];
+
   return (
     <DashboardThemeProvider>
       <div className="dashboard-app flex h-screen overflow-hidden">
@@ -159,16 +185,16 @@ export default async function DashboardLayout({
         orgName={orgDisplayName}
         isSuperAdmin={isSuperAdmin}
         isImpersonating={isImpersonating}
-        name={profile.name}
-        email={user.email ?? ""}
-        role={profile.role}
+        name={sidebarName}
+        email={sidebarEmail}
+        role={sidebarRole}
         plan={isSuperAdmin ? null : activePlan}
-        planExpiresAt={isSuperAdmin ? null : (profile.organization?.planExpiresAt?.toISOString() ?? null)}
+        planExpiresAt={isSuperAdmin ? null : (activePlanExpiresAt?.toISOString() ?? null)}
         lockedPlanMap={lockedPlanMap}
       />
       <main className="flex-1 w-full overflow-y-auto">
         {!isSuperAdmin && !isImpersonating && (
-          <TrialBanner trialEndsAt={profile.organization?.trialEndsAt?.toISOString() ?? null} />
+          <TrialBanner trialEndsAt={activeTrialEndsAt?.toISOString() ?? null} />
         )}
         {isImpersonating && impersonateOrgName && (
           <ImpersonationBanner orgName={impersonateOrgName} />
@@ -179,7 +205,14 @@ export default async function DashboardLayout({
           </Suspense>
         )}
         <CommandPalette />
-        {!isSuperAdmin && <OnboardingTour />}
+        {!isSuperAdmin && (
+          <OnboardingTour
+            plan={activePlan}
+            orgName={orgDisplayName}
+            storageKeyScope={impersonateOrgId ?? profile.organizationId ?? "account"}
+            features={tourLinks}
+          />
+        )}
         <div className="pt-16 lg:pt-0">
           {children}
         </div>

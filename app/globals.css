@@ -153,6 +153,11 @@ html[data-dashboard-theme="light"] body {
   color: #e2e2e8;
 }
 
+.dashboard-app select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
 .dashboard-logo-light {
   display: none;
 }

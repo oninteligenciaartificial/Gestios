@@ -380,7 +380,7 @@ export default function Inventory() {
           <select
             value={bulkAction}
             onChange={(e) => setBulkAction(e.target.value as typeof bulkAction)}
-            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-sm text-white"
+            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-sm text-white [&>option]:bg-white [&>option]:text-black"
           >
             <option value="">Acción...</option>
             <option value="price">Actualizar precio</option>
