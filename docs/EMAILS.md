@@ -1,158 +1,56 @@
-# Emails Automáticos
+# Emails automaticos
 
-Proveedor transaccional (Supabase Auth): **Resend SMTP** (`smtp.resend.com:465`).
-Proveedor emails de negocio: **Resend API** (`RESEND_API_KEY`). Migrado desde Brevo en 2026-05-19.  
-Remitente: `noreply@onia.com.bo` / `business@onia.com.bo` (dominio `onia.com.bo` verificado en Resend).  
-Template: HTML con diseño dark, fondo `#0a0a0a`, acento naranja `#ff6b00`.  
-Todos los envíos son fire-and-forget (`.catch(() => {})`).
+## Estado actual
 
-## Sistema de logging
+Proveedor transaccional: Resend API via `RESEND_API_KEY`.
+Remitente por defecto: `noreply@onia.com.bo`.
+Dominio publico por defecto: `https://www.gestioshq.app`.
 
-Cada email enviado se registra en la tabla `EmailLog` (Prisma):
-- `id`, `organizationId`, `to`, `type`, `subject`, `status`, `brevoMessageId`, `error`, `createdAt`
-- Status inicial: `SENT`
-- Webhook `/api/webhooks/brevo` actualiza a `DELIVERED`, `BOUNCED`, `FAILED`
-- Dashboard métricas: `/email-stats` (SUPERADMIN)
+El sistema mantiene compatibilidad con variables antiguas de Brevo para no romper entornos existentes, pero el envio de negocio se ejecuta con Resend desde `lib/email.ts`.
 
-## Rate limiting
+## Reglas operativas
 
-- **Límite diario:** 280 emails (buffer de 20 sobre el límite de Brevo de 300)
-- **Contador:** Upstash Redis con fallback in-memory
-- **Reset:** Automático a medianoche UTC
+- Los envios deben seguir siendo fire-and-forget desde las rutas que los disparan.
+- No registrar secretos ni payloads sensibles en logs.
+- Cada envio se registra en `EmailLog`.
+- El limite diario del codigo es 90 correos para dejar margen en el plan gratuito de Resend.
+- Todo correo HTML debe llevar version `text` para entregabilidad y fallback.
+- Los campos controlados por usuarios se escapan antes de entrar al HTML.
 
-## Webhook tracking
+## Plantilla
 
-- **Endpoint:** `POST /api/webhooks/brevo`
-- **Verificación:** Header `x-brevo-webhook-key` con `BREVO_WEBHOOK_KEY`
-- **Eventos:** delivered, bounce, blocked, spam
-- **n8n bridge:** Para plan gratuito de Brevo (sin webhooks nativos), usar `n8n/brevo-email-tracking.json`
+La plantilla base usa:
 
-> **Pendiente:** verificar dominio propio para usar `noreply@gestios.app`. Ver `docs/BREVO-SETUP.md` y `docs/EMAIL-MIGRATION-GUIDE.md`.
+- marca tipografica de GestiOS, no imagen legacy;
+- fondo oscuro y acento naranja;
+- preheader oculto;
+- footer operativo con aviso de seguridad;
+- copia clara para acciones administrativas.
 
----
+## Tipos de correo
 
-## 1. Confirmación de pedido
-**Función:** `sendOrderConfirmation()`  
-**Trigger:** POST /api/orders — cuando el cliente tiene email  
-**Destinatario:** cliente  
-**Asunto:** `Pedido recibido — {orgName}`  
-**Contenido:** tabla de items, total, método de pago, folio (últimos 8 chars del ID)
+| Email | Funcion | Destinatario | Disparo |
+|---|---|---|---|
+| Confirmacion de pedido | `sendOrderConfirmation` | Cliente | Creacion de pedido con email |
+| Alerta de nuevo pedido | `sendNewOrderAlert` | Admins | Creacion de pedido |
+| Estado de pedido | `sendOrderStatusUpdate` | Cliente | Cambio de estado |
+| Puntos de lealtad | `sendLoyaltyPointsEmail` | Cliente | Pedido entregado |
+| Bienvenida | `sendWelcomeEmail` | Cliente | Registro publico |
+| Cumpleanos | `sendBirthdayEmail` | Cliente | Cron diario |
+| Stock bajo | `sendLowStockAlert` | Admins | UI o rutina operativa |
+| Vencimientos | `sendExpiryAlert` | Admins | Cron diario |
+| Cliente inactivo | `sendInactiveCustomerEmail` | Cliente | Cron semanal |
+| Plan por vencer | `sendPlanExpiryWarning` | Admin | Cron de plan |
+| Plan activado | `sendPlanActivatedEmail` | Admin | Confirmacion de pago por superadmin |
+| Plan vencido | `sendPlanExpired` | Admin | Cron de plan |
+| Notificacion plana | `sendPlainNotification` | Variable | Flujos administrativos |
 
----
+## Entregabilidad pendiente
 
-## 2. Alerta de nuevo pedido
-**Función:** `sendNewOrderAlert()`  
-**Trigger:** POST /api/orders — siempre  
-**Destinatario:** todos los usuarios ADMIN de la org (via Supabase Auth)  
-**Asunto:** `Nuevo pedido de {customerName} — {orgName}`  
-**Contenido:** tabla de items, total, método de pago, nombre del cliente
+Para mejorar reputacion del dominio, configurar cuando ONIA lo autorice:
 
----
+- remitente verificado como `noreply@gestioshq.app` o subdominio equivalente;
+- SPF, DKIM y DMARC del dominio usado en Resend;
+- webhook de eventos si se quiere medir entrega/rebote en tiempo real.
 
-## 3. Actualización de estado de pedido
-**Función:** `sendOrderStatusUpdate()`  
-**Trigger:** PATCH /api/orders/[id] — cuando el estado cambia y el cliente tiene email  
-**Destinatario:** cliente  
-**Asunto:** `Tu pedido está {estado} — {orgName}`  
-**Contenido:** nombre del nuevo estado (color verde=ENTREGADO, rojo=CANCELADO, naranja=otros)
-
----
-
-## 4. Puntos de lealtad acumulados
-**Función:** `sendLoyaltyPointsEmail()`  
-**Trigger:** PATCH /api/orders/[id] → estado ENTREGADO, cliente con email  
-**Destinatario:** cliente  
-**Asunto:** `+{n} puntos acumulados en {orgName}`  
-**Contenido:** puntos ganados en el pedido, total acumulado  
-**Regla:** 1 punto por cada Bs. 10 del total del pedido (`POINTS_PER_BOB = 0.1`)
-
----
-
-## 5. Bienvenida al cliente
-**Función:** `sendWelcomeEmail()`  
-**Trigger:** registro en página pública `/registro/[slug]` (plan PRO+)  
-**Destinatario:** cliente  
-**Asunto:** `Bienvenido/a a {orgName}`  
-**Contenido:** mensaje de bienvenida, aviso de puntos y ofertas
-
----
-
-## 6. Feliz cumpleaños
-**Función:** `sendBirthdayEmail()`  
-**Trigger:** cron `GET /api/cron/birthday` — diario  
-**Destinatario:** clientes con birthday = hoy y email registrado  
-**Asunto:** `Feliz cumpleaños {nombre}! Regalo de {orgName}`  
-**Contenido:** código de descuento + porcentaje. El código debe existir previamente en la org.
-
----
-
-## 7. Alerta de stock bajo
-**Función:** `sendLowStockAlert()`  
-**Trigger:** `/api/email/stock-alert` (manual desde UI) y reportes  
-**Destinatario:** admins de la org  
-**Asunto:** `{n} producto(s) con stock bajo — {orgName}`  
-**Contenido:** tabla con producto, stock actual, mínimo
-
----
-
-## 8. Productos próximos a vencer
-**Función:** `sendExpiryAlert()`  
-**Trigger:** cron `GET /api/cron/expiry` — diario  
-**Destinatario:** admins de la org  
-**Asunto:** `{n} producto(s) próximos a vencer — {orgName}`  
-**Contenido:** tabla con producto, fecha de vencimiento, días restantes (rojo ≤3, amarillo >3)
-
----
-
-## 9. Cliente inactivo
-**Función:** `sendInactiveCustomerEmail()`  
-**Trigger:** cron `GET /api/cron/inactive-customers` — semanal  
-**Destinatario:** clientes sin compras en 30+ días  
-**Asunto:** `Te echamos de menos — {orgName}`  
-**Contenido:** días desde última compra, llamado a volver
-
----
-
-## 10. Advertencia de plan por vencer
-**Función:** `sendPlanExpiryWarning()`  
-**Trigger:** cron `GET /api/cron/plan-expiry`  
-**Destinatario:** admin de la org  
-**Asunto:** `Tu plan vence en {n} día(s) — {orgName}`  
-**Contenido:** días restantes en amarillo, instrucciones de renovación
-
----
-
-## 11. Plan activado
-**Función:** `sendPlanActivatedEmail()`  
-**Trigger:** superadmin confirma pago en `/superadmin/payments`  
-**Destinatario:** admin de la org  
-**Asunto:** `Plan {nombre} activado — {orgName}`  
-**Contenido:** nombre del plan, fecha de vencimiento
-
----
-
-## 12. Plan vencido
-**Función:** `sendPlanExpired()`  
-**Trigger:** cron `GET /api/cron/plan-expiry` — cuando el plan expira  
-**Destinatario:** admin de la org  
-**Asunto:** `Plan vencido — {orgName} necesita renovación`  
-**Contenido:** aviso de suspensión, instrucciones para renovar
-
----
-
-## Resumen de triggers
-
-| Email | Quién lo dispara | Automático |
-|---|---|---|
-| Confirmación de pedido | POST /api/orders | Sí |
-| Alerta nuevo pedido | POST /api/orders | Sí |
-| Actualización de estado | PATCH /api/orders/[id] | Sí |
-| Puntos de lealtad | PATCH /api/orders/[id] (ENTREGADO) | Sí |
-| Bienvenida | Registro público | Sí |
-| Cumpleaños | Cron diario | Sí (cron) |
-| Stock bajo | Manual o cron | Mixto |
-| Productos por vencer | Cron diario | Sí (cron) |
-| Cliente inactivo | Cron semanal | Sí (cron) |
-| Plan por vencer | Cron diario | Sí (cron) |
-| Plan activado | Superadmin confirma pago | Manual |
-| Plan vencido | Cron diario | Sí (cron) |
+No cambiar variables de entorno productivas sin confirmacion explicita.

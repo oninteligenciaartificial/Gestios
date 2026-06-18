@@ -19,7 +19,7 @@ CRON_SECRET=...                                   # String aleatorio largo — V
 - **Webhook Brevo:** Endpoint `/api/webhooks/brevo` para tracking de delivery ✅
 - **Rate limiting:** 280 emails/día (buffer de 20 sobre el límite de 300) ✅
 - **Dashboard métricas:** `/email-stats` para SUPERADMIN ✅
-- **Pendiente:** verificar dominio propio para usar `noreply@gestios.app`
+- **Pendiente:** verificar dominio propio para usar `noreply@gestioshq.app`
   - Ver `docs/EMAIL-MIGRATION-GUIDE.md`
 
 ## Arquitectura actualizada
@@ -70,7 +70,7 @@ Workflow: `n8n/brevo-email-tracking.json`
 
 ### 4. Configurar webhook
 - **Settings** → **Webhooks** → Add a Webhook
-- URL: `https://gestios.app/api/webhooks/brevo`
+- URL: `https://www.gestioshq.app/api/webhooks/brevo`
 - Eventos: delivered, bounce, blocked, spam
 - Agregar `BREVO_WEBHOOK_KEY` en Vercel
 

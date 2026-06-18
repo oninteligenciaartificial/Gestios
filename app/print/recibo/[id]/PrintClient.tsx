@@ -162,7 +162,7 @@ export default function PrintClient({ order, org }: PrintClientProps) {
           Gracias por su compra
         </div>
         <div className="center" style={{ fontSize: "9px", marginTop: "1mm", color: "#666" }}>
-          gestios.app
+          gestioshq.app
         </div>
       </div>
 

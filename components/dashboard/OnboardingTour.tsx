@@ -179,7 +179,7 @@ const STEP_CONTENT: Record<string, StepContent> = {
 const DENTAL_STEP_CONTENT: Record<string, StepContent> = {
   "/dashboard": {
     icon: <BarChart3 size={24} />,
-    description: "Menu izquierdo > Dashboard. Aqui ves el estado operativo del modulo DentalGest: alertas, stock bajo y actividad reciente.",
+    description: "Menu izquierdo > Dashboard. Aqui ves continuidad operativa: stock critico, vencimientos, proveedores y acciones para administracion.",
     cta: "Abrir dashboard",
     color: "text-sky-400",
   },
@@ -191,31 +191,31 @@ const DENTAL_STEP_CONTENT: Record<string, StepContent> = {
   },
   "/inventory": {
     icon: <Package size={24} />,
-    description: "Menu izquierdo > Inventario Dental. Carga insumos, lotes, presentaciones, stock minimo y fechas de vencimiento.",
+    description: "Menu izquierdo > Inventario Dental. Carga insumos, lotes, costos, presentaciones, stock minimo y fechas de vencimiento.",
     cta: "Abrir inventario dental",
     color: "text-blue-400",
   },
   "/inventory?vencimientos=1": {
     icon: <Package size={24} />,
-    description: "Menu izquierdo > Vencimientos. Controla insumos dentales que estan por vencer antes de usarlos en clinica.",
+    description: "Menu izquierdo > Vencimientos. Controla insumos por vencer para retirarlos, priorizar uso seguro o reponer a tiempo.",
     cta: "Abrir vencimientos",
     color: "text-blue-300",
   },
   "/suppliers": {
     icon: <Truck size={24} />,
-    description: "Menu izquierdo > Proveedores Dentales. Guarda laboratorios, distribuidores y contactos de reposicion.",
+    description: "Menu izquierdo > Proveedores Dentales. Guarda laboratorios, distribuidores, tiempos de entrega y condiciones de compra.",
     cta: "Abrir proveedores",
     color: "text-cyan-300",
   },
   "/purchase-orders": {
     icon: <ClipboardList size={24} />,
-    description: "Menu izquierdo > Ordenes de Compra. Planifica reposicion de insumos y controla compras pendientes.",
+    description: "Menu izquierdo > Ordenes de Compra. Planifica reposicion, registra recepcion y controla compras pendientes.",
     cta: "Abrir ordenes",
     color: "text-indigo-300",
   },
   "/categories": {
     icon: <FolderTree size={24} />,
-    description: "Menu izquierdo > Areas de Insumos. Organiza materiales por bioseguridad, operatoria, ortodoncia y otras areas.",
+    description: "Menu izquierdo > Areas de Insumos. Organiza materiales por bioseguridad, operatoria, ortodoncia, esterilizacion y administracion.",
     cta: "Abrir areas",
     color: "text-teal-300",
   },

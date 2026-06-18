@@ -83,7 +83,7 @@ QR_BOLIVIA_DEFAULT_EXPIRY_MINUTES=15   # opcional, default 15
 
 ## Webhook del PSP
 
-El PSP debe enviar POST a `https://gestios.app/api/qr-payments/webhook` con:
+El PSP debe enviar POST a `https://www.gestioshq.app/api/qr-payments/webhook` con:
 - Header `x-qr-signature` o `x-webhook-signature` — HMAC-SHA256 del body con `QR_BOLIVIA_WEBHOOK_SECRET`
 - Body JSON con campos: `id` (externalId), `status` (paid/expired/cancelled/failed), `paid_at?`, `payer?`
 
@@ -116,7 +116,7 @@ GestiOS responde 200 inmediatamente y procesa async.
 3. Agregar env vars a Vercel → Environment Variables
 4. Correr `prisma migrate deploy` en prod (o ejecutar la migración SQL manual)
 5. Superadmin activa addon `QR_BOLIVIA` para la org + configura `merchantId` en config
-6. Registrar `https://gestios.app/api/qr-payments/webhook` como callback en el PSP
+6. Registrar `https://www.gestioshq.app/api/qr-payments/webhook` como callback en el PSP
 
 ## Archivos implementados
 

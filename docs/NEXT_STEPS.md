@@ -176,7 +176,7 @@ if (!hasPermission(profile.role, "customers:update")) return NextResponse.json({
 ### WhatsApp Business ✅ Backend listo — solo config externa
 Solo falta configurar en Vercel:
 1. `WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN`, `WA_APP_SECRET`, `WA_VERIFY_TOKEN`
-2. Registrar `https://gestios.app/api/webhooks/whatsapp` en Meta Business Dashboard
+2. Registrar `https://www.gestioshq.app/api/webhooks/whatsapp` en Meta Business Dashboard
 3. Al activar el addon para un tenant: guardar su `phoneNumberId` en `OrgAddon.phoneNumberId`
 
 ### Facturacion electronica
@@ -234,7 +234,7 @@ Storefront público en `/{slug}/tienda`. La DB ya soporta productos con variante
     - Webhook: `/api/webhooks/brevo` para tracking delivery/bounce
     - Dashboard: `/email-stats` para SUPERADMIN
     - n8n: `n8n/brevo-email-tracking.json` bridge para plan gratuito
-    - Pendiente: dominio propio para usar `noreply@gestios.app`
+    - Pendiente: remitente verificado para usar `noreply@gestioshq.app`
     - Ver: `docs/BREVO-SETUP.md`, `docs/EMAILS.md`, `docs/EMAIL-MIGRATION-GUIDE.md`
     - GET `/api/tienda/[slug]`: org info + productos activos (gate: plan PRO+)
     - POST `/api/tienda/checkout`: pedido público con stock decrement, email confirmación opcional

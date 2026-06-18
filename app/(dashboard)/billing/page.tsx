@@ -780,6 +780,43 @@ export default function BillingPage() {
         </section>
       )}
 
+      {isDentalMode && (
+        <section className="glass-panel rounded-2xl p-5 space-y-4 border border-cyan-400/15">
+          <div className="flex items-center gap-2">
+            <Building2 size={16} className="text-cyan-300" />
+            <h2 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Add-on para clinicas</h2>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-white">Servidor propio administrado</h3>
+                <p className="text-xs text-brand-kinetic-orange font-semibold mt-0.5">Cotizacion anual segun infraestructura</p>
+              </div>
+              <span className="w-fit rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300">
+                Evaluacion tecnica
+              </span>
+            </div>
+            <p className="text-sm text-brand-muted leading-relaxed">
+              Instalacion de GestiOS en infraestructura de la clinica o VPS dedicado, con checklist de backup,
+              acceso seguro, monitoreo basico y plan de soporte. No se activa automaticamente porque requiere
+              revisar red, dominio, servidor, politicas de seguridad y responsable tecnico.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-brand-muted">
+              <div className="rounded-xl bg-white/5 p-3">Backup y restauracion documentados</div>
+              <div className="rounded-xl bg-white/5 p-3">Acceso seguro para administracion</div>
+              <div className="rounded-xl bg-white/5 p-3">Dominio/subdominio de la clinica</div>
+              <div className="rounded-xl bg-white/5 p-3">SLA y mantenimiento acordados</div>
+            </div>
+            <button
+              onClick={() => window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hola! Quiero evaluar el add-on de Servidor propio administrado para una clinica dental en GestiOS. Necesito requisitos, costo y alcance.")}`, "_blank")}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-sm font-bold hover:bg-[#25D366]/20 transition-all"
+            >
+              <MessageCircle size={14} /> Solicitar evaluacion
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* Bank Transfer Modal */}
       {transferModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

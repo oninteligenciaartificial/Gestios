@@ -130,6 +130,39 @@ function formatBob(amount: number) {
   })}`;
 }
 
+function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function htmlToText(html: string) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h1|h2|h3|li|tr)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function publicAppUrl(path = "") {
+  const base = getPublicBaseUrl();
+  if (!path) return base;
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 // =============================================
 // Core email functions with logging
 // =============================================
@@ -180,6 +213,7 @@ async function sendEmail(to: string, subject: string, htmlContent: string, toNam
       to: [to],
       subject,
       html: htmlContent,
+      text: htmlToText(htmlContent),
     });
 
     if (error) {
@@ -231,25 +265,32 @@ function getPublicBaseUrl() {
   return (process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_PUBLIC_BASE_URL).replace(/\/$/, "");
 }
 
-function baseTemplate(content: string, orgName: string) {
-  const logoUrl = `${getPublicBaseUrl()}/brand/gestios-logo-full.png`;
-
+function baseTemplate(content: string, orgName: string, preheader = "Notificacion operativa de GestiOS") {
+  const safeOrgName = escapeHtml(orgName);
+  const safePreheader = escapeHtml(preheader);
   return `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${orgName}</title></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:system-ui,sans-serif;color:#e0e0e0;">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeOrgName}</title></head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e0e0e0;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${safePreheader}</div>
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#141414;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
-        <tr><td style="background:#ffffff;padding:24px 32px;text-align:left;">
-          <img src="${logoUrl}" alt="GestiOS" height="48" style="display:block;height:48px;width:auto;max-width:220px;border:0;outline:none;text-decoration:none;">
-          <div style="margin-top:12px;font-size:13px;font-weight:700;color:#141414;">${orgName}</div>
+        <tr><td style="background:#0f1115;padding:24px 32px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:28px;line-height:1;font-weight:900;letter-spacing:0;color:#ffffff;">
+            Gesti<span style="color:#ff6b00;">OS</span>
+          </div>
+          <div style="margin-top:10px;font-size:13px;font-weight:700;color:#ffffff;">${safeOrgName}</div>
+          <div style="margin-top:4px;font-size:12px;color:#8a8f98;">Gestion operativa, inventario y control administrativo</div>
         </td></tr>
         <tr><td style="padding:32px;">
           ${content}
         </td></tr>
         <tr><td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-          <span style="font-size:12px;color:#555;">Gestionado con <strong style="color:#ff6b00;">GestiOS</strong></span>
+          <div style="font-size:12px;color:#8a8f98;line-height:1.6;">
+            Gestionado con <strong style="color:#ff6b00;">GestiOS</strong><br>
+            Si no esperabas este correo, responde a soporte o contacta al administrador de tu cuenta.
+          </div>
         </td></tr>
       </table>
     </td></tr>
@@ -263,9 +304,13 @@ function baseTemplate(content: string, orgName: string) {
 // =============================================
 
 export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
+  const safeCustomerName = escapeHtml(args.customerName);
+  const trackingUrl = publicAppUrl(`/pedido/${encodeURIComponent(args.orderId)}`);
+  const safePaymentLabel = escapeHtml(PAYMENT_LABELS[args.paymentMethod] ?? args.paymentMethod);
+  const safeOrderCode = escapeHtml(args.orderId.slice(-8).toUpperCase());
   const itemsHtml = args.items.map(i =>
     `<tr>
-      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${escapeHtml(i.name)}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${i.quantity}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">${formatBob(i.unitPrice)}</td>
     </tr>`
@@ -273,7 +318,7 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
 
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Pedido confirmado</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, recibimos tu pedido.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${safeCustomerName}</strong>, recibimos tu pedido.</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr>
         <th style="text-align:left;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRODUCTO</th>
@@ -288,11 +333,11 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
     </table>
     <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px 18px;margin-bottom:8px;">
       <span style="font-size:13px;color:#888;">Pago: </span>
-      <span style="font-size:13px;color:#fff;font-weight:600;">${PAYMENT_LABELS[args.paymentMethod] ?? args.paymentMethod}</span>
+      <span style="font-size:13px;color:#fff;font-weight:600;">${safePaymentLabel}</span>
     </div>
-    <p style="margin:20px 0 0;font-size:13px;color:#666;">Folio de pedido: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+    <p style="margin:20px 0 0;font-size:13px;color:#666;">Folio de pedido: <code style="color:#ff6b00;">#${safeOrderCode}</code></p>
     <div style="text-align:center;margin-top:24px;">
-      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/pedido/${args.orderId}" style="display:inline-block;padding:12px 28px;background:#ff6b00;color:#000;font-weight:700;border-radius:50px;text-decoration:none;font-size:14px;">Ver estado del pedido</a>
+      <a href="${trackingUrl}" style="display:inline-block;padding:12px 28px;background:#ff6b00;color:#000;font-weight:700;border-radius:50px;text-decoration:none;font-size:14px;">Ver estado del pedido</a>
     </div>
   `;
 
@@ -301,18 +346,22 @@ export async function sendOrderConfirmation(args: SendOrderConfirmationArgs) {
 
 export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
   const statusLabel = STATUS_LABELS[args.status] ?? args.status;
+  const safeStatusLabel = escapeHtml(statusLabel);
+  const safeCustomerName = escapeHtml(args.customerName);
+  const trackingUrl = publicAppUrl(`/pedido/${encodeURIComponent(args.orderId)}`);
+  const safeOrderCode = escapeHtml(args.orderId.slice(-8).toUpperCase());
   const statusColor = args.status === "ENTREGADO" ? "#22c55e" : args.status === "CANCELADO" ? "#ef4444" : "#ff6b00";
 
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Actualizacion de pedido</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu pedido fue actualizado.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${safeCustomerName}</strong>, tu pedido fue actualizado.</p>
     <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:13px;color:#666;margin-bottom:8px;">Estado actual</div>
-      <div style="font-size:24px;font-weight:800;color:${statusColor};">${statusLabel}</div>
+      <div style="font-size:24px;font-weight:800;color:${statusColor};">${safeStatusLabel}</div>
     </div>
-    <p style="margin:0 0 20px;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+    <p style="margin:0 0 20px;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${safeOrderCode}</code></p>
     <div style="text-align:center;">
-      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/pedido/${args.orderId}" style="display:inline-block;padding:12px 28px;background:#ff6b00;color:#000;font-weight:700;border-radius:50px;text-decoration:none;font-size:14px;">Ver estado del pedido</a>
+      <a href="${trackingUrl}" style="display:inline-block;padding:12px 28px;background:#ff6b00;color:#000;font-weight:700;border-radius:50px;text-decoration:none;font-size:14px;">Ver estado del pedido</a>
     </div>
   `;
 
@@ -320,9 +369,10 @@ export async function sendOrderStatusUpdate(args: SendOrderStatusArgs) {
 }
 
 export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
+  const safeOrgName = escapeHtml(args.orgName);
   const rowsHtml = args.products.map(p =>
     `<tr>
-      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${p.name}</td>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${escapeHtml(p.name)}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ef4444;font-weight:700;">${p.stock}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#666;">${p.minStock}</td>
     </tr>`
@@ -330,7 +380,7 @@ export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
 
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Alerta de stock bajo</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Los siguientes productos necesitan reabastecimiento en <strong style="color:#fff;">${args.orgName}</strong>:</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Los siguientes productos necesitan reabastecimiento en <strong style="color:#fff;">${safeOrgName}</strong>:</p>
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <th style="text-align:left;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRODUCTO</th>
@@ -346,26 +396,31 @@ export async function sendLowStockAlert(args: SendLowStockAlertArgs) {
 }
 
 export async function sendWelcomeEmail(args: SendWelcomeEmailArgs) {
+  const safeCustomerName = escapeHtml(args.customerName);
+  const safeOrgName = escapeHtml(args.orgName);
   const content = `
-    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Bienvenido/a a ${args.orgName}</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu registro fue exitoso.</p>
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Bienvenido/a a ${safeOrgName}</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${safeCustomerName}</strong>, tu registro fue exitoso.</p>
     <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
       <div style="font-size:32px;margin-bottom:8px;">&#127881;</div>
       <div style="font-size:15px;color:#ccc;">Ya eres parte de nuestra comunidad. A partir de ahora podras acumular puntos y recibir ofertas exclusivas.</div>
     </div>
-    <p style="margin:0;font-size:13px;color:#666;">Si tienes alguna pregunta, contacta directamente a ${args.orgName}.</p>
+    <p style="margin:0;font-size:13px;color:#666;">Si tienes alguna pregunta, contacta directamente a ${safeOrgName}.</p>
   `;
 
   await sendEmail(args.to, `Bienvenido/a a ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName, "welcome_email");
 }
 
 export async function sendBirthdayEmail(args: SendBirthdayEmailArgs) {
+  const safeCustomerName = escapeHtml(args.customerName);
+  const safeOrgName = escapeHtml(args.orgName);
+  const safeDiscountCode = escapeHtml(args.discountCode);
   const content = `
-    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Feliz cumpleanos, ${args.customerName}!</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">En tu dia especial, <strong style="color:#fff;">${args.orgName}</strong> tiene un regalo para ti.</p>
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Feliz cumpleanos, ${safeCustomerName}!</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">En tu dia especial, <strong style="color:#fff;">${safeOrgName}</strong> tiene un regalo para ti.</p>
     <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:13px;color:#888;margin-bottom:8px;">Tu codigo de descuento</div>
-      <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#ff6b00;">${args.discountCode}</div>
+      <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#ff6b00;">${safeDiscountCode}</div>
       <div style="font-size:13px;color:#ccc;margin-top:8px;">${args.discountValue}% de descuento en tu proximo pedido</div>
     </div>
     <p style="margin:0;font-size:13px;color:#666;">Valido solo hoy. Presentalo al realizar tu pedido.</p>
@@ -375,9 +430,11 @@ export async function sendBirthdayEmail(args: SendBirthdayEmailArgs) {
 }
 
 export async function sendLoyaltyPointsEmail(args: SendLoyaltyPointsEmailArgs) {
+  const safeCustomerName = escapeHtml(args.customerName);
+  const safeOrgName = escapeHtml(args.orgName);
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Puntos acumulados</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${args.customerName}</strong>, tu pedido fue entregado.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Hola <strong style="color:#fff;">${safeCustomerName}</strong>, tu pedido fue entregado.</p>
     <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:13px;color:#666;margin-bottom:4px;">Puntos ganados en este pedido</div>
       <div style="font-size:36px;font-weight:900;color:#ff6b00;">+${args.pointsEarned}</div>
@@ -386,16 +443,19 @@ export async function sendLoyaltyPointsEmail(args: SendLoyaltyPointsEmailArgs) {
         <div style="font-size:22px;font-weight:700;color:#fff;">${args.totalPoints} puntos</div>
       </div>
     </div>
-    <p style="margin:0;font-size:13px;color:#666;">Sigue comprando en <strong style="color:#ff6b00;">${args.orgName}</strong> para acumular mas puntos.</p>
+    <p style="margin:0;font-size:13px;color:#666;">Sigue comprando en <strong style="color:#ff6b00;">${safeOrgName}</strong> para acumular mas puntos.</p>
   `;
 
   await sendEmail(args.to, `+${args.pointsEarned} puntos acumulados en ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName, "loyalty_points_email");
 }
 
 export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
+  const safeCustomerName = escapeHtml(args.customerName);
+  const safePaymentLabel = escapeHtml(PAYMENT_LABELS[args.paymentMethod] ?? args.paymentMethod);
+  const safeOrderCode = escapeHtml(args.orderId.slice(-8).toUpperCase());
   const itemsHtml = args.items.map(i =>
     `<tr>
-      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${i.name}</td>
+      <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${escapeHtml(i.name)}</td>
       <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${i.quantity}</td>
       <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#fff;font-weight:600;">${formatBob(i.unitPrice)}</td>
     </tr>`
@@ -403,7 +463,7 @@ export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
 
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Nuevo pedido recibido</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">El cliente <strong style="color:#fff;">${args.customerName}</strong> realizo un pedido.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">El cliente <strong style="color:#fff;">${safeCustomerName}</strong> realizo un pedido.</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
       <tr>
         <th style="text-align:left;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRODUCTO</th>
@@ -418,18 +478,19 @@ export async function sendNewOrderAlert(args: SendNewOrderAlertArgs) {
     </table>
     <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px 18px;margin-bottom:8px;">
       <span style="font-size:13px;color:#888;">Pago: </span>
-      <span style="font-size:13px;color:#fff;font-weight:600;">${PAYMENT_LABELS[args.paymentMethod] ?? args.paymentMethod}</span>
+      <span style="font-size:13px;color:#fff;font-weight:600;">${safePaymentLabel}</span>
     </div>
-    <p style="margin:16px 0 0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${args.orderId.slice(-8).toUpperCase()}</code></p>
+    <p style="margin:16px 0 0;font-size:13px;color:#666;">Folio: <code style="color:#ff6b00;">#${safeOrderCode}</code></p>
   `;
 
   await sendEmail(args.to, `Nuevo pedido de ${args.customerName} — ${args.orgName}`, baseTemplate(content, args.orgName), undefined, "new_order_alert");
 }
 
 export async function sendExpiryAlert(args: SendExpiryAlertArgs) {
+  const safeOrgName = escapeHtml(args.orgName);
   const rowsHtml = args.products.map(p =>
     `<tr>
-      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${p.name}${p.sku ? ` <span style="color:#555;font-size:11px;">(${p.sku})</span>` : ""}</td>
+      <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc;">${escapeHtml(p.name)}${p.sku ? ` <span style="color:#555;font-size:11px;">(${escapeHtml(p.sku)})</span>` : ""}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:#ccc;">${p.batchExpiry.toLocaleDateString("es-MX")}</td>
       <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:${p.daysLeft <= 3 ? "#ef4444" : "#f59e0b"};font-weight:700;">${p.daysLeft} dias</td>
     </tr>`
@@ -437,7 +498,7 @@ export async function sendExpiryAlert(args: SendExpiryAlertArgs) {
 
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Productos proximos a vencer</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Los siguientes productos vencen en los proximos 7 dias en <strong style="color:#fff;">${args.orgName}</strong>:</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Los siguientes productos vencen en los proximos 7 dias en <strong style="color:#fff;">${safeOrgName}</strong>:</p>
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <th style="text-align:left;color:#666;font-size:12px;padding-bottom:8px;font-weight:500;">PRODUCTO</th>
@@ -453,14 +514,16 @@ export async function sendExpiryAlert(args: SendExpiryAlertArgs) {
 }
 
 export async function sendInactiveCustomerEmail(args: SendInactiveCustomerArgs) {
+  const safeCustomerName = escapeHtml(args.customerName);
+  const safeOrgName = escapeHtml(args.orgName);
   const content = `
-    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Te echamos de menos, ${args.customerName}</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Han pasado <strong style="color:#fff;">${args.daysSinceLastOrder} dias</strong> desde tu ultima compra en <strong style="color:#fff;">${args.orgName}</strong>.</p>
+    <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Te echamos de menos, ${safeCustomerName}</h2>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Han pasado <strong style="color:#fff;">${args.daysSinceLastOrder} dias</strong> desde tu ultima compra en <strong style="color:#fff;">${safeOrgName}</strong>.</p>
     <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:32px;margin-bottom:12px;">&#128717;</div>
-      <div style="font-size:15px;color:#ccc;line-height:1.6;">Tenemos novedades esperandote. Visita ${args.orgName} y descubre lo nuevo.</div>
+      <div style="font-size:15px;color:#ccc;line-height:1.6;">Tenemos novedades esperandote. Visita ${safeOrgName} y descubre lo nuevo.</div>
     </div>
-    <p style="margin:0;font-size:13px;color:#666;">Si necesitas ayuda, contacta directamente a ${args.orgName}.</p>
+    <p style="margin:0;font-size:13px;color:#666;">Si necesitas ayuda, contacta directamente a ${safeOrgName}.</p>
   `;
 
   await sendEmail(args.to, `Te echamos de menos — ${args.orgName}`, baseTemplate(content, args.orgName), args.customerName, "inactive_customer_email");
@@ -471,9 +534,11 @@ export async function sendPlainNotification(args: SendPlainArgs) {
 }
 
 export async function sendPlanExpiryWarning(args: { to: string; orgName: string; daysLeft: number; planLabel: string }) {
+  const safeOrgName = escapeHtml(args.orgName);
+  const safePlanLabel = escapeHtml(args.planLabel);
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Tu plan vence en ${args.daysLeft} dia${args.daysLeft !== 1 ? "s" : ""}</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">El plan <strong style="color:#fff;">${args.planLabel}</strong> de <strong style="color:#fff;">${args.orgName}</strong> esta proximo a vencer.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">El plan <strong style="color:#fff;">${safePlanLabel}</strong> de <strong style="color:#fff;">${safeOrgName}</strong> esta proximo a vencer.</p>
     <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:40px;margin-bottom:12px;">&#9200;</div>
       <div style="font-size:22px;font-weight:800;color:#f59e0b;margin-bottom:8px;">${args.daysLeft} dia${args.daysLeft !== 1 ? "s" : ""} restante${args.daysLeft !== 1 ? "s" : ""}</div>
@@ -487,13 +552,15 @@ export async function sendPlanExpiryWarning(args: { to: string; orgName: string;
 export async function sendPlanActivatedEmail(args: { to: string; orgName: string; plan: string; expiresAt: Date }) {
   const planLabels: Record<string, string> = { BASICO: "Básico", CRECER: "Crecer", PRO: "Pro", EMPRESARIAL: "Empresarial" };
   const label = planLabels[args.plan] ?? args.plan;
+  const safeLabel = escapeHtml(label);
+  const safeOrgName = escapeHtml(args.orgName);
   const expiry = args.expiresAt.toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" });
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">¡Pago confirmado!</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">Tu plan ha sido activado para <strong style="color:#fff;">${args.orgName}</strong>.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">Tu plan ha sido activado para <strong style="color:#fff;">${safeOrgName}</strong>.</p>
     <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:40px;margin-bottom:12px;">✅</div>
-      <div style="font-size:22px;font-weight:800;color:#ff6b00;margin-bottom:4px;">Plan ${label}</div>
+      <div style="font-size:22px;font-weight:800;color:#ff6b00;margin-bottom:4px;">Plan ${safeLabel}</div>
       <div style="font-size:13px;color:#888;">Activo hasta el ${expiry}</div>
     </div>
     <p style="margin:0;font-size:13px;color:#666;">Ya puedes acceder a todas las funciones de tu plan. Si tienes dudas, responde este correo.</p>
@@ -502,9 +569,11 @@ export async function sendPlanActivatedEmail(args: { to: string; orgName: string
 }
 
 export async function sendPlanExpired(args: { to: string; orgName: string; planLabel: string }) {
+  const safeOrgName = escapeHtml(args.orgName);
+  const safePlanLabel = escapeHtml(args.planLabel);
   const content = `
     <h2 style="margin:0 0 8px;color:#fff;font-size:20px;">Tu plan ha vencido</h2>
-    <p style="margin:0 0 24px;color:#888;font-size:14px;">El plan <strong style="color:#fff;">${args.planLabel}</strong> de <strong style="color:#fff;">${args.orgName}</strong> vencio hoy.</p>
+    <p style="margin:0 0 24px;color:#888;font-size:14px;">El plan <strong style="color:#fff;">${safePlanLabel}</strong> de <strong style="color:#fff;">${safeOrgName}</strong> vencio hoy.</p>
     <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
       <div style="font-size:40px;margin-bottom:12px;">&#128274;</div>
       <div style="font-size:18px;font-weight:700;color:#ef4444;margin-bottom:8px;">Acceso suspendido</div>

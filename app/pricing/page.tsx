@@ -95,6 +95,12 @@ const PUBLIC_ADDONS = [
     price: "A medida",
     description: "Tableros de ventas, margen y compras adaptados a la operacion del negocio.",
   },
+  {
+    key: "self-hosted-clinic",
+    label: "Servidor propio administrado",
+    price: "Cotizacion anual",
+    description: "Para clinicas que requieren VPS dedicado o infraestructura propia con backup, acceso seguro y soporte acordado.",
+  },
 ];
 
 function formatPrice(price: number): string {

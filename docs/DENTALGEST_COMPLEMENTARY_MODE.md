@@ -9,6 +9,8 @@ The customer should buy this as one ONIA suite, but internally each product keep
 - DentalGest: patients, appointments, treatments, doctors and clinical records.
 - GestiOS: stock, suppliers, purchase orders, expiry control and administrative supply operations.
 
+The intended customer is not only a small clinic. The mode should also support clinics with multiple rooms, multiple responsible users, purchasing routines and supply governance.
+
 ## First implementation
 
 GestiOS now supports `businessType = "DENTAL"`.
@@ -67,6 +69,31 @@ public registration, customers, orders/sales, reports, cash closing, discounts,
 branches, WhatsApp conversations, staff/team and add-ons.
 
 The goal is to avoid mixing store operations with DentalGest clinical operations while still reusing the GestiOS inventory, purchasing and supplier engine.
+
+## Professional operating rhythm
+
+Recommended daily use for dental organizations:
+
+- start of day: review critical stock, supplies expiring soon and missing materials;
+- during operation: register stock adjustments only for supplies, never clinical records;
+- end of day: record shortages and prepare purchase orders;
+- weekly: compare suppliers, costs, purchase status and expiry risk;
+- management: review continuity risk for supplies and responsible owners by area.
+
+## Managed self-hosted add-on
+
+For clinics that require dedicated infrastructure, GestiOS exposes a consultative add-on: `Servidor propio administrado`.
+
+This is not a billing plan and not an automatic activation. It requires technical assessment:
+
+- VPS or clinic-controlled server;
+- domain or subdomain;
+- TLS, backup, monitoring and restore policy;
+- secure admin access;
+- maintenance window and SLA;
+- incident and update procedure.
+
+Keep it as a managed service proposal until the infrastructure runbook and contract are accepted by the clinic.
 
 ## Navigation bridge
 

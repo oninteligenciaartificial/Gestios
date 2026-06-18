@@ -180,7 +180,7 @@ const CONFIGS: Record<BusinessType, BusinessUIConfig> = {
     showBarcode: true,
     showUnit: true,
     pageTitle: "Inventario Operativo Dental",
-    pageSubtitle: "Control de insumos, materiales, vencimientos y reposicion de la clinica",
+    pageSubtitle: "Control administrativo de insumos, materiales, vencimientos y reposicion",
     newButtonLabel: "Nuevo Insumo",
     emptyStateMessage: "Aun no tienes insumos. Agrega el primero.",
     posProductLabel: "Insumo",

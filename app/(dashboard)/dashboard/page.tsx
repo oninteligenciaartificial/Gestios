@@ -121,9 +121,9 @@ export default async function Dashboard() {
   const kpis = isDentalMode
     ? [
         { title: "Inventario Dental", value: String(totalProducts), label: "Insumos activos", icon: Package, color: "text-brand-kinetic-orange", delta: null as number | null },
-        { title: "Stock Bajo", value: String(lowStockAlerts.length), label: "Reabastecer ya", icon: AlertTriangle, color: "text-red-400", delta: null as number | null },
+        { title: "Stock Critico", value: String(lowStockAlerts.length), label: "Reponer antes de operar", icon: AlertTriangle, color: "text-red-400", delta: null as number | null },
         { title: "Vencen Pronto", value: String(expiringProducts.length), label: "Proximos 30 dias", icon: Clock, color: "text-yellow-300", delta: null as number | null },
-        { title: "Proveedores", value: String(supplierCount), label: "Contactos dentales", icon: Truck, color: "text-cyan-300", delta: null as number | null },
+        { title: "Proveedores", value: String(supplierCount), label: "Proveedores activos", icon: Truck, color: "text-cyan-300", delta: null as number | null },
       ]
     : [
     { title: "Inventario Total",  value: String(totalProducts),                  label: "SKUs Activos",    icon: Package,       color: "text-brand-kinetic-orange", delta: null as number | null },
@@ -137,7 +137,7 @@ export default async function Dashboard() {
         {
           title: "Control de insumos",
           metric: lowStockAlerts.length > 0 ? `${lowStockAlerts.length} criticos` : "Sin criticos",
-          desc: "Revisa stock bajo antes de iniciar jornada clinica.",
+          desc: "Valida insumos criticos antes de iniciar jornada o habilitar consultorios.",
           href: "/inventory",
           cta: "Abrir inventario",
           urgent: lowStockAlerts.length > 0,
@@ -146,7 +146,7 @@ export default async function Dashboard() {
         {
           title: "Reposicion",
           metric: supplierCount > 0 ? `${supplierCount} proveedores` : "Sin proveedores",
-          desc: "Mantiene proveedores dentales listos para compras recurrentes.",
+          desc: "Mantiene proveedores dentales listos para compras recurrentes y emergencias de abastecimiento.",
           href: supplierCount > 0 ? "/purchase-orders" : "/suppliers",
           cta: supplierCount > 0 ? "Crear compra" : "Registrar proveedor",
           urgent: supplierCount === 0,
@@ -155,7 +155,7 @@ export default async function Dashboard() {
         {
           title: "Vencimientos",
           metric: expiringProducts.length > 0 ? `${expiringProducts.length} por vencer` : "Al dia",
-          desc: "Separa insumos por vencer antes de usarlos en operacion.",
+          desc: "Controla lotes por vencer antes de usarlos o mantenerlos disponibles en area clinica.",
           href: "/inventory?vencimientos=1",
           cta: "Ver vencimientos",
           urgent: expiringProducts.length > 0,
@@ -209,7 +209,7 @@ export default async function Dashboard() {
         <div>
           <h1 className="text-2xl sm:text-4xl font-display font-bold text-white tracking-tight">Dashboard</h1>
           <p className="text-brand-muted mt-1 text-sm">
-            {isDentalMode ? "Vision operativa de insumos dentales" : "Visión general de tu tienda"}
+            {isDentalMode ? "Control administrativo de insumos, compras y vencimientos" : "Visión general de tu tienda"}
           </p>
         </div>
         <div className="flex gap-2 sm:gap-4 flex-shrink-0">
@@ -253,7 +253,7 @@ export default async function Dashboard() {
             <h2 className="text-xl sm:text-2xl font-display font-bold text-white">Rutina operativa de hoy</h2>
             <p className="text-sm text-brand-muted mt-1">
               {isDentalMode
-                ? "Control diario de insumos, compras y vencimientos de la clinica."
+                ? "Control diario para administracion, almacen y responsables de insumos dentales."
                 : "Flujo diario para vender, cobrar, reponer y revisar el negocio."}
             </p>
           </div>

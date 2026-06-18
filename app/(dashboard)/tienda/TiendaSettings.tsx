@@ -17,7 +17,7 @@ interface TiendaData {
   } | null;
 }
 
-const BASE_URL = "https://gestios.app";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.gestioshq.app";
 
 export function TiendaSettings() {
   const [data, setData] = useState<TiendaData | null>(null);

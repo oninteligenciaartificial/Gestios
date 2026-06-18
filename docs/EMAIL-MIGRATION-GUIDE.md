@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Migrar de `oninteligenciaartificial@gmail.com` a `noreply@gestios.app` (o tu dominio) como remitente verificado en Brevo para mejorar entregabilidad y evitar spam.
+Migrar de `oninteligenciaartificial@gmail.com` a `noreply@gestioshq.app` (o tu dominio) como remitente verificado para mejorar entregabilidad y evitar spam.
 
 ---
 
@@ -16,7 +16,7 @@ Migrar de `oninteligenciaartificial@gmail.com` a `noreply@gestios.app` (o tu dom
 | Cloudflare | ~$9/año | DNS incluido, sin markup |
 
 ### Dominio sugerido
-- `gestios.app` — limpio, profesional
+- `gestioshq.app` - dominio publico actual del producto
 - Alternativas: `gestios.io`, `gestios.co`, `gestios.dev`
 
 ---
@@ -43,7 +43,7 @@ Migrar de `oninteligenciaartificial@gmail.com` a `noreply@gestios.app` (o tu dom
    ```
    Type: TXT
    Host: _dmarc
-   Value: v=DMARC1; p=none; rua=mailto:dmarc@gestios.app
+   Value: v=DMARC1; p=none; rua=mailto:dmarc@gestioshq.app
    ```
 
 ### Pasos en tu proveedor DNS
@@ -59,7 +59,7 @@ Migrar de `oninteligenciaartificial@gmail.com` a `noreply@gestios.app` (o tu dom
 1. Ir a https://app.brevo.com
 2. **Settings** → **Sender & IPs** → **Domains**
 3. Click **Add a Domain**
-4. Ingresar `gestios.app`
+4. Ingresar `gestioshq.app`
 5. Brevo te dará los registros DNS exactos (SPF, DKIM, DMARC)
 6. Agregarlos en tu panel DNS
 7. Click **Verify** en Brevo
@@ -71,7 +71,7 @@ Migrar de `oninteligenciaartificial@gmail.com` a `noreply@gestios.app` (o tu dom
 
 1. **Settings** → **Sender & IPs** → **Senders**
 2. Click **Add a Sender**
-3. Email: `noreply@gestios.app`
+3. Email: `noreply@gestioshq.app`
 4. Name: `GestiOS`
 5. Brevo enviará email de verificación a esa dirección
 6. Click en link de verificación
@@ -84,7 +84,7 @@ Ir a Vercel Dashboard → Proyecto → Settings → Environment Variables:
 
 | Variable | Valor anterior | Nuevo valor |
 |---|---|---|
-| `BREVO_SENDER_EMAIL` | `oninteligenciaartificial@gmail.com` | `noreply@gestios.app` |
+| `BREVO_SENDER_EMAIL` | `oninteligenciaartificial@gmail.com` | `noreply@gestioshq.app` |
 | `BREVO_SENDER_NAME` | `GestiOS` | `GestiOS` (sin cambio) |
 
 Deploy para aplicar cambios:
@@ -116,7 +116,7 @@ npx prisma db query --command "SELECT * FROM email_logs WHERE status = 'FAILED' 
 
 1. Ir a Brevo → **Settings** → **Webhooks**
 2. Click **Add a Webhook**
-3. URL: `https://gestios.app/api/webhooks/brevo`
+3. URL: `https://www.gestioshq.app/api/webhooks/brevo`
 4. Seleccionar eventos:
    - ✅ delivered
    - ✅ bounce
@@ -136,7 +136,7 @@ npx prisma db query --command "SELECT * FROM email_logs WHERE status = 'FAILED' 
 
 ### Brevo no verifica el dominio
 - Esperar propagación DNS (puede tardar 48 hrs)
-- Verificar registros con `dig TXT gestios.app`
+- Verificar registros con `dig TXT gestioshq.app`
 - Contactar soporte de Brevo si persiste
 
 ### DMARC p=reject demasiado agresivo
@@ -153,7 +153,7 @@ npx prisma db query --command "SELECT * FROM email_logs WHERE status = 'FAILED' 
 - [ ] DKIM configurado
 - [ ] DMARC configurado
 - [ ] Dominio verificado en Brevo
-- [ ] Email `noreply@gestios.app` verificado
+- [ ] Email `noreply@gestioshq.app` verificado
 - [ ] Vercel actualizado con nuevas variables
 - [ ] Deploy realizado
 - [ ] Email de prueba recibido en inbox (no spam)

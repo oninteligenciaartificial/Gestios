@@ -37,8 +37,23 @@ Keep GestiOS sellable without promising integrations that are not connected yet.
 - Backups y continuidad.
 - Migracion asistida.
 - Reportes gerenciales.
+- Servidor propio administrado para clinicas o empresas con requisitos de infraestructura dedicada.
 
 These are sold as implementation services or managed add-ons. They should not be represented as automatically active until there is a data model, provider or documented operational process.
+
+### Servidor propio administrado
+
+This add-on is consultative, not self-serve. It requires a technical assessment before sale:
+
+- target infrastructure: clinic server, VPS or private cloud;
+- domain/subdomain and TLS responsibility;
+- backup and restore policy;
+- secure admin access;
+- monitoring scope;
+- support window and SLA;
+- update and incident procedure.
+
+Do not promise on-prem installation as an instant feature. Sell it as annual setup plus managed support.
 
 ## DentalGest complementarity
 
@@ -51,6 +66,7 @@ GestiOS can be used as the operational module for dental clinics:
 - suppliers and purchase orders;
 - expiry control for supplies;
 - operational cost reporting.
+- daily administrative routine for warehouse, purchasing and clinic management.
 
 Recommended bridge URL from DentalGest:
 

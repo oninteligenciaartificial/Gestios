@@ -3,6 +3,7 @@ import {
   Package,
   Users,
   BarChart2,
+  Building2,
   UserCheck,
   CreditCard,
   MessageCircle,
@@ -107,7 +108,7 @@ const dentalSteps = [
   {
     num: 1,
     title: "Activar modo operativo dental",
-    desc: "Configura el tipo de negocio como Clinica Dental / Consultorio. GestiOS queda dedicado a inventario, insumos, proveedores y compras.",
+    desc: "Configura el tipo de negocio como Clinica Dental / Consultorio. GestiOS queda dedicado a operacion administrativa: inventario, insumos, proveedores, compras y vencimientos.",
     icon: Sparkles,
     color: "text-brand-kinetic-orange",
     bg: "bg-brand-kinetic-orange/10",
@@ -115,7 +116,7 @@ const dentalSteps = [
   {
     num: 2,
     title: "Cargar insumos dentales",
-    desc: "Registra materiales, presentacion, stock minimo, lote y vencimiento. No cargues pacientes, tratamientos ni historia clinica en GestiOS.",
+    desc: "Registra materiales por presentacion, lote, vencimiento, costo y stock minimo. No cargues pacientes, tratamientos ni historia clinica en GestiOS.",
     icon: Package,
     color: "text-brand-growth-neon",
     bg: "bg-brand-growth-neon/10",
@@ -123,7 +124,7 @@ const dentalSteps = [
   {
     num: 3,
     title: "Ordenar por areas",
-    desc: "Usa Areas de Insumos para separar bioseguridad, operatoria, ortodoncia, anestesia, laboratorio y compras administrativas.",
+    desc: "Usa Areas de Insumos para separar bioseguridad, operatoria, ortodoncia, anestesia, laboratorio, esterilizacion y compras administrativas.",
     icon: Settings,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
@@ -131,7 +132,7 @@ const dentalSteps = [
   {
     num: 4,
     title: "Controlar compras y vencimientos",
-    desc: "Revisa stock bajo, vencimientos proximos y proveedores antes de iniciar jornada. Crea ordenes de compra cuando haya reposicion.",
+    desc: "Revisa stock bajo, vencimientos proximos, proveedores y ordenes de compra antes de iniciar jornada o cierre semanal.",
     icon: Store,
     color: "text-purple-400",
     bg: "bg-purple-400/10",
@@ -145,7 +146,7 @@ const dentalModules = [
     icon: BarChart2,
     color: "text-brand-kinetic-orange",
     bg: "bg-brand-kinetic-orange/10",
-    desc: "Resume stock bajo, insumos por vencer, proveedores y la siguiente accion operativa para la clinica.",
+    desc: "Resume stock bajo, insumos por vencer, proveedores y la siguiente accion operativa para administracion o encargados de almacen.",
   },
   {
     title: "Inventario Dental",
@@ -153,7 +154,7 @@ const dentalModules = [
     icon: Package,
     color: "text-brand-growth-neon",
     bg: "bg-brand-growth-neon/10",
-    desc: "Controla insumos, materiales, presentaciones, lotes, vencimientos y stock minimo sin mezclar datos clinicos.",
+    desc: "Controla insumos, materiales, presentaciones, lotes, vencimientos, costos y stock minimo sin mezclar datos clinicos.",
   },
   {
     title: "Proveedores Dentales",
@@ -161,7 +162,7 @@ const dentalModules = [
     icon: UserCheck,
     color: "text-blue-400",
     bg: "bg-blue-400/10",
-    desc: "Guarda contactos, condiciones y notas de proveedores para reposicion recurrente de materiales.",
+    desc: "Guarda contactos, condiciones comerciales, tiempos de entrega y notas de proveedores para reposicion recurrente.",
   },
   {
     title: "Ordenes de Compra",
@@ -169,7 +170,7 @@ const dentalModules = [
     icon: ShoppingCart,
     color: "text-purple-400",
     bg: "bg-purple-400/10",
-    desc: "Solicita reposicion, registra recepcion y mantiene el inventario actualizado al recibir compras.",
+    desc: "Solicita reposicion, registra recepcion parcial o completa y mantiene el inventario actualizado al recibir compras.",
   },
   {
     title: "Areas de Insumos",
@@ -177,7 +178,7 @@ const dentalModules = [
     icon: Settings,
     color: "text-yellow-400",
     bg: "bg-yellow-400/10",
-    desc: "Organiza materiales por area operativa para encontrar y reponer mas rapido.",
+    desc: "Organiza materiales por area operativa para busqueda, reposicion, vencimientos y responsabilidad interna.",
   },
   {
     title: "Plan y Pagos",
@@ -257,6 +258,25 @@ const dentalFaqs = [
   },
 ];
 
+const dentalOperatingRhythm = [
+  {
+    title: "Inicio de jornada",
+    items: ["Revisar stock bajo", "Separar insumos por vencer", "Validar materiales criticos antes de atender"],
+  },
+  {
+    title: "Cierre diario",
+    items: ["Registrar consumos o ajustes de stock", "Anotar faltantes", "Preparar reposicion si hay alerta critica"],
+  },
+  {
+    title: "Control semanal",
+    items: ["Crear ordenes de compra", "Comparar proveedores", "Revisar costos, lotes y vencimientos"],
+  },
+  {
+    title: "Direccion / gerencia",
+    items: ["Revisar compras pendientes", "Definir responsables", "Validar continuidad de stock para sedes o areas"],
+  },
+];
+
 export default async function HelpPage() {
   const profile = await getTenantProfile();
   const isDentalMode = isDentalGestOperationalMode(profile?.businessType);
@@ -274,12 +294,12 @@ export default async function HelpPage() {
             <HelpCircle size={22} className="text-brand-kinetic-orange" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">
-            {isDentalMode ? "Centro de Ayuda DentalGest" : "Centro de Ayuda"}
+            {isDentalMode ? "Centro de Operacion DentalGest" : "Centro de Ayuda"}
           </h1>
         </div>
         <p className="text-brand-muted mt-1 ml-14">
           {isDentalMode
-            ? "Guia operativa para inventario, compras y administracion dental sin mezclar datos clinicos."
+            ? "Guia operativa para inventario, compras, proveedores y control administrativo dental sin mezclar datos clinicos."
             : "Todo lo que necesitas para sacarle el maximo partido a GestiOS."}
         </p>
       </header>
@@ -340,6 +360,31 @@ export default async function HelpPage() {
         </div>
       </section>
 
+      {isDentalMode && (
+        <section className="animate-pop space-y-5">
+          <div className="flex items-center gap-3">
+            <span className="w-1 h-6 rounded-full bg-cyan-300" />
+            <h2 className="text-2xl font-display font-bold text-white">Rutina Operativa Dental</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {dentalOperatingRhythm.map((block) => (
+              <div key={block.title} className="glass-panel p-5 rounded-2xl space-y-3">
+                <h3 className="font-bold text-white">{block.title}</h3>
+                <ul className="space-y-2">
+                  {block.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-brand-muted">
+                      <CheckCircle2 size={14} className="mt-0.5 flex-shrink-0 text-brand-growth-neon" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Facturacion y planes */}
       <section className="animate-pop space-y-5">
         <div className="flex items-center gap-3">
@@ -388,6 +433,24 @@ export default async function HelpPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+          )}
+
+          {isDentalMode && (
+          <div className="pt-2 border-t border-white/5">
+            <h3 className="font-bold text-white mb-3">Add-on profesional para clinicas</h3>
+            <div className="bg-white/5 rounded-xl p-4 flex gap-3">
+              <div className="flex-shrink-0 pt-0.5">
+                <Building2 size={16} className="text-cyan-300" />
+              </div>
+              <div>
+                <div className="font-bold text-white text-sm">Servidor propio administrado</div>
+                <p className="text-xs text-brand-muted mt-1 leading-relaxed">
+                  Instalacion en VPS dedicado o infraestructura de la clinica con backup, acceso seguro,
+                  monitoreo basico, dominio/subdominio y soporte acordado por contrato.
+                </p>
+              </div>
             </div>
           </div>
           )}

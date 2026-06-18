@@ -265,6 +265,47 @@ describe("email types", () => {
     expect(htmlPayloads).not.toMatch(/\$[0-9]/);
   });
 
+  it("HTML emails include a text fallback for deliverability", async () => {
+    const { sendOrderConfirmation } = await import("@/lib/email");
+
+    await sendOrderConfirmation({
+      to: "customer@example.com",
+      customerName: "Customer",
+      orgName: "Test Org",
+      orderId: "cm1234567890",
+      items: [{ name: "Product", quantity: 1, unitPrice: 100 }],
+      total: 100,
+      paymentMethod: "EFECTIVO",
+    });
+
+    expect(mockResendSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        html: expect.stringContaining("Pedido confirmado"),
+        text: expect.stringContaining("Pedido confirmado"),
+      })
+    );
+  });
+
+  it("escapes customer-controlled fields in HTML emails", async () => {
+    const { sendOrderConfirmation } = await import("@/lib/email");
+
+    await sendOrderConfirmation({
+      to: "customer@example.com",
+      customerName: "<script>alert(1)</script>",
+      orgName: "Clinica <Central>",
+      orderId: "cm1234567890",
+      items: [{ name: "<b>Resina</b>", quantity: 1, unitPrice: 100 }],
+      total: 100,
+      paymentMethod: "EFECTIVO",
+    });
+
+    const payload = mockResendSend.mock.calls.at(-1)?.[0];
+    expect(payload.html).not.toContain("<script>alert(1)</script>");
+    expect(payload.html).not.toContain("<b>Resina</b>");
+    expect(payload.html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(payload.html).toContain("&lt;b&gt;Resina&lt;/b&gt;");
+  });
+
   it("sendOrderStatusUpdate should log with type 'order_status_update'", async () => {
     const { sendOrderStatusUpdate } = await import("@/lib/email");
     await sendOrderStatusUpdate({ to: "customer@example.com", customerName: "Customer", orgName: "Test Org", orderId: "cm1234567890", status: "ENTREGADO" });

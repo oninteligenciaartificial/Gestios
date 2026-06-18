@@ -1,12 +1,14 @@
 # GestiOS real company operations plan
 
-Estado: fase 1 implementada.
+Estado: fase 1 implementada, fase profesional dental iniciada.
 
 ## Criterio de producto
 
 GestiOS debe ayudar a una empresa real a operar cada dia: vender, cobrar, reponer, comprar, revisar clientes, controlar caja, entender reportes y sostener pagos de cuenta.
 
 DentalGest no es un plan comercial. Es un modo operativo para clinicas dentales con `businessType = DENTAL`. En ese modo GestiOS no maneja pacientes, citas, tratamientos, doctores ni historia clinica.
+
+El modo dental debe servir tambien a clinicas con operacion formal: responsables de almacen, compras recurrentes, control de lotes, vencimientos, proveedores, continuidad de stock y posibles requisitos de infraestructura dedicada.
 
 ## Fase 1 implementada
 
@@ -17,11 +19,17 @@ DentalGest no es un plan comercial. Es un modo operativo para clinicas dentales 
   - En DentalGest: inventario dental, proveedores, compras y vencimientos.
 - Ayuda contextual.
   - Modo DentalGest muestra solo guia de inventario, compras y administracion dental.
-  - Add-ons comerciales quedan ocultos en ayuda dental.
+  - Add-ons comerciales de tienda quedan ocultos en ayuda dental.
+  - Servidor propio administrado queda visible como add-on consultivo para clinicas con requisitos de infraestructura.
   - Se documenta que GestiOS no guarda datos clinicos.
 - Busqueda global contextual.
   - Comercio busca productos, clientes y pedidos.
   - DentalGest busca solo insumos/productos de inventario.
+- Correos.
+  - Plantilla base profesional sin asset legacy.
+  - Texto alternativo para entregabilidad.
+  - Escape HTML para datos controlados por usuarios.
+  - Dominio publico por defecto: `https://www.gestioshq.app`.
 
 ## Fase 2 recomendada
 
@@ -59,6 +67,12 @@ DentalGest no es un plan comercial. Es un modo operativo para clinicas dentales 
 7. Superadmin
    - Salud de cuentas: trial por vencer, pagos pendientes, tiendas sin productos, tiendas sin actividad.
    - Checklist de onboarding por organizacion.
+
+8. Dental profesional
+   - Vista de riesgo de continuidad de insumos.
+   - Ordenes de compra sugeridas desde stock critico.
+   - Filtro por responsable/area cuando exista modelo de roles o sucursales aprobado.
+   - Runbook comercial para servidor propio administrado: alcance, SLA, backups, restore, monitoreo y costos.
 
 ## Reglas de ejecucion
 

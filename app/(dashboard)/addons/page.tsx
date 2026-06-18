@@ -44,6 +44,11 @@ const REQUESTABLE_ADDONS = [
     price: "A medida",
     description: "Tableros personalizados para margen, rotacion, compras, ventas por sucursal y decisiones de gerencia.",
   },
+  {
+    name: "Servidor propio administrado",
+    price: "Cotizacion anual",
+    description: "Instalacion en infraestructura propia o VPS dedicado con backup, acceso seguro, monitoreo basico y soporte acordado.",
+  },
 ] as const;
 
 export default function AddonsPage() {

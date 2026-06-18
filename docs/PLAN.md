@@ -217,10 +217,10 @@ No activar SIAT, no ofrecerlo como add-on y no incluirlo en propuestas comercial
 **Estado:** Brevo configurado con logging, rate limiting 280/día, webhook tracking, dashboard métricas. Remitente actual: `oninteligenciaartificial@gmail.com`.
 
 **Pasos para activar:**
-1. Comprar dominio gestios.app (~$12/año)
+1. Usar dominio actual `gestioshq.app` o subdominio aprobado.
 2. Configurar DNS en Brevo (SPF, DKIM, DMARC)
 3. Verificar dominio
-4. Cambiar `BREVO_SENDER_EMAIL=noreply@gestios.app` en Vercel
+4. Cambiar remitente a `noreply@gestioshq.app` solo cuando el dominio este verificado.
 5. Deploy
 
 **Documentación:** `docs/BREVO-SETUP.md`, `docs/EMAIL-MIGRATION-GUIDE.md`
