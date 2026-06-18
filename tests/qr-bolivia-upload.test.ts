@@ -108,4 +108,20 @@ describe("POST /api/addons/qr-bolivia/upload", () => {
     expect(res.status).toBe(403);
     expect(uploadMock).not.toHaveBeenCalled();
   });
+
+  it("blocks QR add-on upload for DentalGest operational organizations", async () => {
+    const { getTenantProfile } = await import("@/lib/auth");
+    const { POST } = await import("@/app/api/addons/qr-bolivia/upload/route");
+    (getTenantProfile as any).mockResolvedValue({
+      organizationId: "org-1",
+      role: "ADMIN",
+      plan: "PRO",
+      businessType: "DENTAL",
+    });
+
+    const res = await POST(fileRequest([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], "qr.png", "image/png"));
+
+    expect(res.status).toBe(403);
+    expect(uploadMock).not.toHaveBeenCalled();
+  });
 });

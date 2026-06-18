@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
+import { DENTALGEST_REGISTRATION_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { canUseFeature } from "@/lib/plans";
 import { consumeRateLimit, getRequestIp } from "@/lib/rate-limit";
 import { reportAsyncError } from "@/lib/monitoring";
@@ -47,8 +48,11 @@ export async function POST(request: Request) {
 
   const { slug, name, email, phone, birthday } = result.data;
 
-  const org = await prisma.organization.findUnique({ where: { slug }, select: { id: true, name: true, plan: true } });
+  const org = await prisma.organization.findUnique({ where: { slug }, select: { id: true, name: true, plan: true, businessType: true } });
   if (!org) return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 });
+  if (isDentalGestOperationalMode(org.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_REGISTRATION_DISABLED_ERROR }, { status: 403 });
+  }
   if (!canUseFeature(org.plan as Parameters<typeof canUseFeature>[0], "registro_publico")) {
     return NextResponse.json({ error: "Esta tienda no tiene registro público habilitado" }, { status: 403 });
   }
@@ -88,9 +92,12 @@ export async function GET(request: Request) {
 
   const org = await prisma.organization.findUnique({
     where: { slug },
-    select: { name: true, logoUrl: true },
+    select: { name: true, logoUrl: true, businessType: true },
   });
 
   if (!org) return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 });
+  if (isDentalGestOperationalMode(org.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_REGISTRATION_DISABLED_ERROR }, { status: 403 });
+  }
   return NextResponse.json(org);
 }

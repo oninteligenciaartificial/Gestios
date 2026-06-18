@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { sendOrderStatusUpdate, sendLoyaltyPointsEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
@@ -25,6 +26,9 @@ const STATUS_LABELS: Record<string, string> = {
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const { id } = await params;
   const order = await prisma.order.findUnique({
@@ -44,6 +48,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { data: { user } } = await supabase.auth.getUser();
   const profile = await getTenantProfile();
   if (!profile || !user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "orders:edit")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { id } = await params;

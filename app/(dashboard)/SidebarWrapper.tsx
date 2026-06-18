@@ -22,11 +22,25 @@ interface Props {
   email: string;
   role: string;
   plan: PlanType | null;
+  operationalMode?: string | null;
   planExpiresAt: string | null;
   lockedPlanMap?: Record<string, PlanType>;
 }
 
-export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isImpersonating, name, email, role, plan, planExpiresAt, lockedPlanMap }: Props) {
+export function SidebarWrapper({
+  links,
+  lockedHrefs,
+  orgName,
+  isSuperAdmin,
+  isImpersonating,
+  name,
+  email,
+  role,
+  plan,
+  operationalMode,
+  planExpiresAt,
+  lockedPlanMap,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const planMeta = plan ? PLAN_META[plan] : null;
@@ -130,6 +144,12 @@ export function SidebarWrapper({ links, lockedHrefs, orgName, isSuperAdmin, isIm
               <span className={planMeta.color}>{planMeta.label}</span>
               <span className="text-brand-muted">{planMeta.price}</span>
             </div>
+            {operationalMode && (
+              <div className="px-3 py-2 rounded-xl text-xs font-medium border border-cyan-400/20 bg-cyan-400/10">
+                <span className="text-cyan-300">plan operativo: </span>
+                <span className="font-bold text-white">{operationalMode}</span>
+              </div>
+            )}
             {showExpiryAlert && (
               <div className="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 animate-pulse">
                 ⚠ Plan vence en {daysLeft} dia{daysLeft !== 1 ? "s" : ""}

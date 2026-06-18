@@ -7,7 +7,7 @@ DentalGest is the clinical system. GestiOS is the operational module.
 The customer should buy this as one ONIA suite, but internally each product keeps its ownership:
 
 - DentalGest: patients, appointments, treatments, doctors and clinical records.
-- GestiOS: stock, suppliers, purchase orders, expiry control, cash and operational reporting.
+- GestiOS: stock, suppliers, purchase orders, expiry control and administrative supply operations.
 
 ## First implementation
 
@@ -40,6 +40,7 @@ The dashboard navigation is restricted to:
 - Dental suppliers.
 - Purchase orders.
 - Supply areas/categories.
+- Billing/account payments.
 - Settings.
 - Help.
 - Support.
@@ -60,6 +61,10 @@ The following GestiOS store modules are intentionally hidden and route-guarded f
 - WhatsApp conversations.
 - Staff/team.
 - GestiOS add-ons and public customer registration.
+
+The block is enforced in navigation and API entrypoints for store, checkout,
+public registration, customers, orders/sales, reports, cash closing, discounts,
+branches, WhatsApp conversations, staff/team and add-ons.
 
 The goal is to avoid mixing store operations with DentalGest clinical operations while still reusing the GestiOS inventory, purchasing and supplier engine.
 

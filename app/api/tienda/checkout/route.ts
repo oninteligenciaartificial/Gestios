@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { DENTALGEST_COMMERCE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { canUseFeature } from "@/lib/plans";
 import { sendOrderConfirmation } from "@/lib/email";
 import { z } from "zod";
@@ -44,10 +45,12 @@ export async function POST(request: Request) {
 
   const org = await prisma.organization.findUnique({
     where: { slug },
-    select: { id: true, name: true, plan: true },
+    select: { id: true, name: true, plan: true, businessType: true },
   });
 
   if (!org) return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 });
+  if (isDentalGestOperationalMode(org.businessType))
+    return NextResponse.json({ error: DENTALGEST_COMMERCE_DISABLED_ERROR }, { status: 403 });
   if (!canUseFeature(org.plan as PlanType, "tienda_online"))
     return NextResponse.json({ error: "Tienda no disponible" }, { status: 403 });
 

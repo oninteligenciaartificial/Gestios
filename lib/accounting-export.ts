@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { canUseAddon, canUseFeature } from "@/lib/plans";
 import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -40,6 +41,9 @@ export async function GET(request: Request) {
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
   const type = searchParams.get("type") || "ventas";
+  if (isDentalGestOperationalMode(profile.businessType) && type !== "inventario") {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const from = fromParam ? new Date(fromParam) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const to = toParam ? new Date(toParam) : new Date();

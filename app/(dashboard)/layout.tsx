@@ -149,9 +149,10 @@ export default async function DashboardLayout({
       .filter(s => !s.minPlan || isPlanAtLeast(activePlan, s.minPlan as PlanType))
       .map(s => ({ href: s.href, label: s.label }))
     : []),
-    ...(!isImpersonating ? [{ href: "/settings", label: "Configuracion" }] : []),
-    ...(!isImpersonating ? [{ href: "/help", label: "Ayuda" }] : []),
-    ...(!isImpersonating ? [{ href: "/support", label: "Soporte" }] : []),
+    ...(!isImpersonating || isDentalGestMode ? [{ href: "/billing", label: "Plan y Pagos" }] : []),
+    ...(!isImpersonating || isDentalGestMode ? [{ href: "/settings", label: "Configuracion" }] : []),
+    ...(!isImpersonating || isDentalGestMode ? [{ href: "/help", label: "Ayuda" }] : []),
+    ...(!isImpersonating || isDentalGestMode ? [{ href: "/support", label: "Soporte" }] : []),
   ];
 
   const tenantLinks = isDentalGestMode
@@ -196,6 +197,7 @@ export default async function DashboardLayout({
         email={sidebarEmail}
         role={sidebarRole}
         plan={isSuperAdmin ? null : activePlan}
+        operationalMode={isDentalGestMode ? "dentalgest" : null}
         planExpiresAt={isSuperAdmin ? null : (activePlanExpiresAt?.toISOString() ?? null)}
         lockedPlanMap={lockedPlanMap}
       />

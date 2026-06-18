@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_ADDONS_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { checkOrgRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -49,6 +50,9 @@ function detectImageMime(bytes: Uint8Array): string | null {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_ADDONS_DISABLED_ERROR }, { status: 403 });
+  }
   if (profile.role !== "ADMIN") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
   if (!canUseFeature(profile.plan, "pagos_qr")) {
     return NextResponse.json(planGateError("pagos_qr"), { status: 403 });

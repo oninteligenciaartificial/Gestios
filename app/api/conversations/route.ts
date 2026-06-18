@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { sendWhatsAppText } from "@/lib/whatsapp";
@@ -9,6 +10,9 @@ const MONTHLY_LIMIT = 300;
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const orgId = profile.organizationId;
 
@@ -47,6 +51,9 @@ const sendSchema = z.object({
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const orgId = profile.organizationId;
 
@@ -85,6 +92,9 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const orgId = profile.organizationId;
 

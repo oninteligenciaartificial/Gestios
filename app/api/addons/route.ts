@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_ADDONS_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { isPlanAtLeast } from "@/lib/plans";
 import { z } from "zod";
@@ -12,6 +13,9 @@ const schema = z.object({
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_ADDONS_DISABLED_ERROR }, { status: 403 });
+  }
 
   const addons = await prisma.orgAddon.findMany({
     where: { organizationId: profile.organizationId },
@@ -23,6 +27,9 @@ export async function GET() {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_ADDONS_DISABLED_ERROR }, { status: 403 });
+  }
   if (profile.role !== "ADMIN") return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   // Add-ons require at least CRECER plan

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmation, sendNewOrderAlert } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
@@ -31,6 +32,9 @@ const createSchema = z.object({
 export async function GET(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
@@ -72,6 +76,9 @@ export async function POST(request: Request) {
 
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "orders:create")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   // Rate limit: 60 orders per minute per org

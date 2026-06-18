@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
 import { z } from "zod";
@@ -14,6 +15,9 @@ const saveSchema = z.object({
 export async function GET(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const { searchParams } = new URL(request.url);
   const dateParam = searchParams.get("date");
@@ -82,6 +86,9 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   const profile = await getTenantProfile();
   if (!profile || !user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "reports:view")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   let body: unknown;

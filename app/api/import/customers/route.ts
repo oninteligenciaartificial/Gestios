@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { canUseFeature, PLAN_LIMITS, type PlanType } from "@/lib/plans";
 
@@ -27,6 +28,9 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   if (!canUseFeature(profile.plan as PlanType, "csv_import")) {
     return NextResponse.json(

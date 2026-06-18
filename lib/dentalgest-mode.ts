@@ -9,6 +9,7 @@ export const DENTALGEST_NAV_HREFS = [
   "/suppliers",
   "/purchase-orders",
   "/categories",
+  "/billing",
   "/settings",
   "/help",
   "/support",
@@ -16,10 +17,17 @@ export const DENTALGEST_NAV_HREFS = [
 
 export const DENTALGEST_ALLOWED_DASHBOARD_ROUTES = [
   ...DENTALGEST_NAV_HREFS,
-  "/billing",
 ] as const;
 
 export const DENTALGEST_BLOCKED_ROUTE_FALLBACK = "/inventory?source=dentalgest";
+export const DENTALGEST_COMMERCE_DISABLED_ERROR =
+  "Tienda online no disponible en modo operativo DentalGest.";
+export const DENTALGEST_REGISTRATION_DISABLED_ERROR =
+  "Registro publico no disponible en modo operativo DentalGest.";
+export const DENTALGEST_ADDONS_DISABLED_ERROR =
+  "Add-ons no disponibles en modo operativo DentalGest.";
+export const DENTALGEST_MODULE_DISABLED_ERROR =
+  "Modulo no disponible en modo operativo DentalGest.";
 
 export function isDentalGestOperationalMode(businessType: string | null | undefined): boolean {
   return businessType === DENTALGEST_BUSINESS_TYPE;

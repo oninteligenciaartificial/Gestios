@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
@@ -23,6 +24,9 @@ const patchSchema = z.object({
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const { id } = await params;
 
@@ -48,6 +52,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "customers:edit")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { id } = await params;
@@ -87,6 +94,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "customers:edit")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { id } = await params;
@@ -123,6 +133,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "customers:edit")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { id } = await params;

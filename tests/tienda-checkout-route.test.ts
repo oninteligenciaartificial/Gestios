@@ -100,4 +100,22 @@ describe("POST /api/tienda/checkout", () => {
     expect(body.error).toBe("Stock insuficiente");
     expect(tx.productVariant.updateMany).not.toHaveBeenCalled();
   });
+
+  it("blocks public checkout for DentalGest operational organizations", async () => {
+    const { prisma } = await import("@/lib/prisma");
+    (prisma.organization.findUnique as any).mockResolvedValue({
+      id: "org-1",
+      name: "Clinica Demo",
+      plan: "PRO",
+      businessType: "DENTAL",
+    });
+
+    const { POST } = await import("@/app/api/tienda/checkout/route");
+    const res = await POST(checkoutRequest({ productId: "prod-1", quantity: 1, unitPrice: 80 }));
+    const body = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(body.error).toContain("DentalGest");
+    expect(prisma.product.findMany).not.toHaveBeenCalled();
+  });
 });

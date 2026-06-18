@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { PLAN_LIMITS } from "@/lib/plans";
 import { hasPermission } from "@/lib/permissions";
@@ -19,6 +20,9 @@ const createSchema = z.object({
 export async function GET(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "customers:view")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
@@ -54,6 +58,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "customers:create")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const { maxCustomers } = PLAN_LIMITS[profile.plan];

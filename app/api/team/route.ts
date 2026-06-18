@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { canUseFeature, planGateError, PLAN_LIMITS } from "@/lib/plans";
 import { checkOrgRateLimit } from "@/lib/rate-limit";
@@ -16,6 +17,9 @@ const createUserSchema = z.object({
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile || profile.role !== "ADMIN") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const members = await prisma.profile.findMany({
     where: { organizationId: profile.organizationId },
@@ -28,6 +32,9 @@ export async function GET() {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile || profile.role !== "ADMIN") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   // Rate limit: 5 invitations per minute per org
   const rateLimited = await checkOrgRateLimit(profile.organizationId, "team", { windowMs: 60_000, max: 5 });

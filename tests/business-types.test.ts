@@ -29,6 +29,7 @@ describe("business types", () => {
   it("scopes DentalGest mode to dental operational navigation", () => {
     const links = [
       { href: "/dashboard", label: "Dashboard" },
+      { href: "/notifications", label: "Notificaciones" },
       { href: "/pos", label: "Punto de Venta" },
       { href: "/ventas", label: "Ventas" },
       { href: "/inventory", label: "Inventario Dental" },
@@ -36,19 +37,24 @@ describe("business types", () => {
       { href: "/suppliers", label: "Proveedores Dentales" },
       { href: "/purchase-orders", label: "Ordenes de Compra" },
       { href: "/categories", label: "Areas de Insumos" },
+      { href: "/billing", label: "Plan y Pagos" },
       { href: "/settings", label: "Configuracion" },
+      { href: "/help", label: "Ayuda" },
       { href: "/support", label: "Soporte" },
     ];
 
     expect(isDentalGestOperationalMode("DENTAL")).toBe(true);
     expect(filterDentalGestNavLinks(links).map((link) => link.href)).toEqual([
       "/dashboard",
+      "/notifications",
       "/inventory",
       "/inventory?vencimientos=1",
       "/suppliers",
       "/purchase-orders",
       "/categories",
+      "/billing",
       "/settings",
+      "/help",
       "/support",
     ]);
     expect(isDentalGestDashboardRouteAllowed("/inventory/lotes")).toBe(true);

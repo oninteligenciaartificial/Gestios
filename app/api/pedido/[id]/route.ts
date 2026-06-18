@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 // GET /api/pedido/[id] - public order tracking (no auth required).
@@ -28,6 +29,7 @@ export async function GET(
         select: {
           name: true,
           slug: true,
+          businessType: true,
         },
       },
       items: {
@@ -45,6 +47,9 @@ export async function GET(
 
   if (!order) {
     return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 });
+  }
+  if (isDentalGestOperationalMode(order.organization.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
   }
 
   return NextResponse.json(order);

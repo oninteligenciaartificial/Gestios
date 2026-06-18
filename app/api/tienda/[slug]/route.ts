@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { DENTALGEST_COMMERCE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { canUseFeature } from "@/lib/plans";
 import type { PlanType } from "@/lib/plans";
 
@@ -13,10 +14,13 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
       name: true,
       plan: true,
       currency: true,
+      businessType: true,
     },
   });
 
   if (!org) return NextResponse.json({ error: "Tienda no encontrada" }, { status: 404 });
+  if (isDentalGestOperationalMode(org.businessType))
+    return NextResponse.json({ error: DENTALGEST_COMMERCE_DISABLED_ERROR }, { status: 403 });
   if (!canUseFeature(org.plan as PlanType, "tienda_online"))
     return NextResponse.json({ error: "Tienda no disponible" }, { status: 403 });
 

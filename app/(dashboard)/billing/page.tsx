@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PLAN_META, PLAN_PRICES_BOB, ADDON_META, type PlanType } from "@/lib/plans";
+import { isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { Check, QrCode, Copy, MessageCircle, ChevronDown, ChevronUp, Trash2, Zap, X, Building2 } from "lucide-react";
 
 const PLANS: PlanType[] = ["BASICO", "CRECER", "PRO", "EMPRESARIAL"];
@@ -32,6 +33,22 @@ const ALL_FEATURES: Feat[] = [
   { label: "Roles avanzados", plans: D },
 ];
 
+const DENTAL_FEATURES: Feat[] = [
+  { label: "Dashboard operativo dental", plans: A },
+  { label: "Notificaciones", plans: A },
+  { label: "Inventario Dental", plans: A },
+  { label: "Areas de Insumos", plans: A },
+  { label: "Configuracion", plans: A },
+  { label: "Ayuda y Soporte", plans: A },
+  { label: "Proveedores Dentales", plans: B },
+  { label: "Ordenes de Compra", plans: B },
+  { label: "Vencimientos de insumos", plans: B },
+  { label: "Import/Export CSV de insumos", plans: B },
+  { label: "Insumos ilimitados", plans: C },
+  { label: "Plan y Pagos", plans: A },
+  { label: "Soporte prioritario", plans: D },
+];
+
 const ADDON_WA_MSG: Record<AddonType, string> = {
   WHATSAPP:    `Hola! Me interesa activar el add-on *WhatsApp Business* (${ADDON_META.WHATSAPP.price}) en GestiOS. ¿Cómo procedo?`,
   QR_BOLIVIA:  `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
@@ -47,8 +64,9 @@ function calcTotal(pricePerMonth: number, months: number): number {
   return Math.round(pricePerMonth * months * (1 - discount / 100));
 }
 
-function planWaMsg(plan: PlanType, org: string, m: number, t: number) {
-  return `Hola! Quiero contratar el *Plan ${PLAN_META[plan].label}* de GestiOS para mi tienda *${org}*.\n\n📦 Plan: ${PLAN_META[plan].label} (Bs. ${PLAN_PRICES_BOB[plan]}/mes)\n📅 Meses: ${m}\n💰 Total: Bs. ${t}\n\nPor favor confirmen mi pago.`;
+function planWaMsg(plan: PlanType, org: string, m: number, t: number, dentalMode: boolean) {
+  const scope = dentalMode ? `modulo operativo DentalGest de *${org}*` : `tienda *${org}*`;
+  return `Hola! Quiero contratar el *Plan ${PLAN_META[plan].label}* de GestiOS para mi ${scope}.\n\nPlan: ${PLAN_META[plan].label} (Bs. ${PLAN_PRICES_BOB[plan]}/mes)\nMeses: ${m}\nTotal: Bs. ${t}\n\nPor favor confirmen mi pago.`;
 }
 
 type PaymentRequest = { id: string; plan: PlanType; months: number; amountBOB: number; reference: string | null; status: "PENDIENTE" | "CONFIRMADO" | "RECHAZADO"; createdAt: string };
@@ -59,6 +77,7 @@ export default function BillingPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("BASICO");
   const [months, setMonths] = useState(1);
   const [orgName, setOrgName] = useState("mi tienda");
+  const [businessType, setBusinessType] = useState<string | null>(null);
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [addons, setAddons] = useState<{ addon: AddonType; active: boolean }[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -82,6 +101,8 @@ export default function BillingPage() {
   const pricePerMonth = PLAN_PRICES_BOB[selectedPlan];
   const discount = MONTH_DISCOUNT[months] ?? 0;
   const total = calcTotal(pricePerMonth, months);
+  const isDentalMode = isDentalGestOperationalMode(businessType);
+  const comparisonFeatures = isDentalMode ? DENTAL_FEATURES : ALL_FEATURES;
 
   useEffect(() => {
     fetch("/api/payments")
@@ -91,18 +112,31 @@ export default function BillingPage() {
       .then(r => r.json())
       .then((data: unknown) => {
         if (data && typeof data === "object" && "organization" in data) {
-          const org = (data as { organization?: { name?: string } }).organization;
+          const org = (data as { organization?: { name?: string; businessType?: string } }).organization;
           if (org?.name) setOrgName(org.name);
+          setBusinessType(org?.businessType ?? "GENERAL");
+        } else {
+          setBusinessType("GENERAL");
         }
-      });
+      })
+      .catch(() => setBusinessType("GENERAL"));
+  }, []);
+
+  useEffect(() => {
+    if (businessType === null) return;
+    if (isDentalGestOperationalMode(businessType)) {
+      setAddons([]);
+      return;
+    }
+
     fetch("/api/addons")
       .then(r => r.ok ? r.json() : [])
       .then((data: unknown) => setAddons(Array.isArray(data) ? (data as { addon: AddonType; active: boolean }[]) : []))
       .catch(() => {});
-  }, []);
+  }, [businessType]);
 
   function openWhatsApp() {
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(planWaMsg(selectedPlan, orgName, months, total))}`, "_blank");
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(planWaMsg(selectedPlan, orgName, months, total, isDentalMode))}`, "_blank");
   }
 
   async function cancelRequest(id: string) {
@@ -304,9 +338,23 @@ export default function BillingPage() {
       <header className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Facturación y Plan</h1>
-          <p className="text-brand-muted mt-1 text-sm">Elige tu plan y paga por transferencia BCP con referencia</p>
+          <p className="text-brand-muted mt-1 text-sm">
+            {isDentalMode
+              ? "Gestiona el plan comercial y pagos del modulo operativo DentalGest."
+              : "Elige tu plan y paga por transferencia BCP con referencia"}
+          </p>
         </div>
       </header>
+
+      {isDentalMode && (
+        <div className="glass-panel rounded-2xl p-4 border border-cyan-400/20 bg-cyan-400/5">
+          <p className="text-sm font-bold text-white">plan operativo: dentalgest</p>
+          <p className="text-sm text-brand-muted mt-1">
+            DentalGest no cambia tu plan comercial. GestiOS solo gestiona inventario dental, proveedores,
+            compras, vencimientos y operacion administrativa.
+          </p>
+        </div>
+      )}
 
       {/* Pending payment alert */}
       {pending && (
@@ -487,7 +535,7 @@ export default function BillingPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-left py-3 px-2 text-brand-muted font-medium">Feature</th>
+                    <th className="text-left py-3 px-2 text-brand-muted font-medium">Funcion</th>
                     {PLANS.map(p => (
                       <th key={p} className={`text-center py-3 px-2 font-bold text-xs ${PLAN_META[p].color}`}>
                         {PLAN_META[p].label}
@@ -496,7 +544,7 @@ export default function BillingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ALL_FEATURES.map((feat, i) => (
+                  {comparisonFeatures.map((feat, i) => (
                     <tr key={i} className="border-b border-white/5 last:border-0">
                       <td className="py-2.5 px-2 text-white">{feat.label}</td>
                       {PLANS.map(p => (
@@ -571,7 +619,8 @@ export default function BillingPage() {
       )}
 
       {/* Row 4: Add-ons */}
-      <section className="glass-panel rounded-2xl p-5 space-y-4">
+      {!isDentalMode && (
+        <section className="glass-panel rounded-2xl p-5 space-y-4">
         <div className="flex items-center gap-2">
           <Zap size={16} className="text-brand-kinetic-orange" />
           <h2 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Add-ons disponibles</h2>
@@ -728,7 +777,8 @@ export default function BillingPage() {
             );
           })}
         </div>
-      </section>
+        </section>
+      )}
 
       {/* Bank Transfer Modal */}
       {transferModal && (

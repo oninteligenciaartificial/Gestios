@@ -55,7 +55,9 @@ presentacion: [Caja, Frasco, Unidad, Kit, Paquete]
 area:         [Bioseguridad, Operatoria, Ortodoncia, Endodoncia, Limpieza]
 ```
 
-Uso previsto: modulo operativo complementario de DentalGest. GestiOS controla insumos, stock, compras, proveedores, vencimientos y costos. DentalGest sigue siendo el sistema principal para pacientes, agenda, tratamientos e historia clinica.
+Uso previsto: modulo operativo complementario de DentalGest. GestiOS controla insumos, stock, compras, proveedores, vencimientos y operacion administrativa. DentalGest sigue siendo el sistema principal para pacientes, agenda, tratamientos, doctores e historia clinica.
+
+`DENTAL` no es un plan de facturacion. El plan comercial sigue siendo `BASICO`, `CRECER`, `PRO` o `EMPRESARIAL`; `businessType = "DENTAL"` solo activa el modo operativo dental.
 
 ### FERRETERIA
 ```

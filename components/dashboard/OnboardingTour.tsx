@@ -150,6 +150,12 @@ const STEP_CONTENT: Record<string, StepContent> = {
     cta: "Abrir equipo",
     color: "text-blue-300",
   },
+  "/billing": {
+    icon: <Receipt size={24} />,
+    description: "Menu izquierdo > Plan y Pagos. Gestiona el plan comercial, solicitudes de pago y referencias de transferencia.",
+    cta: "Abrir plan y pagos",
+    color: "text-emerald-300",
+  },
   "/settings": {
     icon: <Settings size={24} />,
     description: "Parte inferior del menu > Configuracion. Edita datos de la tienda, tipo de negocio y ajustes avanzados.",
@@ -212,6 +218,12 @@ const DENTAL_STEP_CONTENT: Record<string, StepContent> = {
     description: "Menu izquierdo > Areas de Insumos. Organiza materiales por bioseguridad, operatoria, ortodoncia y otras areas.",
     cta: "Abrir areas",
     color: "text-teal-300",
+  },
+  "/billing": {
+    icon: <Receipt size={24} />,
+    description: "Menu izquierdo > Plan y Pagos. Aqui gestionas el plan comercial BASICO, CRECER, PRO o EMPRESARIAL. DentalGest es modo operativo, no un plan nuevo.",
+    cta: "Abrir plan y pagos",
+    color: "text-emerald-300",
   },
   "/settings": {
     icon: <Settings size={24} />,

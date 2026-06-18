@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { PLAN_LIMITS, limitGateError } from "@/lib/plans";
 import { hasPermission } from "@/lib/permissions";
@@ -17,6 +18,9 @@ const schema = z.object({
 export async function GET() {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const discounts = await prisma.discount.findMany({
     where: { organizationId: profile.organizationId },
@@ -29,6 +33,9 @@ export async function GET() {
 export async function POST(request: Request) {
   const profile = await getTenantProfile();
   if (!profile) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
   if (!hasPermission(profile.role, "discounts:create")) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
 
   const rateLimited = await checkOrgRateLimit(profile.organizationId, "discounts", RATE_LIMITS.write);

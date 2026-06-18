@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTenantProfile } from "@/lib/auth";
+import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -15,6 +16,9 @@ export async function PATCH(
 ) {
   const profile = await getTenantProfile();
   if (!profile || profile.role !== "ADMIN") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const { id: staffId } = await params;
   const staff = await prisma.profile.findUnique({
@@ -48,6 +52,9 @@ export async function DELETE(
 ) {
   const profile = await getTenantProfile();
   if (!profile || profile.role !== "ADMIN") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  if (isDentalGestOperationalMode(profile.businessType)) {
+    return NextResponse.json({ error: DENTALGEST_MODULE_DISABLED_ERROR }, { status: 403 });
+  }
 
   const { id: staffId } = await params;
   const staff = await prisma.profile.findUnique({
