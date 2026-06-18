@@ -58,6 +58,7 @@ export function SidebarNav({ links, lockedHrefs, onNavigate, lockedPlanMap }: Pr
           return (
             <div
               key={link.href}
+              data-tour-href={link.href}
               title={requiredPlan ? `Requiere plan ${requiredPlan}` : "Actualiza tu plan para usar esta funcion"}
               className="px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between opacity-40 cursor-not-allowed select-none"
             >
@@ -71,6 +72,7 @@ export function SidebarNav({ links, lockedHrefs, onNavigate, lockedPlanMap }: Pr
           <a
             key={link.href}
             href={link.href}
+            data-tour-href={link.href}
             onClick={onNavigate}
             className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-between ${
               isActive(link.href)

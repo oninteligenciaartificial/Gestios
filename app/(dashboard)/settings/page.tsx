@@ -8,6 +8,7 @@ import NextLink from "next/link";
 import { PLAN_META, type PlanType } from "@/lib/plans";
 import { BUSINESS_TYPES, BUSINESS_TYPE_LABELS, BUSINESS_TYPE_SCHEMAS } from "@/lib/business-types";
 import { HeartPulse, Shirt, Pill, ShoppingBag, Wrench, Zap, Store } from "lucide-react";
+import { isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import type { BusinessType } from "@/lib/business-types";
 
 interface Profile {
@@ -104,15 +105,19 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     setMsg("");
+    const nextBusinessType = isDentalGestOperationalMode(profile?.organization?.businessType) ? "DENTAL" : orgBusinessType;
     const res = await fetch("/api/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, orgName, orgPhone, orgAddress, orgRfc, orgLogoUrl, orgCurrency, orgBusinessType }),
+      body: JSON.stringify({ name, orgName, orgPhone, orgAddress, orgRfc, orgLogoUrl, orgCurrency, orgBusinessType: nextBusinessType }),
     });
     if (res.ok) {
       const updated = await fetch("/api/me").then(r => r.json());
       setProfile(updated);
       setMsg("Cambios guardados. Navegá a Inventario para ver los cambios del tipo de negocio.");
+      if (nextBusinessType === "DENTAL") {
+        setMsg("Cambios guardados. El modo operativo DentalGest sigue activo.");
+      }
       router.refresh();
     } else {
       setMsg("Error al guardar.");
@@ -123,16 +128,21 @@ export default function SettingsPage() {
   if (!profile) return <div className="p-8 text-brand-muted">Cargando...</div>;
 
   const isAdmin = profile.role === "ADMIN";
+  const isDentalMode = isDentalGestOperationalMode(profile.organization?.businessType);
+  const businessNoun = isDentalMode ? "clinica" : "tienda";
+  const settingsTabs = isDentalMode
+    ? TABS.map((tab) => tab.id === "tienda" ? { ...tab, label: "Clinica" } : tab)
+    : TABS;
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-6">
       <header className="animate-pop">
         <h1 className="text-4xl font-display font-bold text-white tracking-tight">Configuración</h1>
-        <p className="text-brand-muted mt-1">Administra tu perfil y datos de la tienda.</p>
+        <p className="text-brand-muted mt-1">Administra tu perfil y datos de la {businessNoun}.</p>
       </header>
 
       <div className="flex gap-1 p-1 bg-white/5 rounded-2xl w-fit">
-        {TABS.map((tab) => (
+        {settingsTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -162,7 +172,7 @@ export default function SettingsPage() {
               <input value={name} onChange={(e) => setName(e.target.value)} className={inp} placeholder="Tu nombre" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm text-brand-muted">Rol en la tienda</label>
+              <label className="text-sm text-brand-muted">Rol en la {businessNoun}</label>
               <input value={profile.role} disabled className={`${inp} opacity-50 cursor-not-allowed`} />
             </div>
           </section>
@@ -183,13 +193,13 @@ export default function SettingsPage() {
               <div className="p-2 rounded-lg bg-brand-growth-neon/10">
                 <Building2 size={18} className="text-brand-growth-neon" />
               </div>
-              <h2 className="font-display font-bold text-white">Datos de la Tienda</h2>
+              <h2 className="font-display font-bold text-white">Datos de la {isDentalMode ? "Clinica" : "Tienda"}</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm text-brand-muted">Nombre de la tienda</label>
-                <input value={orgName} onChange={(e) => setOrgName(e.target.value)} className={inp} placeholder="Mi Tienda" />
+                <label className="text-sm text-brand-muted">Nombre de la {businessNoun}</label>
+                <input value={orgName} onChange={(e) => setOrgName(e.target.value)} className={inp} placeholder={isDentalMode ? "Mi Clinica Dental" : "Mi Tienda"} />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm text-brand-muted">Teléfono</label>
@@ -226,6 +236,26 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          {isDentalMode ? (
+            <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-brand-kinetic-orange/10">
+                  <HeartPulse size={18} className="text-brand-kinetic-orange" />
+                </div>
+                <h2 className="font-display font-bold text-white">Modo operativo DentalGest</h2>
+              </div>
+              <p className="text-sm text-brand-muted leading-relaxed">
+                Esta cuenta usa GestiOS como modulo operativo de DentalGest: inventario dental, proveedores,
+                ordenes de compra, vencimientos y areas de insumos. El tipo de negocio queda bloqueado como
+                Clinica Dental / Consultorio para evitar mezclar datos o funciones de tienda.
+              </p>
+              <div className="rounded-2xl border border-brand-kinetic-orange/30 bg-brand-kinetic-orange/10 p-4">
+                <div className="text-xs uppercase tracking-wider text-brand-muted">Configuracion activa</div>
+                <div className="mt-1 font-bold text-white">plan operativo: dentalgest</div>
+                <div className="mt-1 text-xs text-brand-muted">businessType = DENTAL</div>
+              </div>
+            </section>
+          ) : (
           <section className="glass-panel p-6 rounded-3xl space-y-4 animate-pop">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-brand-kinetic-orange/10">
@@ -274,6 +304,7 @@ export default function SettingsPage() {
               })}
             </div>
           </section>
+          )}
 
           {msg && <p className={`text-sm ${msg.includes("Error") ? "text-red-400" : "text-brand-growth-neon"}`}>{msg}</p>}
 
@@ -305,7 +336,7 @@ export default function SettingsPage() {
             </section>
           )}
 
-          {isAdmin && (
+          {isAdmin && !isDentalMode && (
             <section className="glass-panel p-6 rounded-3xl animate-pop">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -328,7 +359,7 @@ export default function SettingsPage() {
             <PlanSection plan={profile.plan} planExpiresAt={profile.planExpiresAt ?? null} trialEndsAt={profile.trialEndsAt ?? null} />
           )}
 
-          {isAdmin && profile.organization?.slug && (
+          {isAdmin && !isDentalMode && profile.organization?.slug && (
             <RegistroLink slug={profile.organization.slug} />
           )}
         </div>
@@ -354,7 +385,12 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h2 className="font-display font-bold text-white">Importar datos</h2>
+                  {isDentalMode && (
+                    <p className="text-xs text-brand-muted mt-0.5">Importa insumos dentales desde CSV - plan CRECER+</p>
+                  )}
+                  {!isDentalMode && (
                   <p className="text-xs text-brand-muted mt-0.5">Importa productos o clientes desde CSV — plan CRECER+</p>
+                  )}
                 </div>
               </div>
               <NextLink href="/settings/import" className="flex items-center gap-1 text-sm font-bold text-brand-kinetic-orange hover:underline">

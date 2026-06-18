@@ -10,8 +10,10 @@ import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { OnboardingTour } from "@/components/dashboard/OnboardingTour";
 import { DashboardThemeProvider } from "@/components/dashboard/DashboardThemeProvider";
 import { SuiteBridgeBanner } from "@/components/dashboard/SuiteBridgeBanner";
+import { DentalGestModeGuard } from "@/components/dashboard/DentalGestModeGuard";
 import { canUseFeature, isPlanAtLeast, FEATURE_PLAN, type PlanType } from "@/lib/plans";
 import { getBusinessUI, type BusinessUIConfig } from "@/lib/business-ui";
+import { filterDentalGestNavLinks, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import type { BusinessType } from "@/lib/business-types";
 
 export default async function DashboardLayout({
@@ -123,8 +125,9 @@ export default async function DashboardLayout({
 
   // Resolve business type for dynamic sidebar labels
   const ui: BusinessUIConfig = getBusinessUI(activeBusinessType);
+  const isDentalGestMode = isDentalGestOperationalMode(activeBusinessType);
 
-  const tenantLinks = [
+  const baseTenantLinks = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/notifications", label: "Notificaciones" },
     { href: "/pos", label: "Punto de Venta" },
@@ -150,6 +153,10 @@ export default async function DashboardLayout({
     ...(!isImpersonating ? [{ href: "/help", label: "Ayuda" }] : []),
     ...(!isImpersonating ? [{ href: "/support", label: "Soporte" }] : []),
   ];
+
+  const tenantLinks = isDentalGestMode
+    ? filterDentalGestNavLinks(baseTenantLinks)
+    : baseTenantLinks;
 
   const navLinks = isSuperAdmin ? [...superAdminLinks, ...externalLinks] : tenantLinks;
 
@@ -204,11 +211,15 @@ export default async function DashboardLayout({
             <SuiteBridgeBanner />
           </Suspense>
         )}
+        {!isSuperAdmin && (
+          <DentalGestModeGuard businessType={activeBusinessType} />
+        )}
         <CommandPalette />
         {!isSuperAdmin && (
           <OnboardingTour
             plan={activePlan}
             orgName={orgDisplayName}
+            businessType={activeBusinessType}
             storageKeyScope={impersonateOrgId ?? profile.organizationId ?? "account"}
             features={tourLinks}
           />
