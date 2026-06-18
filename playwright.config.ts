@@ -8,8 +8,10 @@ if (!process.env.CI && !process.env.PLAYWRIGHT_BASE_URL) {
 // Si PLAYWRIGHT_BASE_URL apunta a un host remoto (preview/produccion), no se
 // levanta el dev server local: se testea contra ese deploy directamente.
 const remoteBaseURL = process.env.PLAYWRIGHT_BASE_URL;
-const baseURL = remoteBaseURL ?? "http://localhost:3000";
+const e2ePort = process.env.GESTIOS_E2E_PORT ?? "3107";
+const baseURL = remoteBaseURL ?? `http://127.0.0.1:${e2ePort}`;
 const isRemote = Boolean(remoteBaseURL);
+const reuseExistingServer = process.env.PLAYWRIGHT_REUSE_SERVER === "1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -36,9 +38,9 @@ export default defineConfig({
   webServer: isRemote
     ? undefined
     : {
-        command: "npm run dev",
+        command: `npm run dev -- --hostname 127.0.0.1 --port ${e2ePort}`,
         url: baseURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer,
         timeout: 120_000,
       },
 });
