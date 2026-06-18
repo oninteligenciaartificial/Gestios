@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getTenantProfile } from "@/lib/auth";
 import { isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { createClient } from "@/lib/supabase/server";
-import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, PackageSearch, Clock, Truck } from "lucide-react";
+import { Package, ShoppingCart, AlertTriangle, DollarSign, Mail, Plus, PackageSearch, Clock, Truck, Users, BarChart2 } from "lucide-react";
 import { StockAlertButton } from "../StockAlertButton";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { SyncButton } from "@/components/dashboard/SyncButton";
@@ -87,6 +87,9 @@ export default async function Dashboard() {
     take: 5,
     select: { id: true, customerName: true, status: true, total: true, createdAt: true },
   });
+  const pendingOrders = isDentalMode ? 0 : await prisma.order.count({
+    where: { organizationId: orgId, status: "PENDIENTE" },
+  });
   const lowStockAlerts = allProducts.filter((p: StockItem) => p.stock <= p.minStock).slice(0, 5);
 
   // Previous period (days 31-60) for delta comparison
@@ -128,6 +131,77 @@ export default async function Dashboard() {
     { title: "Alertas Stock",     value: String(lowStockAlerts.length),           label: "Reabastecer Ya",  icon: AlertTriangle, color: "text-red-400",              delta: null as number | null },
     { title: "Ingresos",          value: `Bs. ${monthlyRevenue.toLocaleString("es-BO", { minimumFractionDigits: 2 })}`, label: "Mensual", icon: DollarSign, color: "text-brand-growth-neon", delta: deltaRevenue },
   ];
+
+  const operationTasks = isDentalMode
+    ? [
+        {
+          title: "Control de insumos",
+          metric: lowStockAlerts.length > 0 ? `${lowStockAlerts.length} criticos` : "Sin criticos",
+          desc: "Revisa stock bajo antes de iniciar jornada clinica.",
+          href: "/inventory",
+          cta: "Abrir inventario",
+          urgent: lowStockAlerts.length > 0,
+          icon: Package,
+        },
+        {
+          title: "Reposicion",
+          metric: supplierCount > 0 ? `${supplierCount} proveedores` : "Sin proveedores",
+          desc: "Mantiene proveedores dentales listos para compras recurrentes.",
+          href: supplierCount > 0 ? "/purchase-orders" : "/suppliers",
+          cta: supplierCount > 0 ? "Crear compra" : "Registrar proveedor",
+          urgent: supplierCount === 0,
+          icon: Truck,
+        },
+        {
+          title: "Vencimientos",
+          metric: expiringProducts.length > 0 ? `${expiringProducts.length} por vencer` : "Al dia",
+          desc: "Separa insumos por vencer antes de usarlos en operacion.",
+          href: "/inventory?vencimientos=1",
+          cta: "Ver vencimientos",
+          urgent: expiringProducts.length > 0,
+          icon: Clock,
+        },
+      ]
+    : [
+        {
+          title: "Ventas y caja",
+          metric: monthlyRevenue > 0 ? `Bs. ${monthlyRevenue.toLocaleString("es-BO", { maximumFractionDigits: 0 })}` : "Sin ventas",
+          desc: "Vende desde POS y cierra caja al final del dia.",
+          href: "/pos",
+          cta: "Abrir POS",
+          urgent: monthlyRevenue === 0,
+          icon: ShoppingCart,
+        },
+        {
+          title: "Pedidos pendientes",
+          metric: pendingOrders > 0 ? `${pendingOrders} pendientes` : "Sin pendientes",
+          desc: "Procesa pedidos antes de que se acumulen o pierdan seguimiento.",
+          href: "/ventas",
+          cta: "Revisar pedidos",
+          urgent: pendingOrders > 0,
+          icon: Clock,
+        },
+        {
+          title: "Inventario y compras",
+          metric: lowStockAlerts.length > 0 ? `${lowStockAlerts.length} bajos` : "Stock estable",
+          desc: "Repone productos antes de quedarte sin stock vendible.",
+          href: lowStockAlerts.length > 0 ? "/inventory" : "/suppliers",
+          cta: lowStockAlerts.length > 0 ? "Reabastecer" : "Ver proveedores",
+          urgent: lowStockAlerts.length > 0,
+          icon: Package,
+        },
+        {
+          title: "Clientes y reportes",
+          metric: totalCustomers > 0 ? `${totalCustomers} clientes` : "Sin clientes",
+          desc: "Usa clientes y reportes para vender mejor, no solo registrar ventas.",
+          href: totalCustomers > 0 ? "/reports" : "/customers",
+          cta: totalCustomers > 0 ? "Ver reportes" : "Crear cliente",
+          urgent: totalCustomers === 0,
+          icon: totalCustomers > 0 ? BarChart2 : Users,
+        },
+      ];
+
+  const nextAction = operationTasks.find((task) => task.urgent) ?? operationTasks[0];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
@@ -171,6 +245,51 @@ export default async function Dashboard() {
             </div>
           </div>
         ))}
+      </section>
+
+      <section className="grid grid-cols-1 xl:grid-cols-[1.5fr_0.8fr] gap-4 sm:gap-6 animate-pop">
+        <div className="glass-panel rounded-3xl overflow-hidden">
+          <div className="p-5 sm:p-6 border-b border-white/5">
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-white">Rutina operativa de hoy</h2>
+            <p className="text-sm text-brand-muted mt-1">
+              {isDentalMode
+                ? "Control diario de insumos, compras y vencimientos de la clinica."
+                : "Flujo diario para vender, cobrar, reponer y revisar el negocio."}
+            </p>
+          </div>
+          <div className="divide-y divide-white/5">
+            {operationTasks.map((task) => (
+              <div key={task.title} className="p-5 sm:p-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white/[0.02] transition-colors">
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 ${task.urgent ? "bg-brand-kinetic-orange/15 text-brand-kinetic-orange" : "bg-white/5 text-brand-growth-neon"}`}>
+                  <task.icon size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-bold text-white">{task.title}</h3>
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${task.urgent ? "bg-brand-kinetic-orange/15 text-brand-kinetic-orange" : "bg-brand-growth-neon/10 text-brand-growth-neon"}`}>
+                      {task.metric}
+                    </span>
+                  </div>
+                  <p className="text-sm text-brand-muted mt-1">{task.desc}</p>
+                </div>
+                <Link href={task.href} className="px-4 py-2 rounded-xl border border-white/10 text-sm font-bold text-white hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange transition-colors text-center">
+                  {task.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-3xl p-5 sm:p-6 flex flex-col justify-between gap-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-muted">Siguiente mejor accion</p>
+            <h2 className="text-2xl font-display font-bold text-white mt-2">{nextAction.title}</h2>
+            <p className="text-sm text-brand-muted mt-2">{nextAction.desc}</p>
+          </div>
+          <Link href={nextAction.href} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-br from-brand-kinetic-orange to-brand-kinetic-orange-light text-black font-bold shadow-[0_0_20px_rgba(255,107,0,0.25)] hover:shadow-[0_0_30px_rgba(255,107,0,0.4)] transition-all">
+            <nextAction.icon size={16} /> {nextAction.cta}
+          </Link>
+        </div>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">

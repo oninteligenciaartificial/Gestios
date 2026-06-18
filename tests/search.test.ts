@@ -82,6 +82,28 @@ describe("Search — GET /api/search", () => {
     expect(data.customers[0].name).toBe("Test Customer");
   });
 
+  it("searches only inventory in DentalGest operational mode", async () => {
+    const { getTenantProfile } = await import("@/lib/auth");
+    (getTenantProfile as any).mockResolvedValue({ organizationId: "org-1", businessType: "DENTAL" });
+
+    const { prisma } = await import("@/lib/prisma");
+    const mockProducts = [{ id: "p1", name: "Resina A2", sku: "D-001", stock: 10, price: "100" }];
+
+    (prisma.product.findMany as any).mockResolvedValue(mockProducts);
+
+    const { GET } = await import("@/app/api/search/route");
+    const req = new Request("http://localhost/api/search?q=resina");
+    const res = await GET(req);
+    expect(res.status).toBe(200);
+
+    const data = await res.json();
+    expect(data.products).toHaveLength(1);
+    expect(data.customers).toEqual([]);
+    expect(data.orders).toEqual([]);
+    expect(prisma.customer.findMany).not.toHaveBeenCalled();
+    expect(prisma.order.findMany).not.toHaveBeenCalled();
+  });
+
   it("filters products by organizationId", async () => {
     const { getTenantProfile } = await import("@/lib/auth");
     (getTenantProfile as any).mockResolvedValue({ organizationId: "org-99" });

@@ -14,6 +14,8 @@ import {
   HelpCircle,
   CheckCircle2,
 } from "lucide-react";
+import { getTenantProfile } from "@/lib/auth";
+import { isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 
 const steps = [
   {
@@ -101,6 +103,92 @@ const modules = [
   },
 ];
 
+const dentalSteps = [
+  {
+    num: 1,
+    title: "Activar modo operativo dental",
+    desc: "Configura el tipo de negocio como Clinica Dental / Consultorio. GestiOS queda dedicado a inventario, insumos, proveedores y compras.",
+    icon: Sparkles,
+    color: "text-brand-kinetic-orange",
+    bg: "bg-brand-kinetic-orange/10",
+  },
+  {
+    num: 2,
+    title: "Cargar insumos dentales",
+    desc: "Registra materiales, presentacion, stock minimo, lote y vencimiento. No cargues pacientes, tratamientos ni historia clinica en GestiOS.",
+    icon: Package,
+    color: "text-brand-growth-neon",
+    bg: "bg-brand-growth-neon/10",
+  },
+  {
+    num: 3,
+    title: "Ordenar por areas",
+    desc: "Usa Areas de Insumos para separar bioseguridad, operatoria, ortodoncia, anestesia, laboratorio y compras administrativas.",
+    icon: Settings,
+    color: "text-blue-400",
+    bg: "bg-blue-400/10",
+  },
+  {
+    num: 4,
+    title: "Controlar compras y vencimientos",
+    desc: "Revisa stock bajo, vencimientos proximos y proveedores antes de iniciar jornada. Crea ordenes de compra cuando haya reposicion.",
+    icon: Store,
+    color: "text-purple-400",
+    bg: "bg-purple-400/10",
+  },
+];
+
+const dentalModules = [
+  {
+    title: "Dashboard Operativo",
+    href: "/dashboard",
+    icon: BarChart2,
+    color: "text-brand-kinetic-orange",
+    bg: "bg-brand-kinetic-orange/10",
+    desc: "Resume stock bajo, insumos por vencer, proveedores y la siguiente accion operativa para la clinica.",
+  },
+  {
+    title: "Inventario Dental",
+    href: "/inventory",
+    icon: Package,
+    color: "text-brand-growth-neon",
+    bg: "bg-brand-growth-neon/10",
+    desc: "Controla insumos, materiales, presentaciones, lotes, vencimientos y stock minimo sin mezclar datos clinicos.",
+  },
+  {
+    title: "Proveedores Dentales",
+    href: "/suppliers",
+    icon: UserCheck,
+    color: "text-blue-400",
+    bg: "bg-blue-400/10",
+    desc: "Guarda contactos, condiciones y notas de proveedores para reposicion recurrente de materiales.",
+  },
+  {
+    title: "Ordenes de Compra",
+    href: "/purchase-orders",
+    icon: ShoppingCart,
+    color: "text-purple-400",
+    bg: "bg-purple-400/10",
+    desc: "Solicita reposicion, registra recepcion y mantiene el inventario actualizado al recibir compras.",
+  },
+  {
+    title: "Areas de Insumos",
+    href: "/categories",
+    icon: Settings,
+    color: "text-yellow-400",
+    bg: "bg-yellow-400/10",
+    desc: "Organiza materiales por area operativa para encontrar y reponer mas rapido.",
+  },
+  {
+    title: "Plan y Pagos",
+    href: "/billing",
+    icon: CreditCard,
+    color: "text-pink-400",
+    bg: "bg-pink-400/10",
+    desc: "El plan comercial sigue siendo Basico, Crecer, Pro o Empresarial. DentalGest es modo operativo, no un plan nuevo.",
+  },
+];
+
 const plans = [
   { name: "Básico", color: "text-brand-muted", features: ["150 productos", "50 clientes", "1 staff", "POS + inventario"] },
   { name: "Crecer", color: "text-blue-400", features: ["Productos ilimitados", "Reportes", "Importación CSV", "Descuentos"] },
@@ -142,7 +230,40 @@ const faqs = [
   },
 ];
 
-export default function HelpPage() {
+const dentalFaqs = [
+  {
+    q: "GestiOS reemplaza DentalGest?",
+    a: "No. DentalGest maneja pacientes, citas, tratamientos, doctores e historial clinico. GestiOS solo maneja inventario, insumos, proveedores, compras, vencimientos y administracion operativa.",
+  },
+  {
+    q: "Puedo guardar datos de pacientes en GestiOS?",
+    a: "No. Para proteger la separacion operativa y evitar riesgos, no cargues pacientes, tratamientos ni datos clinicos en GestiOS.",
+  },
+  {
+    q: "Como repongo insumos?",
+    a: "Revisa stock bajo en Dashboard o Inventario, valida proveedor y crea una Orden de Compra. Al recibirla, registra la recepcion para actualizar stock.",
+  },
+  {
+    q: "Como controlo vencimientos?",
+    a: "Usa Inventario Dental con fecha de vencimiento por lote o presentacion. El Dashboard muestra insumos por vencer para retirarlos o priorizar uso seguro.",
+  },
+  {
+    q: "El modo DentalGest cambia mi plan?",
+    a: "No. El plan comercial sigue siendo Basico, Crecer, Pro o Empresarial. El modo DentalGest solo cambia los modulos operativos visibles.",
+  },
+  {
+    q: "Donde pido soporte?",
+    a: "Escribe a soporte@gestios.bo o usa el modulo Soporte. Clientes Empresarial tienen prioridad operativa.",
+  },
+];
+
+export default async function HelpPage() {
+  const profile = await getTenantProfile();
+  const isDentalMode = isDentalGestOperationalMode(profile?.businessType);
+  const visibleSteps = isDentalMode ? dentalSteps : steps;
+  const visibleModules = isDentalMode ? dentalModules : modules;
+  const visibleFaqs = isDentalMode ? dentalFaqs : faqs;
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-12">
 
@@ -152,9 +273,15 @@ export default function HelpPage() {
           <div className="p-2.5 rounded-xl bg-brand-kinetic-orange/10">
             <HelpCircle size={22} className="text-brand-kinetic-orange" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">Centro de Ayuda</h1>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-white tracking-tight">
+            {isDentalMode ? "Centro de Ayuda DentalGest" : "Centro de Ayuda"}
+          </h1>
         </div>
-        <p className="text-brand-muted mt-1 ml-14">Todo lo que necesitas para sacarle el máximo partido a GestiOS.</p>
+        <p className="text-brand-muted mt-1 ml-14">
+          {isDentalMode
+            ? "Guia operativa para inventario, compras y administracion dental sin mezclar datos clinicos."
+            : "Todo lo que necesitas para sacarle el maximo partido a GestiOS."}
+        </p>
       </header>
 
       {/* Primeros Pasos */}
@@ -165,7 +292,7 @@ export default function HelpPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {steps.map((step) => (
+          {visibleSteps.map((step) => (
             <div key={step.num} className="glass-panel p-5 rounded-2xl flex gap-4 hover:-translate-y-1 transition-transform duration-300">
               <div className="flex-shrink-0">
                 <div className={`w-9 h-9 rounded-xl ${step.bg} flex items-center justify-center`}>
@@ -192,7 +319,7 @@ export default function HelpPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {modules.map((mod) => (
+          {visibleModules.map((mod) => (
             <a
               key={mod.href}
               href={mod.href}
@@ -223,7 +350,11 @@ export default function HelpPage() {
         <div className="glass-panel p-6 rounded-3xl space-y-6">
           <div>
             <h3 className="font-bold text-white mb-1">Planes disponibles</h3>
-            <p className="text-sm text-brand-muted">Todos los planes incluyen POS, inventario y clientes. Escala segun tu negocio crece.</p>
+            <p className="text-sm text-brand-muted">
+              {isDentalMode
+                ? "Tu plan comercial define limites y soporte. El modo operativo DentalGest define que modulos usa la clinica dentro de GestiOS."
+                : "Todos los planes incluyen POS, inventario y clientes. Escala segun tu negocio crece."}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -242,6 +373,7 @@ export default function HelpPage() {
             ))}
           </div>
 
+          {!isDentalMode && (
           <div className="pt-2 border-t border-white/5">
             <h3 className="font-bold text-white mb-3">Add-ons disponibles</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -258,6 +390,7 @@ export default function HelpPage() {
               ))}
             </div>
           </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <a
@@ -267,10 +400,10 @@ export default function HelpPage() {
               <CreditCard size={14} /> Ver mis planes y facturacion
             </a>
             <a
-              href="/addons"
+              href={isDentalMode ? "/support" : "/addons"}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 text-white text-sm font-bold hover:border-white/30 transition-colors"
             >
-              <Package size={14} /> Ver add-ons
+              <Package size={14} /> {isDentalMode ? "Pedir soporte" : "Ver add-ons"}
             </a>
           </div>
         </div>
@@ -284,7 +417,7 @@ export default function HelpPage() {
         </div>
 
         <div className="space-y-3">
-          {faqs.map((faq) => (
+          {visibleFaqs.map((faq) => (
             <div key={faq.q} className="glass-panel p-5 rounded-2xl space-y-2">
               <h3 className="font-bold text-white flex items-start gap-2">
                 <HelpCircle size={16} className="text-brand-kinetic-orange mt-0.5 flex-shrink-0" />

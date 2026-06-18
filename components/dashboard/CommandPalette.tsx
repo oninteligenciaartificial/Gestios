@@ -4,14 +4,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Package, Users, ShoppingCart, X, Loader2 } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
+import { isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
+import type { BusinessType } from "@/lib/business-types";
 
 interface SearchProduct { id: string; name: string; sku: string | null; stock: number; price: string }
 interface SearchCustomer { id: string; name: string; phone: string | null; email: string | null; loyaltyPoints: number }
 interface SearchOrder { id: string; customerName: string; status: string; total: string; createdAt: string }
 interface SearchResults { products: SearchProduct[]; customers: SearchCustomer[]; orders: SearchOrder[] }
 
-export function CommandPalette() {
+export function CommandPalette({ businessType = "GENERAL" }: { businessType?: BusinessType }) {
   const router = useRouter();
+  const isDentalMode = isDentalGestOperationalMode(businessType);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults | null>(null);
@@ -66,8 +69,10 @@ export function CommandPalette() {
   const items: { href: string; label: string }[] = [];
   if (results) {
     results.products.forEach((p) => items.push({ href: `/inventory/${p.id}`, label: p.name }));
-    results.customers.forEach((c) => items.push({ href: `/customers/${c.id}`, label: c.name }));
-    results.orders.forEach((o) => items.push({ href: `/ventas/${o.id}`, label: o.customerName }));
+    if (!isDentalMode) {
+      results.customers.forEach((c) => items.push({ href: `/customers/${c.id}`, label: c.name }));
+      results.orders.forEach((o) => items.push({ href: `/ventas/${o.id}`, label: o.customerName }));
+    }
   }
 
   function navigate(href: string) {
@@ -107,7 +112,7 @@ export function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Buscar productos, clientes, pedidos..."
+            placeholder={isDentalMode ? "Buscar insumos, codigo o lote..." : "Buscar productos, clientes, pedidos..."}
             className="flex-1 bg-transparent text-white placeholder-brand-muted outline-none text-sm"
           />
           {query && (
@@ -126,7 +131,7 @@ export function CommandPalette() {
             {results.products.length > 0 && (
               <div>
                 <div className="px-4 py-1.5 text-xs font-medium text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
-                  <Package size={11} /> Productos
+                  <Package size={11} /> {isDentalMode ? "Insumos" : "Productos"}
                 </div>
                 {results.products.map((p) => {
                   const idx = flatIdx++;
@@ -150,7 +155,7 @@ export function CommandPalette() {
               </div>
             )}
 
-            {results.customers.length > 0 && (
+            {!isDentalMode && results.customers.length > 0 && (
               <div>
                 <div className="px-4 py-1.5 text-xs font-medium text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
                   <Users size={11} /> Clientes
@@ -174,7 +179,7 @@ export function CommandPalette() {
               </div>
             )}
 
-            {results.orders.length > 0 && (
+            {!isDentalMode && results.orders.length > 0 && (
               <div>
                 <div className="px-4 py-1.5 text-xs font-medium text-brand-muted uppercase tracking-wider flex items-center gap-1.5">
                   <ShoppingCart size={11} /> Pedidos

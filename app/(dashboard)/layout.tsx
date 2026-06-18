@@ -216,7 +216,7 @@ export default async function DashboardLayout({
         {!isSuperAdmin && (
           <DentalGestModeGuard businessType={activeBusinessType} />
         )}
-        <CommandPalette />
+        <CommandPalette businessType={activeBusinessType} />
         {!isSuperAdmin && (
           <OnboardingTour
             plan={activePlan}

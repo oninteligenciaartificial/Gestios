@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 
 export async function GET(request: Request) {
   const profile = await getTenantProfile();
@@ -12,6 +13,7 @@ export async function GET(request: Request) {
 
   const orgId = profile.organizationId;
   const lower = q.toLowerCase();
+  const isDentalMode = isDentalGestOperationalMode(profile.businessType);
 
   const [products, customers, orders] = await Promise.all([
     prisma.product.findMany({
@@ -27,30 +29,34 @@ export async function GET(request: Request) {
       select: { id: true, name: true, sku: true, stock: true, price: true },
       take: 5,
     }),
-    prisma.customer.findMany({
-      where: {
-        organizationId: orgId,
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { phone: { contains: lower } },
-          { email: { contains: lower } },
-        ],
-      },
-      select: { id: true, name: true, phone: true, email: true, loyaltyPoints: true },
-      take: 5,
-    }),
-    prisma.order.findMany({
-      where: {
-        organizationId: orgId,
-        OR: [
-          { customerName: { contains: q, mode: "insensitive" } },
-          { id: { contains: lower } },
-        ],
-      },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, customerName: true, status: true, total: true, createdAt: true },
-      take: 5,
-    }),
+    isDentalMode
+      ? Promise.resolve([])
+      : prisma.customer.findMany({
+          where: {
+            organizationId: orgId,
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { phone: { contains: lower } },
+              { email: { contains: lower } },
+            ],
+          },
+          select: { id: true, name: true, phone: true, email: true, loyaltyPoints: true },
+          take: 5,
+        }),
+    isDentalMode
+      ? Promise.resolve([])
+      : prisma.order.findMany({
+          where: {
+            organizationId: orgId,
+            OR: [
+              { customerName: { contains: q, mode: "insensitive" } },
+              { id: { contains: lower } },
+            ],
+          },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, customerName: true, status: true, total: true, createdAt: true },
+          take: 5,
+        }),
   ]);
 
   return NextResponse.json({ products, customers, orders });
