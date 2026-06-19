@@ -6,6 +6,14 @@ test.describe("Landing page", () => {
     await expect(page.locator("h1").first()).toBeVisible();
   });
 
+  test("shows the real GestiOS logo", async ({ page }) => {
+    await page.goto("/");
+
+    const logo = page.locator('img[src*="gestios-logo-on-dark"]').first();
+    await expect(logo).toBeVisible();
+    await expect(logo).toHaveJSProperty("complete", true);
+  });
+
   test("CTA button exists and links to /signup", async ({ page }) => {
     await page.goto("/");
 

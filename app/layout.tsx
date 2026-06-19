@@ -22,8 +22,12 @@ export const metadata: Metadata = {
   title: "GestiOS - Gestion operativa para negocios",
   description: "Plataforma SaaS para inventario, ventas, compras, proveedores, pagos y operacion administrativa.",
   icons: {
-    icon: [{ url: "/brand/gestios-mark.svg", sizes: "any", type: "image/svg+xml" }],
-    apple: [{ url: "/brand/gestios-icon-on-dark-512.png", sizes: "512x512", type: "image/png" }],
+    icon: [
+      { url: "/brand/gestios-icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/gestios-icon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/brand/gestios-icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/gestios-icon-512.png", sizes: "512x512", type: "image/png" }],
   },
 };
 

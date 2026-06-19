@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes } from "lucide-react";
+import Image from "next/image";
 
 type BrandLogoVariant = "full" | "icon" | "responsive";
 type BrandLogoSize = "nav" | "landing" | "auth" | "icon";
@@ -14,47 +14,51 @@ type BrandLogoProps = {
   priority?: boolean;
 };
 
-const markSizeClass: Record<BrandLogoSize, string> = {
+const fullLogoSizeClass: Record<BrandLogoSize, string> = {
+  nav: "h-8 w-auto sm:h-9",
+  landing: "h-14 w-auto sm:h-16",
+  auth: "h-12 w-auto sm:h-14",
+  icon: "h-9 w-auto sm:h-10",
+};
+
+const iconLogoSizeClass: Record<BrandLogoSize, string> = {
   nav: "h-8 w-8 sm:h-9 sm:w-9",
-  landing: "h-10 w-10 sm:h-12 sm:w-12",
-  auth: "h-10 w-10 sm:h-12 sm:w-12",
+  landing: "h-12 w-12 sm:h-14 sm:w-14",
+  auth: "h-11 w-11 sm:h-12 sm:w-12",
   icon: "h-9 w-9 sm:h-10 sm:w-10",
 };
 
-const textSizeClass: Record<BrandLogoSize, string> = {
-  nav: "text-xl sm:text-2xl",
-  landing: "text-3xl sm:text-4xl",
-  auth: "text-2xl sm:text-3xl",
-  icon: "text-xl",
-};
+function logoAsset(tone: BrandLogoTone, iconOnly: boolean) {
+  const onDark = tone !== "light";
 
-function toneTextClass(tone: BrandLogoTone) {
-  if (tone === "light") return "text-[#111111]";
-  return "text-white";
+  if (iconOnly) {
+    return onDark ? "/brand/gestios-icon-on-dark.png" : "/brand/gestios-icon.png";
+  }
+
+  return onDark ? "/brand/gestios-logo-on-dark.png" : "/brand/gestios-logo-full.png";
 }
 
-function LogoMark({ size, tone, spinning = false }: { size: BrandLogoSize; tone: BrandLogoTone; spinning?: boolean }) {
-  const isLight = tone === "light";
-
+function LogoImage({
+  iconOnly,
+  size,
+  tone,
+  priority,
+}: {
+  iconOnly: boolean;
+  size: BrandLogoSize;
+  tone: BrandLogoTone;
+  priority?: boolean;
+}) {
   return (
-    <span
-      aria-hidden="true"
-      className={`${markSizeClass[size]} inline-flex items-center justify-center rounded-xl border ${
-        isLight
-          ? "border-black/10 bg-black text-brand-kinetic-orange"
-          : "border-white/10 bg-white/[0.06] text-brand-kinetic-orange shadow-[0_0_22px_rgba(255,107,0,0.20)]"
-      } ${spinning ? "animate-spin motion-reduce:animate-none" : ""}`}
-    >
-      <Boxes size={size === "icon" ? 19 : 21} strokeWidth={2.3} />
-    </span>
-  );
-}
-
-function LogoWordmark({ size, tone }: { size: BrandLogoSize; tone: BrandLogoTone }) {
-  return (
-    <span className={`font-display font-black ${textSizeClass[size]} leading-none tracking-normal ${toneTextClass(tone)}`}>
-      Gesti<span className="text-brand-kinetic-orange">OS</span>
-    </span>
+    <Image
+      src={logoAsset(tone, iconOnly)}
+      alt=""
+      width={iconOnly ? 160 : 320}
+      height={iconOnly ? 160 : 126}
+      className={`${iconOnly ? iconLogoSizeClass[size] : fullLogoSizeClass[size]} shrink-0 object-contain object-left`}
+      priority={priority}
+      sizes={iconOnly ? "48px" : "(max-width: 640px) 48px, 180px"}
+    />
   );
 }
 
@@ -62,31 +66,31 @@ function LogoContent({
   variant,
   size,
   tone,
+  priority,
 }: {
   variant: BrandLogoVariant;
   size: BrandLogoSize;
   tone: BrandLogoTone;
+  priority?: boolean;
 }) {
-  if (variant === "icon") return <LogoMark size={size} tone={tone} />;
+  if (variant === "icon") return <LogoImage iconOnly size={size} tone={tone} priority={priority} />;
 
   if (variant === "responsive") {
     return (
       <>
         <span className="sm:hidden">
-          <LogoMark size="icon" tone={tone} />
+          <LogoImage iconOnly size="icon" tone={tone} priority={priority} />
         </span>
         <span className="hidden sm:inline-flex items-center gap-2.5">
-          <LogoMark size={size} tone={tone} />
-          <LogoWordmark size={size} tone={tone} />
+          <LogoImage iconOnly={false} size={size} tone={tone} priority={priority} />
         </span>
       </>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-2.5">
-      <LogoMark size={size} tone={tone} />
-      <LogoWordmark size={size} tone={tone} />
+    <span className="inline-flex items-center">
+      <LogoImage iconOnly={false} size={size} tone={tone} priority={priority} />
     </span>
   );
 }
@@ -97,8 +101,9 @@ export function BrandLogo({
   size = "nav",
   tone = "dark",
   className = "",
+  priority = false,
 }: BrandLogoProps) {
-  const content = <LogoContent variant={variant} size={size} tone={tone} />;
+  const content = <LogoContent variant={variant} size={size} tone={tone} priority={priority} />;
   const label = variant === "icon" ? "GestiOS icon" : "GestiOS";
 
   if (!href) {
