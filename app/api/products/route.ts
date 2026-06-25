@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { PLAN_LIMITS, isPlanAtLeast } from "@/lib/plans";
 import { hasPermission } from "@/lib/permissions";
 import { checkOrgRateLimit } from "@/lib/rate-limit";
+import { createLowStockNotificationForProduct } from "@/lib/notifications";
 import { z } from "zod";
 import { logAudit } from "@/lib/audit";
 
@@ -130,6 +131,17 @@ export async function POST(request: Request) {
   });
 
   logAudit({ orgId: profile.organizationId, orgPlan: profile.plan, userId: profile.userId, action: "create", entityType: "product", entityId: product.id, after: { name: product.name, price: product.price, stock: product.stock } });
+
+  createLowStockNotificationForProduct({
+    organizationId: profile.organizationId,
+    product: {
+      id: product.id,
+      name: product.name,
+      stock: product.stock,
+      minStock: product.minStock,
+      hasVariants: product.hasVariants,
+    },
+  }).catch(() => {});
 
   return NextResponse.json(product, { status: 201 });
 }

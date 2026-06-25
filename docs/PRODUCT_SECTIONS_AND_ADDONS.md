@@ -6,26 +6,36 @@ Keep GestiOS sellable without promising integrations that are not connected yet.
 
 ## Active product sections
 
-- Dashboard: KPIs, stock alerts, recent orders and operational notifications.
-- Punto de Venta: cart, discounts, payment method, stock decrement and receipt.
-- Ventas: order history, detail, status updates and customer follow-up.
-- Inventario: products, variants, SKU/barcode, stock, expiry where applicable.
-- Pedidos: internal and storefront order workflow.
-- Clientes: customer registry, purchase history and loyalty data.
-- Reportes: sales, margin, top products, exports and accounting support by plan.
-- Corte de Caja: daily cash control by payment method.
-- Tienda Online: public catalog and checkout for PRO+.
-- Proveedores and Ordenes de Compra: purchase workflow for CRECER+.
-- Descuentos, Categorias and Sucursales.
-- Equipo, Configuracion, Ayuda, Soporte and Notificaciones.
+The dashboard navigation is grouped by operational intent, not by implementation detail:
+
+- Inicio: Dashboard and Notificaciones.
+- Operacion diaria: Punto de Venta, Ventas, Pedidos and Corte de Caja.
+- Inventario y compras: Inventario, Proveedores, Ordenes de Compra, Categorias and Sucursales.
+- Ventas y crecimiento: Clientes, Tienda Online, Descuentos and WhatsApp/Conversaciones when enabled.
+- Cuenta y soporte: Billing, Configuracion, Ayuda and Soporte.
 - Superadmin: organizations, users, payments, impersonation and plan control.
-- Dental operational mode: inventory, suppliers, purchase orders and expiry control for clinics that use DentalGest as the clinical system.
+
+Each module should answer one clear question:
+
+| Module | Real business use |
+|---|---|
+| Dashboard | See today's operational health: stock, orders, sales and pending actions. |
+| Notificaciones | Review unread operational alerts and open the affected product, order or account action. |
+| Punto de Venta | Sell quickly, decrement stock and register payment method. |
+| Ventas/Pedidos | Track order status, customer follow-up and fulfillment. |
+| Inventario | Control products, SKU/barcode, stock, minimum stock and expiry where applicable. |
+| Proveedores/Ordenes de Compra | Replenish stock with supplier traceability. |
+| Reportes/Corte de Caja | Review cash, sales, margins and exports for administration. |
+| Configuracion/Billing | Maintain store data, plan, account and payment status. |
+| Dental operational mode | Inventory, suppliers, purchase orders and expiry control for clinics that use DentalGest as the clinical system. |
+
+Low-stock alerts are created when a product reaches `stock <= minStock` through product creation, product update, batch stock update or order stock decrement. Duplicate unread alerts for the same product are not created.
 
 ## Add-ons exposed in product
 
 | Add-on | Status | Notes |
 |---|---|---|
-| WhatsApp Business | Commercially available, external credentials required | Requires Meta Business account, phone number and webhook configuration. |
+| WhatsApp Business + Bot IA | Commercially available, external credentials required | Requires Meta Business account, phone number, webhook configuration and bot scope if automation is included. |
 | Pagos QR Bolivia | Partially available | QR personal works. Automatic PSP QR requires provider, API and credentials. |
 | E-commerce | Requestable | Storefront exists; commercial activation depends on plan and operational setup. |
 | Exportacion Contable | Requestable | CSV/Excel workflow is safer than SIAT. |
@@ -33,13 +43,25 @@ Keep GestiOS sellable without promising integrations that are not connected yet.
 
 ## Add-ons a medida
 
-- Asistente IA operativo.
+- Bot IA de ventas y soporte.
 - Backups y continuidad.
 - Migracion asistida.
 - Reportes gerenciales.
 - Servidor propio administrado para clinicas o empresas con requisitos de infraestructura dedicada.
 
 These are sold as implementation services or managed add-ons. They should not be represented as automatically active until there is a data model, provider or documented operational process.
+
+### Bot IA de ventas y soporte
+
+This add-on is a paid implementation package, not a simple toggle. Before selling it, define:
+
+- objective: sales qualification, support FAQ, order status, appointment handoff or internal support;
+- approved knowledge base and escalation rules;
+- WhatsApp provider credentials and webhook;
+- human owner for unresolved conversations;
+- expected response limits, maintenance and monthly review.
+
+Do not sell the bot as autonomous business operation. Sell it as assisted automation connected to a clear process.
 
 ### Servidor propio administrado
 

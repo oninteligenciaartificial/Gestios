@@ -50,7 +50,7 @@ const DENTAL_FEATURES: Feat[] = [
 ];
 
 const ADDON_WA_MSG: Record<AddonType, string> = {
-  WHATSAPP:    `Hola! Me interesa activar el add-on *WhatsApp Business* (${ADDON_META.WHATSAPP.price}) en GestiOS. ¿Cómo procedo?`,
+  WHATSAPP:    `Hola! Me interesa activar el add-on *WhatsApp Business + Bot IA* (${ADDON_META.WHATSAPP.price}) en GestiOS. Quiero revisar requisitos y alcance.`,
   QR_BOLIVIA:  `Hola! Quiero activar el add-on de *Pagos QR Bolivia* (${ADDON_META.QR_BOLIVIA.price}) en GestiOS. ¿Cómo procedo?`,
   ECOMMERCE:   `Hola! Me interesa el add-on de *E-commerce* (${ADDON_META.ECOMMERCE.price}) en GestiOS. ¿Cómo procedo?`,
   CONTABILIDAD:`Hola! Quiero activar la *Exportación Contable* (${ADDON_META.CONTABILIDAD.price}) en GestiOS. ¿Cómo procedo?`,

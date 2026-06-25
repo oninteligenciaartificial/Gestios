@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
+import { createLowStockNotificationsForProducts } from "@/lib/notifications";
 
 const batchSchema = z.object({
   ids: z.array(z.string()).min(1).max(200),
@@ -64,6 +65,14 @@ export async function PATCH(request: Request) {
         })
       )
     );
+    const updatedProducts = await prisma.product.findMany({
+      where: { id: { in: ownedIds }, organizationId: profile.organizationId, active: true },
+      select: { id: true, name: true, stock: true, minStock: true, hasVariants: true },
+    });
+    createLowStockNotificationsForProducts({
+      organizationId: profile.organizationId,
+      products: updatedProducts,
+    }).catch(() => {});
   } else if (action === "deactivate") {
     await prisma.product.updateMany({
       where: { id: { in: ownedIds }, organizationId: profile.organizationId },

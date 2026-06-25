@@ -92,10 +92,12 @@ export function NotificationBell() {
       }
     }
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("gestios-notifications-changed", fetchNotifs);
     return () => {
       window.clearTimeout(initialId);
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("gestios-notifications-changed", fetchNotifs);
     };
   }, [fetchNotifs]);
 
@@ -170,7 +172,7 @@ export function NotificationBell() {
             width: panelPosition.width,
             maxHeight: `calc(100vh - ${panelPosition.top + PANEL_MARGIN}px)`,
           }}
-          role="menu"
+          role="dialog"
           aria-label="Lista de notificaciones"
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/8">
@@ -231,6 +233,17 @@ export function NotificationBell() {
                 </button>
               ))
             )}
+          </div>
+          <div className="border-t border-white/8 p-3">
+            <button
+              onClick={() => {
+                setOpen(false);
+                router.push("/notifications");
+              }}
+              className="w-full rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-white hover:border-brand-kinetic-orange hover:text-brand-kinetic-orange transition-colors"
+            >
+              Ver centro de notificaciones
+            </button>
           </div>
         </div>,
         document.body

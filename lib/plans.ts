@@ -23,7 +23,7 @@ export const PLAN_LIMITS: Record<PlanType, { maxProducts: number; maxCustomers: 
 };
 
 export const ADDON_META: Record<AddonType, { label: string; price: string; description: string; comingSoon?: boolean }> = {
-  WHATSAPP:    { label: "WhatsApp Business",    price: "Bs. 280/mes",  description: "300 conversaciones incluidas, excedente Bs. 0.55 c/u" },
+  WHATSAPP:    { label: "WhatsApp Business + Bot IA", price: "Bs. 280/mes", description: "Bandeja operativa, plantillas y base para bot de calificacion; consumo Meta se cobra aparte" },
   FACTURACION: { label: "Facturación electrónica", price: "No disponible", description: "Fuera del alcance comercial actual de GestiOS", comingSoon: true },
   QR_BOLIVIA:  { label: "Pagos QR Bolivia",    price: "Bs. 105/mes",  description: "QR personal disponible; PSP bancario requiere proveedor configurado",                  comingSoon: true },
   ECOMMERCE:   { label: "E-commerce",          price: "Bs. 140/mes",  description: "Conecta tu tienda online y sincroniza inventario automáticamente",                   comingSoon: true },

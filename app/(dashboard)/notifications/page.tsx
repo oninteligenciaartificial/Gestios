@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCheck, ExternalLink, Inbox, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, Bell, CheckCheck, ExternalLink, Inbox, RefreshCw, ShoppingCart, Trash2 } from "lucide-react";
 
 type Notification = {
   id: string;
@@ -27,6 +27,16 @@ const TYPE_LABELS: Record<string, string> = {
   custom: "Sistema",
 };
 
+const FILTERS = [
+  { key: "all", label: "Todas" },
+  { key: "unread", label: "Sin leer" },
+  { key: "orders", label: "Pedidos" },
+  { key: "stock", label: "Stock" },
+  { key: "system", label: "Sistema" },
+] as const;
+
+type FilterKey = typeof FILTERS[number]["key"];
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("es-BO", {
     day: "2-digit",
@@ -36,6 +46,25 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
+function actionLabel(notification: Notification): string {
+  if (!notification.link) return notification.read ? "Leida" : "Marcar leida";
+  if (notification.type === "stock_bajo") return "Revisar stock";
+  if (notification.type === "nuevo_pedido" || notification.type === "pedido_actualizado") return "Abrir pedido";
+  return "Abrir";
+}
+
+function matchesFilter(notification: Notification, filter: FilterKey): boolean {
+  if (filter === "all") return true;
+  if (filter === "unread") return !notification.read;
+  if (filter === "orders") return notification.type === "nuevo_pedido" || notification.type === "pedido_actualizado";
+  if (filter === "stock") return notification.type === "stock_bajo";
+  return notification.type === "custom" || notification.type === "plan_vence";
+}
+
+function notifyBellChanged() {
+  window.dispatchEvent(new Event("gestios-notifications-changed"));
+}
+
 export default function NotificationsPage() {
   const router = useRouter();
   const [items, setItems] = useState<Notification[]>([]);
@@ -43,8 +72,21 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterKey>("all");
 
   const readCount = useMemo(() => items.filter((item) => item.read).length, [items]);
+  const filteredItems = useMemo(
+    () => items.filter((item) => matchesFilter(item, filter)),
+    [filter, items]
+  );
+  const orderCount = useMemo(
+    () => items.filter((item) => matchesFilter(item, "orders")).length,
+    [items]
+  );
+  const stockCount = useMemo(
+    () => items.filter((item) => item.type === "stock_bajo").length,
+    [items]
+  );
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -80,6 +122,7 @@ export default function NotificationsPage() {
       if (!res.ok) throw new Error("No se pudo actualizar");
       setItems((prev) => prev.map((item) => item.id === notification.id ? { ...item, read: true } : item));
       setUnreadCount((prev) => Math.max(0, prev - 1));
+      notifyBellChanged();
     } finally {
       setBusyId(null);
     }
@@ -97,6 +140,7 @@ export default function NotificationsPage() {
       if (!res.ok) throw new Error("No se pudo actualizar");
       setItems((prev) => prev.map((item) => ({ ...item, read: true })));
       setUnreadCount(0);
+      notifyBellChanged();
     } finally {
       setBusyId(null);
     }
@@ -109,6 +153,7 @@ export default function NotificationsPage() {
       if (!res.ok) throw new Error("No se pudo eliminar");
       setItems((prev) => prev.filter((item) => item.id !== notification.id));
       if (!notification.read) setUnreadCount((prev) => Math.max(0, prev - 1));
+      notifyBellChanged();
     } finally {
       setBusyId(null);
     }
@@ -161,24 +206,73 @@ export default function NotificationsPage() {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="glass-panel rounded-2xl p-4 flex gap-3">
+          <ShoppingCart size={18} className="mt-1 text-brand-kinetic-orange" />
+          <div>
+            <h2 className="font-bold text-white text-sm">Pedidos y ventas</h2>
+            <p className="text-xs text-brand-muted mt-1 leading-relaxed">
+              Se registran al crear pedidos y al cambiar estados para que el equipo no dependa de memoria.
+            </p>
+            <p className="text-xs text-brand-kinetic-orange font-bold mt-2">{orderCount} aviso(s)</p>
+          </div>
+        </div>
+        <div className="glass-panel rounded-2xl p-4 flex gap-3">
+          <AlertTriangle size={18} className="mt-1 text-red-400" />
+          <div>
+            <h2 className="font-bold text-white text-sm">Stock bajo</h2>
+            <p className="text-xs text-brand-muted mt-1 leading-relaxed">
+              Se genera cuando un producto queda igual o por debajo de su minimo y evita duplicados sin leer.
+            </p>
+            <p className="text-xs text-red-300 font-bold mt-2">{stockCount} alerta(s)</p>
+          </div>
+        </div>
+        <div className="glass-panel rounded-2xl p-4 flex gap-3">
+          <Bell size={18} className="mt-1 text-yellow-300" />
+          <div>
+            <h2 className="font-bold text-white text-sm">Campana activa</h2>
+            <p className="text-xs text-brand-muted mt-1 leading-relaxed">
+              La campana consulta cada 30 segundos y tambien se actualiza cuando marcas o eliminas avisos.
+            </p>
+            <p className="text-xs text-yellow-200 font-bold mt-2">{unreadCount} sin leer</p>
+          </div>
+        </div>
+      </section>
+
       {error && (
         <div className="glass-panel rounded-2xl border border-red-500/20 p-4 text-sm text-red-300">
           {error}
         </div>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        {FILTERS.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setFilter(item.key)}
+            className={`min-h-[38px] rounded-xl px-3 text-xs font-bold transition-colors ${
+              filter === item.key
+                ? "bg-brand-kinetic-orange text-black"
+                : "border border-white/10 text-brand-muted hover:border-white/25 hover:text-white"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       <section className="glass-panel rounded-3xl overflow-hidden">
         {loading ? (
           <div className="p-10 text-center text-brand-muted animate-pulse">Cargando notificaciones...</div>
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="p-10 text-center">
             <Inbox size={34} className="mx-auto text-brand-muted/50 mb-3" />
-            <h2 className="font-bold text-white">No hay notificaciones</h2>
-            <p className="text-sm text-brand-muted mt-1">Aqui apareceran pedidos, stock bajo y avisos importantes.</p>
+            <h2 className="font-bold text-white">No hay notificaciones en este filtro</h2>
+            <p className="text-sm text-brand-muted mt-1">Aqui apareceran pedidos, stock bajo y avisos importantes cuando existan.</p>
           </div>
         ) : (
           <div className="divide-y divide-white/6">
-            {items.map((notification) => (
+            {filteredItems.map((notification) => (
               <article
                 key={notification.id}
                 className={`p-4 sm:p-5 flex gap-4 ${notification.read ? "opacity-65" : "bg-brand-kinetic-orange/[0.03]"}`}
@@ -193,8 +287,18 @@ export default function NotificationsPage() {
                   </div>
                   <h2 className="text-white font-bold mt-2">{notification.title}</h2>
                   <p className="text-sm text-brand-muted mt-1 leading-relaxed">{notification.body}</p>
+                  <div className="mt-3 sm:hidden">
+                    <button
+                      onClick={() => openNotification(notification)}
+                      disabled={busyId === notification.id}
+                      className="inline-flex min-h-[36px] items-center gap-2 rounded-xl border border-white/10 px-3 text-xs font-bold text-white disabled:opacity-50"
+                    >
+                      {notification.link ? <ExternalLink size={14} /> : <CheckCheck size={14} />}
+                      {actionLabel(notification)}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2 flex-shrink-0">
+                <div className="hidden sm:flex flex-col gap-2 flex-shrink-0">
                   <button
                     onClick={() => openNotification(notification)}
                     disabled={busyId === notification.id}

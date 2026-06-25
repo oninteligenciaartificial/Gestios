@@ -4,7 +4,7 @@ import { getTenantProfile } from "@/lib/auth";
 import { DENTALGEST_MODULE_DISABLED_ERROR, isDentalGestOperationalMode } from "@/lib/dentalgest-mode";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmation, sendNewOrderAlert } from "@/lib/email";
-import { createNotification } from "@/lib/notifications";
+import { createLowStockNotificationsForProducts, createNotification } from "@/lib/notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasPermission } from "@/lib/permissions";
 import { checkOrgRateLimit } from "@/lib/rate-limit";
@@ -226,6 +226,20 @@ export async function POST(request: Request) {
   }
 
   logAudit({ orgId: profile.organizationId, orgPlan: profile.plan, userId: user.id, action: "create", entityType: "order", entityId: order.id, after: { total, items: items.length, paymentMethod } });
+
+  const productsAfterStock = await prisma.product.findMany({
+    where: { id: { in: productIds }, organizationId: profile.organizationId, active: true },
+    select: { id: true, name: true, stock: true, minStock: true, hasVariants: true },
+  });
+  createLowStockNotificationsForProducts({
+    organizationId: profile.organizationId,
+    products: productsAfterStock,
+  }).catch((error) => {
+    reportAsyncError("api.orders.lowStockNotifications", error, {
+      orderId: order.id,
+      organizationId: profile.organizationId,
+    });
+  });
 
   const org = await prisma.organization.findUnique({ where: { id: profile.organizationId }, select: { name: true } });
   const orgName = org?.name ?? "Tu Tienda";

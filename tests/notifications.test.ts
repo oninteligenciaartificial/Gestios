@@ -198,3 +198,76 @@ describe("createNotification helper", () => {
     ).resolves.not.toThrow();
   });
 });
+
+describe("low stock notification helpers", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("creates a stock alert when product stock reaches minimum", async () => {
+    const { prisma } = await import("@/lib/prisma");
+    (prisma.notification.findFirst as any).mockResolvedValue(null);
+    (prisma.notification.create as any).mockResolvedValue(mockNotif);
+
+    const { createLowStockNotificationForProduct } = await import("@/lib/notifications");
+    await createLowStockNotificationForProduct({
+      organizationId: "org-1",
+      product: { id: "prod-1", name: "Guantes", stock: 2, minStock: 2 },
+    });
+
+    expect(prisma.notification.findFirst).toHaveBeenCalledWith({
+      where: {
+        organizationId: "org-1",
+        type: "stock_bajo",
+        read: false,
+        link: "/inventory/prod-1",
+      },
+      select: { id: true },
+    });
+    expect(prisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        organizationId: "org-1",
+        type: "stock_bajo",
+        title: "Stock bajo",
+        link: "/inventory/prod-1",
+      }),
+    });
+  });
+
+  it("does not create a stock alert while stock is above minimum", async () => {
+    const { prisma } = await import("@/lib/prisma");
+
+    const { createLowStockNotificationForProduct } = await import("@/lib/notifications");
+    await createLowStockNotificationForProduct({
+      organizationId: "org-1",
+      product: { id: "prod-1", name: "Guantes", stock: 8, minStock: 2 },
+    });
+
+    expect(prisma.notification.findFirst).not.toHaveBeenCalled();
+    expect(prisma.notification.create).not.toHaveBeenCalled();
+  });
+
+  it("does not duplicate an unread alert for the same product", async () => {
+    const { prisma } = await import("@/lib/prisma");
+    (prisma.notification.findFirst as any).mockResolvedValue({ id: "existing-alert" });
+
+    const { createLowStockNotificationForProduct } = await import("@/lib/notifications");
+    await createLowStockNotificationForProduct({
+      organizationId: "org-1",
+      product: { id: "prod-1", name: "Guantes", stock: 1, minStock: 2 },
+    });
+
+    expect(prisma.notification.create).not.toHaveBeenCalled();
+  });
+
+  it("skips parent products that use variants", async () => {
+    const { prisma } = await import("@/lib/prisma");
+
+    const { createLowStockNotificationForProduct } = await import("@/lib/notifications");
+    await createLowStockNotificationForProduct({
+      organizationId: "org-1",
+      product: { id: "prod-1", name: "Uniforme", stock: 0, minStock: 5, hasVariants: true },
+    });
+
+    expect(prisma.notification.findFirst).not.toHaveBeenCalled();
+    expect(prisma.notification.create).not.toHaveBeenCalled();
+  });
+});

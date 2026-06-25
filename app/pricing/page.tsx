@@ -55,9 +55,15 @@ const PLAN_FEATURES: Record<PlanType, Array<{ label: string; included: boolean }
 const PUBLIC_ADDONS = [
   {
     key: "whatsapp",
-    label: "WhatsApp operativo",
+    label: ADDON_META.WHATSAPP.label,
     price: ADDON_META.WHATSAPP.price,
-    description: "Alertas, seguimiento de pedidos y conversaciones operativas para tu tienda.",
+    description: "Canal operativo con configuracion Meta, plantillas y base para bot de calificacion.",
+  },
+  {
+    key: "ai-bot",
+    label: "Bot IA de ventas y soporte",
+    price: "Setup + mensual",
+    description: "Responde preguntas frecuentes, califica solicitudes y deriva a humano con control de ONIA.",
   },
   {
     key: "extra-user",

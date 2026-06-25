@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getTenantProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { createLowStockNotificationForProduct } from "@/lib/notifications";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -74,6 +75,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const updated = await prisma.product.update({ where: { id }, data: result.data });
 
   logAudit({ orgId: profile.organizationId, orgPlan: profile.plan, userId: profile.userId, action: "update", entityType: "product", entityId: id, before: { name: product.name, price: product.price, stock: product.stock }, after: { name: updated.name, price: updated.price, stock: updated.stock } });
+
+  createLowStockNotificationForProduct({
+    organizationId: profile.organizationId,
+    product: {
+      id: updated.id,
+      name: updated.name,
+      stock: updated.stock,
+      minStock: updated.minStock,
+      hasVariants: updated.hasVariants,
+    },
+  }).catch(() => {});
 
   return NextResponse.json(updated);
 }

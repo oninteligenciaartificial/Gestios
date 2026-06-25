@@ -199,9 +199,11 @@ const plans = [
 
 const addons = [
   { name: "Inventario Avanzado", desc: "Stock por ubicacion, reposicion y trazabilidad por lote/serie para operaciones con mas rotacion.", icon: Package, color: "text-brand-kinetic-orange" },
+  { name: "Bot IA de ventas y soporte", desc: "Califica solicitudes, responde preguntas frecuentes y deriva a humano cuando corresponde. Requiere guion y proceso aprobado.", icon: MessageCircle, color: "text-green-400" },
   { name: "Reportes gerenciales", desc: "Tableros a medida para margen, compras, ventas y control operativo.", icon: BarChart2, color: "text-yellow-400" },
   { name: "WhatsApp Business", desc: "Atención al cliente y notificaciones por WhatsApp. Requiere Meta Business Account.", icon: MessageCircle, color: "text-green-400" },
   { name: "QR Bolivia", desc: "QR personal disponible para cobros. PSP bancario, Tigo Money o BiPago requieren proveedor y credenciales reales.", icon: Store, color: "text-blue-400" },
+  { name: "Servidor propio administrado", desc: "VPS o infraestructura propia con backups, dominio, TLS, monitoreo y soporte mensual pactado.", icon: Building2, color: "text-cyan-300" },
 ];
 
 const faqs = [
