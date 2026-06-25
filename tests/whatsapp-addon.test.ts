@@ -1,6 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+const WHATSAPP_ENV_KEYS = [
+  "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_SITE_URL",
+  "VERCEL_URL",
+  "WHATSAPP_WEBHOOK_VERIFY_TOKEN",
+  "WA_VERIFY_TOKEN",
+  "WHATSAPP_APP_SECRET",
+  "WA_APP_SECRET",
+  "OPENAI_API_KEY",
+] as const;
+
+function resetWhatsAppEnv() {
+  for (const key of WHATSAPP_ENV_KEYS) {
+    delete process.env[key];
+  }
+}
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(() => ({
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
@@ -277,6 +294,111 @@ describe("DELETE /api/superadmin/organizations/[id]/whatsapp-addon", () => {
 // ──────────────────────────────────────────────
 // Webhook — multi-tenant routing
 // ──────────────────────────────────────────────
+
+describe("getWhatsAppBotReadiness", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetWhatsAppEnv();
+  });
+
+  it("returns ready states without exposing tenant secrets", async () => {
+    process.env.NEXT_PUBLIC_APP_URL = "https://gestioshq.app";
+    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN = "verify-secret";
+    process.env.WHATSAPP_APP_SECRET = "app-secret";
+    process.env.OPENAI_API_KEY = "sk-test-secret";
+
+    const { prisma } = await import("@/lib/prisma");
+    (prisma.orgAddon.findFirst as any).mockResolvedValue({
+      active: true,
+      phoneNumberId: "phone-123",
+      accessToken: "EAA-secret-token",
+      templateName: "sales_bot",
+      onboardingAt: new Date(),
+      chatwootInboxId: 42,
+    });
+
+    const { getWhatsAppBotReadiness } = await import("@/lib/whatsapp-readiness");
+    const result = await getWhatsAppBotReadiness("org-1");
+
+    expect(result.whatsappReady).toBe(true);
+    expect(result.botReady).toBe(true);
+    expect(result.webhookUrl).toBe("https://gestioshq.app/api/webhooks/whatsapp");
+    expect(JSON.stringify(result)).not.toContain("EAA-secret-token");
+    expect(JSON.stringify(result)).not.toContain("sk-test-secret");
+  });
+
+  it("reports missing bot requirements when AI and handoff are not configured", async () => {
+    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN = "verify-secret";
+    process.env.WHATSAPP_APP_SECRET = "app-secret";
+
+    const { prisma } = await import("@/lib/prisma");
+    (prisma.orgAddon.findFirst as any).mockResolvedValue({
+      active: true,
+      phoneNumberId: "phone-123",
+      accessToken: "EAA-secret-token",
+      templateName: null,
+      onboardingAt: null,
+      chatwootInboxId: null,
+    });
+
+    const { getWhatsAppBotReadiness } = await import("@/lib/whatsapp-readiness");
+    const result = await getWhatsAppBotReadiness("org-1");
+
+    expect(result.whatsappReady).toBe(true);
+    expect(result.botReady).toBe(false);
+    expect(result.nextSteps).toContain("OPENAI_API_KEY configurada para respuestas IA");
+    expect(result.nextSteps).toContain("Responsable humano definido para escalamiento");
+  });
+});
+
+describe("GET /api/addons/whatsapp-readiness", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetWhatsAppEnv();
+  });
+
+  it("returns 401 when not authenticated", async () => {
+    const { getTenantProfile } = await import("@/lib/auth");
+    (getTenantProfile as any).mockResolvedValue(null);
+
+    const { GET } = await import("@/app/api/addons/whatsapp-readiness/route");
+    const res = await GET();
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 403 in DentalGest operational mode", async () => {
+    const { getTenantProfile } = await import("@/lib/auth");
+    (getTenantProfile as any).mockResolvedValue({
+      organizationId: "org-1",
+      role: "ADMIN",
+      businessType: "DENTAL",
+    });
+
+    const { GET } = await import("@/app/api/addons/whatsapp-readiness/route");
+    const res = await GET();
+    expect(res.status).toBe(403);
+  });
+
+  it("returns readiness for the authenticated tenant", async () => {
+    const { getTenantProfile } = await import("@/lib/auth");
+    (getTenantProfile as any).mockResolvedValue({
+      organizationId: "org-1",
+      role: "ADMIN",
+      businessType: "GENERAL",
+    });
+
+    const { prisma } = await import("@/lib/prisma");
+    (prisma.orgAddon.findFirst as any).mockResolvedValue(null);
+
+    const { GET } = await import("@/app/api/addons/whatsapp-readiness/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+
+    const data = await res.json() as { webhookUrl: string; whatsappReady: boolean };
+    expect(data.whatsappReady).toBe(false);
+    expect(data.webhookUrl).toMatch(/\/api\/webhooks\/whatsapp$/);
+  });
+});
 
 describe("POST /api/webhooks/whatsapp — multi-tenant routing", () => {
   beforeEach(() => vi.clearAllMocks());

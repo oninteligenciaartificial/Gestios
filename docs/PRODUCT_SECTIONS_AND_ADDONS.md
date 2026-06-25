@@ -63,6 +63,8 @@ This add-on is a paid implementation package, not a simple toggle. Before sellin
 
 Do not sell the bot as autonomous business operation. Sell it as assisted automation connected to a clear process.
 
+Operational runbook: `docs/BOT_IA_ADDON_RUNBOOK.md`.
+
 ### Servidor propio administrado
 
 This add-on is consultative, not self-serve. It requires a technical assessment before sale:

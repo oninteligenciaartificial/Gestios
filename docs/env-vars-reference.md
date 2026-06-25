@@ -84,8 +84,14 @@ Usar solo para bootstrap controlado. Rotar password despues de crear la cuenta.
 | `WA_ACCESS_TOKEN` | token server-side | Meta Business Manager > System User token |
 | `WA_APP_SECRET` | firma de webhook | Meta Developers > App Settings |
 | `WA_VERIFY_TOKEN` | verificacion webhook | Valor aleatorio definido por el equipo |
+| `WHATSAPP_PHONE_NUMBER_ID` | alias aceptado para numero Meta/WhatsApp | Meta Developers > WhatsApp |
+| `WHATSAPP_ACCESS_TOKEN` | alias aceptado para token server-side | Meta Business Manager > System User token |
+| `WHATSAPP_APP_SECRET` | alias aceptado para firma de webhook | Meta Developers > App Settings |
+| `WHATSAPP_WEBHOOK_VERIFY_TOKEN` | alias aceptado para verificacion webhook | Valor aleatorio definido por el equipo |
+| `OPENAI_API_KEY` | respuestas IA del add-on Bot IA cuando se vende automatizacion conversacional | OpenAI Platform > API keys |
 
 WhatsApp es add-on. No prometerlo como ilimitado ni activo si Meta, templates y webhooks no estan configurados.
+El endpoint `/api/addons/whatsapp-readiness` valida presencia de estas variables y configuracion tenant sin exponer valores.
 
 ## Analytics
 

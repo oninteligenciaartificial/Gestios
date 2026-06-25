@@ -352,6 +352,30 @@ Reporte de corte de caja por turno/día.
 ### GET /api/addons
 Retorna add-ons activos de la org.
 
+### GET /api/addons/whatsapp-readiness
+
+Retorna el estado de activacion de WhatsApp Business + Bot IA para la organizacion autenticada. No expone tokens ni secretos.
+
+**Response:**
+```json
+{
+  "whatsappReady": false,
+  "botReady": false,
+  "webhookUrl": "https://www.gestioshq.app/api/webhooks/whatsapp",
+  "checks": [
+    {
+      "key": "addon_active",
+      "label": "Add-on WhatsApp activo para la organizacion",
+      "ok": false,
+      "requiredFor": "whatsapp",
+      "owner": "superadmin"
+    }
+  ],
+  "manualRequirements": ["Base de respuestas aprobada por el negocio."],
+  "nextSteps": ["Add-on WhatsApp activo para la organizacion"]
+}
+```
+
 ---
 
 ## /api/payments

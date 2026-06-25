@@ -107,7 +107,7 @@ Ver análisis detallado en `docs/ANALYSIS.md`. Ver plan de trabajo en `docs/PLAN
 | Solicitudes de pago QR + aprobación superadmin | ✅ Completo |
 | Página pública `/registro/[slug]` (plan PRO+) | ✅ Completo |
 | Panel superadmin (orgs, usuarios, pagos, impersonación) | ✅ Completo |
-| WhatsApp — backend + webhook multi-tenant | ✅ Backend listo |
+| WhatsApp — backend + webhook multi-tenant + readiness Bot IA | ✅ Backend listo |
 | n8n WF-GS-02 Plan Expiry WA | ✅ Activo (2026-05-25) |
 | n8n WF-GS-03 Birthday WA | ✅ Activo (2026-05-25) |
 | n8n WF-GS-04 Weekly Admin Digest | ✅ Activo (2026-05-25) |
@@ -178,6 +178,15 @@ Solo falta configurar en Vercel:
 1. `WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN`, `WA_APP_SECRET`, `WA_VERIFY_TOKEN`
 2. Registrar `https://www.gestioshq.app/api/webhooks/whatsapp` en Meta Business Dashboard
 3. Al activar el addon para un tenant: guardar su `phoneNumberId` en `OrgAddon.phoneNumberId`
+4. Revisar `/api/addons/whatsapp-readiness` o el panel Add-ons para confirmar si el canal y el Bot IA estan listos.
+
+### Bot IA de ventas y soporte ✅ Readiness + runbook listos
+Implementado:
+1. Endpoint tenant-scoped `/api/addons/whatsapp-readiness`.
+2. Panel visual en `/addons`.
+3. Runbook operativo `docs/BOT_IA_ADDON_RUNBOOK.md`.
+
+Pendiente externo antes de vender como activo: Meta configurado, `OPENAI_API_KEY` si hay respuestas IA, base de respuestas aprobada y responsable humano.
 
 ### Facturacion electronica
 Retirada del alcance comercial actual. No exponer SIAT como plan, add-on ni promesa de venta.

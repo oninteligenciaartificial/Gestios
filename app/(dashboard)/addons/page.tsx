@@ -3,8 +3,13 @@
 
 import { useEffect, useState } from "react";
 import {
+  AlertTriangle,
   Bot,
   Check,
+  CheckCircle2,
+  CircleDashed,
+  ClipboardCheck,
+  Copy,
   DatabaseBackup,
   FileSpreadsheet,
   MessageCircle,
@@ -24,6 +29,23 @@ type AddonType = "WHATSAPP" | "QR_BOLIVIA" | "ECOMMERCE" | "CONTABILIDAD" | "INV
 interface OrgAddon {
   addon: AddonType;
   active: boolean;
+}
+
+interface ReadinessCheck {
+  key: string;
+  label: string;
+  ok: boolean;
+  requiredFor: "whatsapp" | "bot";
+  owner: "superadmin" | "infra" | "operacion";
+}
+
+interface WhatsAppBotReadiness {
+  whatsappReady: boolean;
+  botReady: boolean;
+  webhookUrl: string;
+  checks: ReadinessCheck[];
+  manualRequirements: string[];
+  nextSteps: string[];
 }
 
 const CORE_ADDONS: Array<{
@@ -115,6 +137,7 @@ const SERVICE_ADDONS = [
 
 export default function AddonsPage() {
   const [addons, setAddons] = useState<OrgAddon[]>([]);
+  const [readiness, setReadiness] = useState<WhatsAppBotReadiness | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [upgradeMsg, setUpgradeMsg] = useState<string | null>(null);
@@ -123,7 +146,17 @@ export default function AddonsPage() {
 
   async function fetchAddons() {
     setLoading(true);
-    const res = await fetch("/api/addons");
+    const [res, readinessRes] = await Promise.all([
+      fetch("/api/addons"),
+      fetch("/api/addons/whatsapp-readiness"),
+    ]);
+
+    if (readinessRes.ok) {
+      setReadiness(await readinessRes.json());
+    } else {
+      setReadiness(null);
+    }
+
     if (res.ok) {
       setAddons(await res.json());
       setError(null);
@@ -137,6 +170,11 @@ export default function AddonsPage() {
 
   function isActive(addon: AddonType): boolean {
     return addons.some(a => a.addon === addon && a.active);
+  }
+
+  function copyWebhookUrl() {
+    if (!readiness?.webhookUrl) return;
+    navigator.clipboard?.writeText(readiness.webhookUrl).catch(() => {});
   }
 
   return (
@@ -162,6 +200,92 @@ export default function AddonsPage() {
         <div className="glass-panel border border-red-500/20 rounded-2xl p-4 text-red-400 text-sm">
           {error}
         </div>
+      )}
+
+      {readiness && (
+        <section className="glass-panel rounded-3xl p-5 sm:p-6 space-y-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-bold text-green-300">
+                <ClipboardCheck size={14} /> Readiness WhatsApp / Bot IA
+              </div>
+              <h2 className="text-xl font-display font-bold text-white">Estado de activacion</h2>
+              <p className="max-w-2xl text-sm leading-relaxed text-brand-muted">
+                Este panel valida requisitos tecnicos sin mostrar secretos. El bot solo debe venderse como activo cuando el canal, la IA y el escalamiento humano esten listos.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:min-w-[18rem]">
+              <div className={`rounded-2xl border p-3 ${readiness.whatsappReady ? "border-green-500/20 bg-green-500/10" : "border-yellow-500/20 bg-yellow-500/10"}`}>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-brand-muted">WhatsApp</div>
+                <div className={`mt-1 text-sm font-bold ${readiness.whatsappReady ? "text-green-300" : "text-yellow-200"}`}>
+                  {readiness.whatsappReady ? "Operativo" : "Pendiente"}
+                </div>
+              </div>
+              <div className={`rounded-2xl border p-3 ${readiness.botReady ? "border-green-500/20 bg-green-500/10" : "border-yellow-500/20 bg-yellow-500/10"}`}>
+                <div className="text-[10px] font-bold uppercase tracking-wide text-brand-muted">Bot IA</div>
+                <div className={`mt-1 text-sm font-bold ${readiness.botReady ? "text-green-300" : "text-yellow-200"}`}>
+                  {readiness.botReady ? "Listo para piloto" : "Requiere setup"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_0.8fr] gap-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Webhook Meta</h3>
+                  <p className="mt-1 break-all font-mono text-xs text-brand-muted">{readiness.webhookUrl}</p>
+                </div>
+                <button
+                  onClick={copyWebhookUrl}
+                  className="inline-flex min-h-[36px] items-center justify-center gap-2 rounded-xl border border-white/10 px-3 text-xs font-bold text-white hover:border-white/25"
+                >
+                  <Copy size={14} /> Copiar
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {readiness.checks.map((check) => (
+                  <div key={check.key} className="flex items-start gap-2 rounded-xl border border-white/8 bg-black/15 p-3">
+                    {check.ok ? (
+                      <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-green-400" />
+                    ) : (
+                      <CircleDashed size={16} className="mt-0.5 flex-shrink-0 text-yellow-300" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white">{check.label}</p>
+                      <p className="mt-0.5 text-[10px] uppercase tracking-wide text-brand-muted">
+                        {check.requiredFor} / {check.owner}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-center gap-2 text-yellow-200">
+                <AlertTriangle size={16} />
+                <h3 className="text-sm font-bold">Pendiente manual</h3>
+              </div>
+              <ul className="mt-3 space-y-2">
+                {readiness.manualRequirements.map((item) => (
+                  <li key={item} className="flex gap-2 text-xs leading-relaxed text-brand-muted">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-kinetic-orange" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              {readiness.nextSteps.length > 0 && (
+                <div className="mt-4 rounded-xl border border-yellow-500/15 bg-yellow-500/10 p-3">
+                  <p className="text-xs font-bold text-yellow-200">Siguiente bloqueo</p>
+                  <p className="mt-1 text-xs text-brand-muted">{readiness.nextSteps[0]}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
       )}
 
       {loading ? (
