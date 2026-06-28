@@ -6,21 +6,39 @@ Origen canonico: `C:\dev\proyectos\onia-hermes\hermes-content\docs\ONIA_GESTIOS_
 
 ## Decision
 
-GestiOS es el core operativo inicial de ONIA.
+GestiOS es el sistema de organizacion operativa inicial de ONIA.
 
-No se crea un repo nuevo para ProveeGest todavia. Primero se endurece GestiOS,
-se valida como base multi-tenant y luego se abre ProveeGest como familia B2B por
-rubro.
+No se crea un repo nuevo para ProveeGest todavia. Primero se perfecciona GestiOS,
+se valida como base multi-tenant para ordenar empresas reales y luego se abre
+ProveeGest como familia B2B por rubro.
 
 ```text
-GestiOS Core -> ProveeGest -> ProveeGest Electrico -> Bolivian Electric piloto
+GestiOS organiza -> ProveeGest verticaliza -> ProveeGest Electrico valida -> Bolivian Electric piloto
 ```
+
+## Que es GestiOS
+
+GestiOS debe responder primero:
+
+1. Quien trabaja en la empresa.
+2. Que rol y permisos tiene.
+3. Que clientes, proveedores, contactos o areas existen.
+4. Que tareas, solicitudes, casos o pendientes estan abiertos.
+5. Quien es responsable.
+6. En que estado esta cada pendiente.
+7. Cual es la fecha limite o siguiente accion.
+8. Que evidencia, nota, archivo o historial existe.
+9. Que alerta requiere atencion.
+10. Que reporte necesita gerencia.
+
+Productos, inventario, ventas, compras y caja son modulos activables. No son la
+definicion de GestiOS.
 
 ## Fronteras
 
 | Producto | Entra aqui | Fuera de alcance |
 |---|---|---|
-| GestiOS Core | Tenant, roles, planes, add-ons, clientes, productos, inventario, ventas, compras, caja, reportes, auditoria, import/export | ERP pesado, SIAT activo, WhatsApp automatico, TR4 write |
+| GestiOS Core | Tenant, equipo, roles, permisos, responsables, clientes, proveedores, contactos, tareas, solicitudes, estados, evidencia, reportes, auditoria, import/export y modulos activables | ERP pesado, POS disfrazado, SIAT activo, WhatsApp automatico, TR4 write |
 | ProveeGest | Solicitudes B2B, contactos, cotizaciones, catalogo tecnico, rubros, conocimiento comercial | Repo separado, portal cliente, integraciones profundas |
 | DentalGest | Solo patrones: tenant, billing manual, audit, superadmin, add-ons | Pacientes, citas, tratamientos, odontograma, historia clinica |
 | Ganadero OS | Solo patrones: organizationId, version, deletedAt, sync/offline | Ganado, potreros, sanidad, offline dentro de GestiOS |
@@ -52,18 +70,19 @@ Checklist:
 - Los logs no imprimen secretos ni datos sensibles innecesarios.
 - Las pruebas cubren al menos una ruta critica contra acceso cross-tenant.
 
-### 2. Core operativo
+### 2. Core de organizacion
 
 Orden:
 
 1. Dashboard operativo.
-2. Clientes y contactos.
-3. Productos, categorias, variantes, stock minimo y sucursal.
-4. Proveedores y ordenes de compra.
-5. Ventas, pedidos y caja.
-6. Notificaciones y actividad.
+2. Equipo, roles, areas y responsables.
+3. Clientes, proveedores y contactos.
+4. Tareas, solicitudes, casos y estados.
+5. Checklists/procesos repetibles.
+6. Notificaciones, actividad y evidencia.
 7. Reportes gerenciales.
 8. Import/export con validacion.
+9. Modulos activables: catalogo, inventario, ventas, compras y caja.
 
 ### 3. ProveeGest B2B
 
@@ -80,14 +99,17 @@ ProveeGest Electrico
 ```
 
 Motivo: una importadora o mayorista electrica no necesita un sistema llamado
-solo "electronica"; necesita flujo B2B, catalogo tecnico, cotizaciones,
-responsables, stock y seguimiento comercial.
+solo "electronica"; necesita organizacion interna, responsables, solicitudes,
+seguimiento, catalogo tecnico, cotizaciones y control comercial.
 
 Piezas a disenar antes de migrar:
 
+- `Area` o equivalente simple para organizar responsabilidades.
 - `Contact` por cliente.
+- `Task` como unidad basica de seguimiento.
 - `CommercialRequest` o equivalente para solicitudes.
 - `Quote` y `QuoteItem` si `Order` no alcanza para cotizaciones.
+- `ProcessChecklist` o equivalente para rutinas repetibles.
 - `ImportBatch` con dry-run y errores por fila.
 - `KnowledgeItem` para base comercial interna.
 - `ExternalAdapter` desactivado por defecto.
@@ -121,10 +143,10 @@ No crear un producto por cada rubro si solo cambia el catalogo. Usar familia +
 
 | Familia | Rubro en sistema | Nombre comercial recomendado | Uso |
 |---|---|---|---|
-| GestiOS | `GENERAL` | GestiOS | comercio general |
-| GestiOS | `ROPA` | GestiOS Moda | ropa y variantes |
-| GestiOS | `FARMACIA` | GestiOS Salud | farmacia/insumos no clinicos |
-| GestiOS | `FERRETERIA` | GestiOS Ferreteria | ferreteria/construccion |
+| GestiOS | `GENERAL` | GestiOS | organizacion general de empresa |
+| GestiOS | `ROPA` | GestiOS Moda | organizacion + catalogo de ropa y variantes |
+| GestiOS | `FARMACIA` | GestiOS Salud | organizacion + farmacia/insumos no clinicos |
+| GestiOS | `FERRETERIA` | GestiOS Ferreteria | organizacion + ferreteria/construccion |
 | ProveeGest | `B2B_DISTRIBUCION` | ProveeGest | mayoristas y distribuidoras |
 | ProveeGest | `ELECTRICO` | ProveeGest Electrico | importadoras/mayoristas electricas |
 | DentalGest | `DENTAL` | DentalGest | clinicas dentales, separado del core |
@@ -144,7 +166,7 @@ No crear un producto por cada rubro si solo cambia el catalogo. Usar familia +
 - Baseline ejecutado y registrado.
 - Rutas criticas auditadas por `organizationId`.
 - Backlog P0/P1/P2 creado.
+- Modelo de equipo, responsables, tareas y solicitudes decidido.
 - Modelo de contactos/solicitudes/cotizaciones decidido.
 - Rubro `ProveeGest Electrico` especificado.
 - Integraciones sensibles documentadas como bloqueadas por defecto.
-
