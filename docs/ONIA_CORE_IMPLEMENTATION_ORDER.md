@@ -2,23 +2,23 @@
 
 Estado: checklist local de implementacion.
 Fecha: 2026-06-28.
-Origen canonico: `C:\dev\proyectos\onia-hermes\hermes-content\docs\ONIA_CORE_IMPLEMENTATION_ORDER_2026.md`.
+Origen canonico: `C:\dev\proyectos\onia-hermes\hermes-content\docs\ONIA_GESTIOS_CORE_IMPLEMENTATION_ORDER_2026.md`.
 
 ## Decision
 
-ONIA Core es el sistema de organizacion operativa inicial de ONIA.
+GestiOS es el sistema de organizacion operativa inicial de ONIA.
 
-No se crea un repo nuevo para ONIA Core ni ProveeGest todavia. Primero se
-implementa ONIA Core dentro de GestiOS, se valida como base multi-tenant para
-ordenar empresas reales y luego se abre ProveeGest como familia B2B por rubro.
+No se crea un repo nuevo para ProveeGest todavia. Primero se perfecciona GestiOS,
+se valida como base multi-tenant para ordenar empresas reales y luego se abre
+ProveeGest como familia B2B por rubro.
 
 ```text
-ONIA Core organiza -> GestiOS implementa -> ProveeGest verticaliza -> ProveeGest Electrico valida
+GestiOS organiza -> ProveeGest verticaliza -> ProveeGest Electrico valida -> Bolivian Electric piloto
 ```
 
-## Que es ONIA Core
+## Que es GestiOS
 
-ONIA Core debe responder primero:
+GestiOS debe responder primero:
 
 1. Quien trabaja en la empresa.
 2. Que rol y permisos tiene.
@@ -32,31 +32,20 @@ ONIA Core debe responder primero:
 10. Que reporte necesita gerencia.
 
 Productos, inventario, ventas, compras y caja son modulos activables. No son la
-definicion de ONIA Core.
+definicion de GestiOS.
 
 ## Fronteras
 
 | Producto | Entra aqui | Fuera de alcance |
 |---|---|---|
-| ONIA Core | Tenant, equipo, roles, permisos, responsables, clientes, proveedores, contactos, tareas, solicitudes, estados, evidencia, reportes, auditoria, import/export y modulos activables | ERP pesado, POS disfrazado, SIAT activo, WhatsApp automatico, TR4 write |
-| GestiOS | Primera implementacion de ONIA Core en este repo | Ser confundido con el nombre del core |
+| GestiOS Core | Tenant, equipo, roles, permisos, responsables, clientes, proveedores, contactos, tareas, solicitudes, estados, evidencia, reportes, auditoria, import/export y modulos activables | ERP pesado, POS disfrazado, SIAT activo, WhatsApp automatico, TR4 write |
 | ProveeGest | Solicitudes B2B, contactos, cotizaciones, catalogo tecnico, rubros, conocimiento comercial | Repo separado, portal cliente, integraciones profundas |
 | DentalGest | Solo patrones: tenant, billing manual, audit, superadmin, add-ons | Pacientes, citas, tratamientos, odontograma, historia clinica |
 | Ganadero OS | Solo patrones: organizationId, version, deletedAt, sync/offline | Ganado, potreros, sanidad, offline dentro de GestiOS |
 
 ## Orden de trabajo
 
-### 0. Contrato de codigo
-
-Primer corte implementado:
-
-- `lib/onia-core.ts` define nombre canonico, preguntas del core, capacidades,
-  familias, verticales/rubros y gates externos.
-- `tests/onia-core.test.ts` protege que ONIA Core no vuelva a degradarse a POS,
-  inventario, ERP o integracion externa.
-- GestiOS queda como primera implementacion, no como nombre del core.
-
-### 1. Baseline
+### 0. Baseline
 
 Antes de cambios de codigo:
 
@@ -70,7 +59,7 @@ npm run build
 Registrar cualquier fallo en el reporte de la sesion. Si el fallo viene de
 estado previo, no ocultarlo.
 
-### 2. Tenant y permisos
+### 1. Tenant y permisos
 
 Checklist:
 
@@ -81,7 +70,7 @@ Checklist:
 - Los logs no imprimen secretos ni datos sensibles innecesarios.
 - Las pruebas cubren al menos una ruta critica contra acceso cross-tenant.
 
-### 3. Core de organizacion
+### 2. Core de organizacion
 
 Orden:
 
@@ -95,7 +84,7 @@ Orden:
 8. Import/export con validacion.
 9. Modulos activables: catalogo, inventario, ventas, compras y caja.
 
-### 4. ProveeGest B2B
+### 3. ProveeGest B2B
 
 Primera familia:
 
@@ -125,7 +114,7 @@ Piezas a disenar antes de migrar:
 - `KnowledgeItem` para base comercial interna.
 - `ExternalAdapter` desactivado por defecto.
 
-### 5. Bolivian Electric piloto
+### 4. Bolivian Electric piloto
 
 Alcance permitido:
 
